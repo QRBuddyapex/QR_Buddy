@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:qr_buddy/app/core/theme/app_theme.dart';
+import 'package:qr_buddy/app/core/widgets/custom_appbar.dart';
+import 'package:qr_buddy/app/core/widgets/custom_drawer.dart';
+import 'package:qr_buddy/app/modules/e_ticket/components/location_dialog.dart';
 
 import '../components/filter_tab.dart';
 import '../components/ticket_card.dart';
@@ -14,26 +18,31 @@ class TicketDashboardScreen extends StatelessWidget {
 
     return Scaffold(
       backgroundColor: const Color(0xFFF5F5F5),
-      appBar: AppBar(
-        title: const Text(
-          'Ticket Dashboard',
-          style: TextStyle(
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
-            color: Color(0xFF212121),
+      appBar: CustomAppBar(
+        title: 'Ticket Dashboard',
+        leading: Builder(
+          builder: (context) => IconButton(
+            icon: const Icon(Icons.menu, color: AppColors.hintTextColor),
+            onPressed: () => Scaffold.of(context).openDrawer(),
           ),
         ),
-        backgroundColor: const Color(0xFFE3F2FD),
+        onStartShiftPressed: () {},
+        onQrPressed: () {},
+        onBrightnessPressed: () {},
+        onLocationPressed: () {
+          showDialog(context: context, builder: (context) => const LocationDialog());
+        },
+        onProfilePressed: () {},
         actions: [
           IconButton(
-            icon: const Icon(Icons.search, color: Color(0xFF1976D2)),
+            icon: const Icon(Icons.search, color: AppColors.hintTextColor),
             onPressed: () {},
           ),
         ],
       ),
+      drawer: const CustomDrawer(),
       body: Column(
         children: [
-          // Filter Tabs
           SingleChildScrollView(
             scrollDirection: Axis.horizontal,
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -57,38 +66,37 @@ class TicketDashboardScreen extends StatelessWidget {
                       isSelected: controller.selectedFilter.value == 'Accepted',
                       onTap: () => controller.setFilter('Accepted'),
                     )),
-                     Obx(() => FilterTab(
+                Obx(() => FilterTab(
                       label: 'Completed',
                       count: 62,
                       isSelected: controller.selectedFilter.value == 'Completed',
                       onTap: () => controller.setFilter('Completed'),
                     )),
-                     Obx(() => FilterTab(
+                Obx(() => FilterTab(
                       label: 'Verified',
                       count: 5,
                       isSelected: controller.selectedFilter.value == 'Verified',
                       onTap: () => controller.setFilter('Verified'),
-                     
                     )),
-                     Obx(() => FilterTab(
+                Obx(() => FilterTab(
                       label: 'On Hold',
                       count: 4,
                       isSelected: controller.selectedFilter.value == 'On Hold',
                       onTap: () => controller.setFilter('On Hold'),
                     )),
-                     Obx(() => FilterTab(
+                Obx(() => FilterTab(
                       label: 'Re-Open',
                       count: 2,
                       isSelected: controller.selectedFilter.value == 'Re-Open',
                       onTap: () => controller.setFilter('Re-Open'),
                     )),
-                       Obx(() => FilterTab(
+                Obx(() => FilterTab(
                       label: 'Cancelled',
                       count: 6,
                       isSelected: controller.selectedFilter.value == 'Cancelled',
                       onTap: () => controller.setFilter('Cancelled'),
                     )),
-                       Obx(() => FilterTab(
+                Obx(() => FilterTab(
                       label: 'All',
                       count: 200,
                       isSelected: controller.selectedFilter.value == 'All',
@@ -97,7 +105,6 @@ class TicketDashboardScreen extends StatelessWidget {
               ],
             ),
           ),
-          // Ticket List
           Expanded(
             child: Obx(
               () => ListView.builder(

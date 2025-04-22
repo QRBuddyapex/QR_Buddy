@@ -8,7 +8,7 @@ class AuthRepository {
       final response = await ApiService.post("/login.html", {
         "username": email,
         "password": password,
-        "visitorId": "8f993a890c7354a5b1e799a6054c43e2", // Example visitor ID
+        "visitorId": "8f993a890c7354a5b1e799a6054c43e2", 
       });
 
       return response;

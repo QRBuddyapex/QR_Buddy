@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:qr_buddy/app/core/theme/app_theme.dart';
- // Ensure this is imported correctly
+ 
 
 class CustomSnackbar {
   static info(String message) {

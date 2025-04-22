@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:qr_buddy/app/core/theme/app_theme.dart';
-import 'package:qr_buddy/app/modules/e_ticket/views/ticket_dashboard_screen.dart';
+import 'package:qr_buddy/app/modules/new_ticket/views/new_ticket_screen.dart';
 
 
 void main() {
@@ -20,7 +20,7 @@ class MyApp extends StatelessWidget {
       // initialRoute: RoutesName.loginScreen, // Set the initial route
       // getPages: AppRoutes.appRoutes(),
       // initialBinding: AuthBinding(), // Register the routes
-      home: TicketDashboardScreen(),
+      home: NewETicketScreen(),
     );
   }
 }

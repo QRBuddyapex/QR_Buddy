@@ -1,45 +1,51 @@
 import 'package:flutter/material.dart';
 import 'package:qr_buddy/app/core/theme/app_theme.dart';
 
-class CustomTextField extends StatelessWidget {
-  final String? label;
-  final String hintText;
-  final bool obscureText;
-  final Function(String) onChanged;
+class CustomDropdownField extends StatelessWidget {
+  final String label;
+  final String? value;
+  final List<String> items;
+  final Function(String?) onChanged;
   final String? Function(String?)? validator;
-  final String? initialValue;
 
-  const CustomTextField({
+  const CustomDropdownField({
     Key? key,
-     this.label,
-    required this.hintText,
-    this.obscureText = false,
+    required this.label,
+    required this.value,
+    required this.items,
     required this.onChanged,
     this.validator,
-    this.initialValue,
   }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
+    // Ensure value is valid or set to null if not in items
+    final validValue = items.contains(value) ? value : null;
+
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8.0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            label!,
+            label,
             style: const TextStyle(
               fontSize: 14,
               color: AppColors.textColor,
             ),
           ),
           const SizedBox(height: 4),
-          TextFormField(
-            initialValue: initialValue,
-            obscureText: obscureText,
+          DropdownButtonFormField<String>(
+            value: validValue,
+            items: items.map((item) {
+              return DropdownMenuItem<String>(
+                value: item,
+                child: Text(item),
+              );
+            }).toList(),
             onChanged: onChanged,
             decoration: InputDecoration(
-              hintText: hintText,
+              hintText: 'Select $label',
               hintStyle: const TextStyle(color: AppColors.hintTextColor),
               filled: true,
               fillColor: AppColors.cardBackgroundColor,

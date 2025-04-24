@@ -1,10 +1,12 @@
 class AppUrl {
   AppUrl._();
 
-  static const String _serverUrl = 'https://api.letsridee.com';
+  static const String _serverUrl = 'https://qrbuddyapi.in';
 
 
-  static const String baseUrl = "$_serverUrl/v1";
+  static const String baseUrl = "$_serverUrl/v3/api";
+
+  //  static const String users = '/users';
 
 
 

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:image_picker/image_picker.dart';
 
 class NewETicketController extends GetxController {
   var room = ''.obs;
@@ -9,10 +10,11 @@ class NewETicketController extends GetxController {
   var priority = 'Normal'.obs;
   var remarks = ''.obs;
   var ticketType = Rx<String?>(null);
+  var selectedImages = <XFile>[].obs;
 
   final formKey = GlobalKey<FormState>();
+  final ImagePicker _picker = ImagePicker();
 
-  // Dummy dropdown values
   final List<String> roomOptions = ['Room 101', 'Room 102', 'Room 103', 'Room 104'];
   final List<String> serviceOptions = ['Cleaning', 'Maintenance', 'Plumbing', 'Electrical'];
   final List<String> priorityOptions = ['Low', 'Normal', 'High', 'Urgent'];
@@ -25,9 +27,24 @@ class NewETicketController extends GetxController {
   void updateRemarks(String value) => remarks.value = value;
   void updateTicketType(String? value) => ticketType.value = value;
 
+  Future<void> pickImages() async {
+    try {
+      final List<XFile>? images = await _picker.pickMultiImage();
+      if (images != null && images.isNotEmpty) {
+        selectedImages.addAll(images);
+      }
+    } catch (e) {
+      Get.snackbar('Error', 'Failed to pick images: $e',
+          snackPosition: SnackPosition.BOTTOM);
+    }
+  }
+
+  void removeImage(int index) {
+    selectedImages.removeAt(index);
+  }
+
   void submit() {
     if (formKey.currentState!.validate()) {
-      // Handle submission logic
       print({
         'room': room.value,
         'services': services.value,
@@ -36,6 +53,7 @@ class NewETicketController extends GetxController {
         'ticketType': ticketType.value,
         'priority': priority.value,
         'remarks': remarks.value,
+        'imageCount': selectedImages.length,
       });
     }
   }

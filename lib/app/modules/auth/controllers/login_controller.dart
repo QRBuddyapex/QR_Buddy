@@ -1,6 +1,7 @@
 import 'package:get/get.dart';
 import 'package:qr_buddy/app/core/utils/snackbar.dart';
 import 'package:qr_buddy/app/data/repo/auth_repo.dart';
+import 'package:qr_buddy/app/routes/routes.dart';
 
 
 class LoginController extends GetxController {
@@ -24,8 +25,8 @@ class LoginController extends GetxController {
       
       if (response["success"] == true) {
         CustomSnackbar.success("Login successful!");
-        // Navigate to Home
-        Get.offAllNamed("/home");
+     
+        Get.offAllNamed(RoutesName.ticketDashboardView);
       } else {
         CustomSnackbar.error(response["message"] ?? "Login failed");
       }

@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:qr_buddy/app/core/theme/app_theme.dart';
-import 'package:qr_buddy/app/modules/new_ticket/views/new_ticket_screen.dart';
+import 'package:qr_buddy/app/modules/auth/bindings/auth_binding.dart';
+import 'package:qr_buddy/app/routes/routes.dart';
+import 'package:qr_buddy/app/routes/routes_name.dart';
 
 
 void main() {
@@ -17,10 +19,10 @@ class MyApp extends StatelessWidget {
       title: 'QR Buddy',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.theme, // Apply the custom theme
-      // initialRoute: RoutesName.loginScreen, // Set the initial route
-      // getPages: AppRoutes.appRoutes(),
-      // initialBinding: AuthBinding(), // Register the routes
-      home: NewETicketScreen(),
+      initialRoute: RoutesName.ticketDashboardView, // Set the initial route
+      getPages: AppRoutes.appRoutes(),
+      initialBinding: AuthBinding(), // Register the routes
+     
     );
   }
 }

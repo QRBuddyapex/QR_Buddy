@@ -56,7 +56,7 @@ class _LocationDialogState extends State<LocationDialog> {
               ),
               const SizedBox(height: 10),
 
-              // Individual cards for each location
+              // Location Cards
               ...subLocations.keys.map((location) {
                 return Card(
                   margin: const EdgeInsets.symmetric(vertical: 8.0),
@@ -76,15 +76,6 @@ class _LocationDialogState extends State<LocationDialog> {
                     children: subLocations[location]!.isNotEmpty
                         ? [
                             Container(
-                              decoration: BoxDecoration(
-                                color: selectedSubLocations[location]!.isNotEmpty
-                                    ? Colors.red.shade100
-                                    : Colors.transparent,
-                                borderRadius: const BorderRadius.only(
-                                  bottomLeft: Radius.circular(10),
-                                  bottomRight: Radius.circular(10),
-                                ),
-                              ),
                               padding: const EdgeInsets.all(8),
                               child: Column(
                                 children: subLocations[location]!.map((subLoc) {
@@ -92,7 +83,12 @@ class _LocationDialogState extends State<LocationDialog> {
                                   final isChecked = selectedSubLocations[location]!.contains(subLoc);
 
                                   return CheckboxListTile(
-                                    title: Text(subLoc),
+                                    title: Text(
+                                      subLoc,
+                                      style: TextStyle(
+                                        color: isChecked ? Colors.red : AppColors.textColor, // Red for checked, default for unchecked
+                                      ),
+                                    ),
                                     value: isCheckAll
                                         ? selectedSubLocations[location]!.length ==
                                             subLocations[location]!.where((e) => e != 'Check All').length
@@ -135,16 +131,15 @@ class _LocationDialogState extends State<LocationDialog> {
               ),
               const SizedBox(height: 10),
 
-              // Submit Button
-                           CustomButton(
+              CustomButton(
                 onPressed: () {
-                  // print('Selected: ${selectedSubLocations[selectedLocation]}');
-                  // handle update logic
+                  // Handle selected rooms update
+                  print("Selected Rooms: $selectedSubLocations");
+                  Navigator.pop(context);
                 },
                 label: 'Update Selected Rooms',
                 backgroundColor: AppColors.primaryColor,
               ),
-
             ],
           ),
         ),

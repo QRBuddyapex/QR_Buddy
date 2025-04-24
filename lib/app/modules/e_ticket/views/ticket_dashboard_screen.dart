@@ -19,7 +19,7 @@ class TicketDashboardScreen extends StatelessWidget {
     return Scaffold(
       backgroundColor: const Color(0xFFF5F5F5),
       appBar: CustomAppBar(
-        title: 'Ticket Dashboard',
+        title: '',
         leading: Builder(
           builder: (context) => IconButton(
             icon: const Icon(Icons.menu, color: AppColors.hintTextColor),

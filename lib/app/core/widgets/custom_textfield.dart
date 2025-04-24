@@ -27,7 +27,7 @@ class CustomTextField extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            label!,
+            label ?? '',
             style: const TextStyle(
               fontSize: 14,
               color: AppColors.textColor,

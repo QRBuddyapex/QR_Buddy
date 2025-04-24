@@ -1,157 +1,208 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
+import 'package:qr_buddy/app/core/theme/app_theme.dart';
 
-import 'custom_button.dart';
-
-class TicketCard extends StatelessWidget {
+class TicketCard extends StatefulWidget {
   final String orderNumber;
   final String description;
   final String block;
   final String status;
   final String date;
   final String department;
+  final String phoneNumber;
+  final String assignedTo;
   final String serviceLabel;
+  final bool isQuickRequest;
+  final VoidCallback onTap;
+  final int index; 
 
   const TicketCard({
+    Key? key,
     required this.orderNumber,
     required this.description,
     required this.block,
     required this.status,
     required this.date,
     required this.department,
+    required this.phoneNumber,
+    required this.assignedTo,
     required this.serviceLabel,
-    Key? key,
+    this.isQuickRequest = false,
+    required this.onTap,
+    required this.index,
   }) : super(key: key);
 
   @override
+  State<TicketCard> createState() => _TicketCardState();
+}
+
+class _TicketCardState extends State<TicketCard> {
+  @override
   Widget build(BuildContext context) {
+    final height = MediaQuery.of(context).size.height;
+    final width = MediaQuery.of(context).size.width;
     return Card(
-      color: Colors.white,
+      color: AppColors.cardBackgroundColor,
       elevation: 4,
       margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
       ),
-      child: Padding(
-        padding: const EdgeInsets.all(12),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+      child: InkWell(
+        onTap: widget.onTap,
+        child: Stack(
           children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      orderNumber,
-                      style: GoogleFonts.poppins(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        color: const Color(0xFF212121),
-                      ),
-                    ),
-                    Text(
-                      description,
-                      style: GoogleFonts.poppins(
-                        fontSize: 14,
-                        color: const Color(0xFF616161),
-                      ),
-                    ),
-                  ],
-                ),
-                Row(
-                  children: [
-                    const Icon(
-                      Icons.star,
-                      color: Color(0xFF6A1B9A),
-                      size: 16,
-                    ),
-                    const SizedBox(width: 4),
-                    Text(
-                      status,
-                      style: GoogleFonts.poppins(
-                        fontSize: 12,
-                        fontWeight: FontWeight.bold,
-                        color: const Color(0xFF6A1B9A),
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-            const SizedBox(height: 8),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-              decoration: BoxDecoration(
-                color: const Color(0xFFE0E0E0),
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Text(
-                block,
-                style: GoogleFonts.poppins(
-                  fontSize: 12,
-                  color: const Color(0xFF424242),
-                ),
-              ),
-            ),
-            const SizedBox(height: 8),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  date,
-                  style: GoogleFonts.poppins(
-                    fontSize: 12,
-                    color: const Color(0xFF616161),
-                  ),
-                ),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFE3F2FD),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
+            // Large semi-transparent number
+            Positioned(
+              left: width * 0.0001,
+              top: 0,
+              bottom: height * 0.01,
+              child: Opacity(
+                opacity: 0.1,
+                child: Center(
                   child: Text(
-                    department,
-                    style: GoogleFonts.poppins(
-                      fontSize: 12,
-                      color: const Color(0xFF1976D2),
+                    '${widget.index + 1}',
+                    style: const TextStyle(
+                      fontSize: 100,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black,
                     ),
                   ),
                 ),
-              ],
+              ),
             ),
-            const SizedBox(height: 8),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                CustomButton(
-                  label: 'Call Security',
-                  backgroundColor: const Color(0xFFB0BEC5),
-                  onPressed: () {},
-                ),
-                CustomButton(
-                  label: 'Feedback',
-                  backgroundColor: const Color(0xFFEF5350),
-                  onPressed: () {},
-                ),
-                Column(
-                  children: [
-                    const Icon(
-                      Icons.qr_code,
-                      color: Color(0xFF1976D2),
+            // Main card content
+            Padding(
+              padding: const EdgeInsets.all(12),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              widget.orderNumber,
+                              style: Theme.of(context).textTheme.bodyMedium!.copyWith(
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                            ),
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                              decoration: BoxDecoration(
+                                color: widget.status == 'Accepted' ? Colors.green[100] : Colors.yellow[100],
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: Text(
+                                widget.status,
+                                style: Theme.of(context).textTheme.bodySmall!.copyWith(
+                                      color: widget.status == 'Accepted' ? Colors.green : Colors.yellow[800],
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          widget.block,
+                          style: Theme.of(context).textTheme.bodySmall,
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          'Assigned to ${widget.assignedTo}',
+                          style: Theme.of(context).textTheme.bodySmall,
+                        ),
+                        const SizedBox(height: 8),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              widget.date,
+                              style: Theme.of(context).textTheme.bodySmall,
+                            ),
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                              decoration: BoxDecoration(
+                                color: Colors.blue[50],
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: Text(
+                                widget.department,
+                                style: Theme.of(context).textTheme.bodySmall!.copyWith(
+                                      color: Colors.blue,
+                                    ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 8),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Row(
+                              children: [
+                                Text(
+                                  widget.description,
+                                  style: Theme.of(context).textTheme.bodySmall,
+                                ),
+                                if (widget.isQuickRequest) ...[
+                                  const SizedBox(width: 4),
+                                  Text(
+                                    '**Quick Request**',
+                                    style: Theme.of(context).textTheme.bodySmall!.copyWith(
+                                          color: Colors.grey,
+                                          fontStyle: FontStyle.italic,
+                                        ),
+                                  ),
+                                ],
+                              ],
+                            ),
+                            Text(
+                              widget.phoneNumber,
+                              style: Theme.of(context).textTheme.bodySmall!.copyWith(
+                                    color: Colors.blue,
+                                  ),
+                            ),
+                          ],
+                        ),
+                      ],
                     ),
-                    Text(
-                      serviceLabel,
-                      style: GoogleFonts.poppins(
-                        fontSize: 12,
-                        color: const Color(0xFF616161),
+                  ),
+                  const SizedBox(width: 8),
+                  Column(
+                    children: [
+                      IconButton(
+                        icon: const Icon(Icons.qr_code, color: Colors.blue),
+                        onPressed: () {},
                       ),
-                    ),
-                  ],
-                ),
-              ],
+                      Text(
+                        widget.serviceLabel,
+                        style: Theme.of(context).textTheme.bodySmall,
+                      ),
+                      const SizedBox(height: 8),
+                      GestureDetector(
+                        onTap: () {},
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                          decoration: BoxDecoration(
+                            color: Colors.pink[50],
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Text(
+                            'Feedback',
+                            style: Theme.of(context).textTheme.bodySmall!.copyWith(
+                                  color: Colors.pink,
+                                ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
             ),
           ],
         ),

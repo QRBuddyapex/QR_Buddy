@@ -5,7 +5,10 @@ class Ticket {
   final String status;
   final String date;
   final String department;
+  final String phoneNumber;
   final String serviceLabel;
+  final String assignedTo;
+  final bool? isQuickRequest;
 
   Ticket({
     required this.orderNumber,
@@ -14,6 +17,9 @@ class Ticket {
     required this.status,
     required this.date,
     required this.department,
+    required this.phoneNumber,
+    required this.assignedTo, 
     required this.serviceLabel,
+    this.isQuickRequest= false,
   });
 }

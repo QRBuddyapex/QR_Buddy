@@ -1,6 +1,6 @@
 import 'package:get/get.dart';
 import 'package:qr_buddy/app/data/models/ticket.dart';
-
+import 'package:qr_buddy/app/routes/routes.dart';
 
 class TicketController extends GetxController {
   var selectedFilter = 'New'.obs;
@@ -15,36 +15,55 @@ class TicketController extends GetxController {
   void fetchTickets() {
     tickets.assignAll([
       Ticket(
-        orderNumber: 'MAX00294',
-        description: 'Major OT (Recovery)',
-        block: 'B BLOCK / TF',
-        status: 'New',
-        date: '03/04/2025, 11:37 AM',
-        department: 'GDA Services',
-        serviceLabel: 'Major OT (Recovery)',
+        orderNumber: 'MAX00309',
+        description: 'AC not working',
+        block: 'Block A/GF',
+        status: 'Accepted',
+        date: '15/04/2025, 07:10 PM',
+        department: 'E & M',
+        phoneNumber: '7210000700',
+        assignedTo: 'em',
+        serviceLabel: 'Apple',
       ),
       Ticket(
-        orderNumber: 'MAX00295',
-        description: 'Emergency Room Service',
-        block: 'A BLOCK / GF',
-        status: 'New',
-        date: '03/04/2025, 11:35 AM',
-        department: 'Emergency Services',
-        serviceLabel: 'Emergency Room Service',
+        orderNumber: 'MAX00216',
+        description: 'AC not working',
+        block: 'Block A/GF',
+        status: 'Assigned',
+        date: '31/01/2025, 01:05 PM',
+        department: 'E & M',
+        phoneNumber: '7210000701',
+        assignedTo: 'em',
+        serviceLabel: 'Pvt 102',
+        isQuickRequest: true,
       ),
       Ticket(
-        orderNumber: 'MAX00296',
-        description: 'General Ward Maintenance',
-        block: 'C BLOCK / SF',
-        status: 'New',
-        date: '03/04/2025, 11:30 AM',
-        department: 'Maintenance',
-        serviceLabel: 'General Ward Maintenance',
+        orderNumber: 'MAX00215',
+        description: 'AC not working',
+        block: 'Block A/GF',
+        status: 'Assigned',
+        date: '31/01/2025, 01:03 PM',
+        department: 'E & M',
+        phoneNumber: '7210000702',
+        assignedTo: 'em',
+        serviceLabel: 'Pvt 102',
+        isQuickRequest: true,
       ),
     ]);
   }
 
   void setFilter(String filter) {
     selectedFilter.value = filter;
+  }
+
+  void navigateToDetail(Ticket ticket) {
+    Get.toNamed(RoutesName.ticketDetailsView, arguments: ticket);
+  }
+
+  void dialPhone(String phoneNumber) {
+    // Implementation for opening dialer (platform-specific)
+    // For now, using url_launcher as a placeholder
+    // import 'package:url_launcher/url_launcher.dart';
+    // launch('tel:$phoneNumber');
   }
 }

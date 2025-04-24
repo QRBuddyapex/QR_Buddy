@@ -37,7 +37,7 @@ class _LocationDialogState extends State<LocationDialog> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Title and Close Button
+              
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
@@ -56,7 +56,7 @@ class _LocationDialogState extends State<LocationDialog> {
               ),
               const SizedBox(height: 10),
 
-              // Location Cards
+             
               ...subLocations.keys.map((location) {
                 return Card(
                   margin: const EdgeInsets.symmetric(vertical: 8.0),
@@ -86,7 +86,7 @@ class _LocationDialogState extends State<LocationDialog> {
                                     title: Text(
                                       subLoc,
                                       style: TextStyle(
-                                        color: isChecked ? Colors.red : AppColors.textColor, // Red for checked, default for unchecked
+                                        color: isChecked ? Colors.red : AppColors.textColor, 
                                       ),
                                     ),
                                     value: isCheckAll
@@ -133,7 +133,7 @@ class _LocationDialogState extends State<LocationDialog> {
 
               CustomButton(
                 onPressed: () {
-                  // Handle selected rooms update
+         
                   print("Selected Rooms: $selectedSubLocations");
                   Navigator.pop(context);
                 },

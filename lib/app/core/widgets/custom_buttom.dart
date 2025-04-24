@@ -5,10 +5,12 @@ class CustomButton extends StatelessWidget {
   final VoidCallback onPressed;
   final double? height;
   final double? width;
+  final Color? color;
 
   const CustomButton({
     Key? key,
     this.height,
+    this.color,
     this.width,
     required this.text,
     required this.onPressed,
@@ -20,6 +22,7 @@ class CustomButton extends StatelessWidget {
       padding: const EdgeInsets.symmetric(vertical: 16.0),
       child: ElevatedButton(
         style: ElevatedButton.styleFrom(
+          backgroundColor: color,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(30),
           ),

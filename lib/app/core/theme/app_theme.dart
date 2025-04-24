@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 class AppColors {
   static const Color backgroundColor = Color(0xFFF5F7FA); // Light gray background
@@ -8,6 +9,12 @@ class AppColors {
   static const Color hintTextColor = Color(0xFFB0BEC5); // Light gray for hint text
   static const Color borderColor = Color(0xFFE0E0E0); // Light gray for borders
   static const Color shadowColor = Color(0x1F000000); // Subtle shadow color
+  static const Color subtitleColor = Color(0xFF616161); // Subtitle text color
+  static const Color linkColor = Colors.blue; // Color for clickable links
+  static const Color escalationIconColor = Colors.red; // Color for escalation icons
+  static const Color assignmentIconColor = Colors.blue; // Color for assignment icons
+  static const Color whatsappIconColor = Colors.green; // Color for WhatsApp icons
+  static const Color holdButtonColor = Color.fromARGB(255, 161, 145, 0); // Color for Hold button
 }
 
 class AppTheme {
@@ -15,14 +22,27 @@ class AppTheme {
     return ThemeData(
       primaryColor: AppColors.primaryColor,
       scaffoldBackgroundColor: AppColors.backgroundColor,
-      textTheme: const TextTheme(
-        headlineMedium: TextStyle(
+      textTheme: TextTheme(
+        headlineMedium: GoogleFonts.poppins(
           fontSize: 24,
           fontWeight: FontWeight.bold,
           color: AppColors.textColor,
         ),
-        bodyMedium: TextStyle(
+        bodyMedium: GoogleFonts.poppins(
           fontSize: 16,
+          color: AppColors.textColor,
+        ),
+        bodySmall: GoogleFonts.poppins(
+          fontSize: 12,
+          color: AppColors.subtitleColor,
+        ),
+        titleSmall: GoogleFonts.poppins(
+          fontSize: 14,
+          color: AppColors.textColor,
+        ),
+        headlineSmall: GoogleFonts.poppins(
+          fontSize: 18,
+          fontWeight: FontWeight.bold,
           color: AppColors.textColor,
         ),
       ),
@@ -37,7 +57,7 @@ class AppTheme {
         ),
       ),
       inputDecorationTheme: InputDecorationTheme(
-        hintStyle: const TextStyle(color: AppColors.hintTextColor),
+        hintStyle: TextStyle(color: AppColors.hintTextColor),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(10),
           borderSide: const BorderSide(color: AppColors.borderColor),
@@ -50,6 +70,9 @@ class AppTheme {
           borderRadius: BorderRadius.circular(10),
           borderSide: const BorderSide(color: AppColors.primaryColor),
         ),
+      ),
+      iconTheme: IconThemeData(
+        color: AppColors.hintTextColor,
       ),
     );
   }

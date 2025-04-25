@@ -6,6 +6,17 @@ class TicketController extends GetxController {
   var selectedFilter = 'New'.obs;
   var tickets = <Ticket>[].obs;
 
+ 
+  var todayStatus = 50.0.obs; 
+  var flags = 90.obs;
+  var comments = 17.obs;
+  var missed = 20.obs;
+  var reviewPending = 6.obs;
+  var schedules = 4.obs;
+  var openIssues = 1.obs;
+  var tasks = 0.obs;
+  var documents = 0.obs;
+
   @override
   void onInit() {
     super.onInit();
@@ -61,9 +72,6 @@ class TicketController extends GetxController {
   }
 
   void dialPhone(String phoneNumber) {
-    // Implementation for opening dialer (platform-specific)
-    // For now, using url_launcher as a placeholder
-    // import 'package:url_launcher/url_launcher.dart';
-    // launch('tel:$phoneNumber');
+  
   }
 }

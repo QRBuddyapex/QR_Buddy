@@ -70,7 +70,9 @@ class CustomDrawer extends StatelessWidget {
             ListTile(
               leading: const Icon(Icons.checklist),
               title: const Text('Daily Checklist'),
-              onTap: () {},
+              onTap: () {
+                 Get.toNamed(RoutesName.dailyChecklistView);
+              },
             ),
           ],
         ),

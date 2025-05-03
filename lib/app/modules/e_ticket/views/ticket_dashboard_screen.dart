@@ -43,21 +43,14 @@ class _TicketDashboardScreenState extends State<TicketDashboardScreen> {
             showDialog(context: context, builder: (context) => const LocationDialog());
           },
           onProfilePressed: () {},
-          actions: [
-            IconButton(
-              icon: const Icon(Icons.search, color: AppColors.hintTextColor),
-              onPressed: () {},
-            ),
-          ],
         ),
         drawer: const CustomDrawer(),
-        body: SingleChildScrollView(
+        body: SingleChildScrollView( // This handles scrolling for the whole page
           child: Column(
             children: [
-              SizedBox(
-                height: height * 0.329,
-                child: PazoDashboardWidget(),
-              ),
+              // Remove the SizedBox wrapper
+              qrbuddyDashboardWidget(), 
+              // The FilterTabs section
               SingleChildScrollView(
                 scrollDirection: Axis.horizontal,
                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -120,6 +113,7 @@ class _TicketDashboardScreenState extends State<TicketDashboardScreen> {
                   ],
                 ),
               ),
+              // The ListView section
               Obx(
                 () => ListView.builder(
                   shrinkWrap: true, 
@@ -153,7 +147,7 @@ class _TicketDashboardScreenState extends State<TicketDashboardScreen> {
         ),
         floatingActionButton: FloatingActionButton(
           onPressed: () {},
-          backgroundColor: const Color(0xFF1976D2),
+          backgroundColor: AppColors.primaryColor,
           child: const Icon(Icons.add),
         ),
       ),

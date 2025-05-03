@@ -129,6 +129,118 @@ class TicketDetailScreen extends StatelessWidget {
                     ],
                   ),
                   const SizedBox(height: 20),
+                       Text(ticket.description, style: Theme.of(context).textTheme.headlineSmall),
+                  const SizedBox(height: 10),
+                  Text(ticket.block, style: Theme.of(context).textTheme.bodyMedium),
+                  const SizedBox(height: 20),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: [
+                      CustomButton(
+                        width: context.width * 0.22,
+                        onPressed: () {
+                          // Handle Accept action
+                        },
+                        text: 'Accept',
+                        color: AppColors.primaryColor,
+                      ),
+                      CustomButton(
+                        width: context.width * 0.22,
+                        onPressed: () {
+                          // Handle Start action
+                        },
+                        text: 'Start',
+                        color: AppColors.whatsappIconColor,
+                      ),
+                      CustomButton(
+                        width: context.width * 0.22,
+                        onPressed: () {
+                          // Handle Complete action
+                        },
+                        text: 'Complete',
+                        color: AppColors.statusButtonColor,
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 10),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: [
+                      CustomButton(
+                        width: context.width * 0.22,
+                        onPressed: () {
+                          // Handle Hold action
+                        },
+                        text: 'Hold',
+                        color: AppColors.holdButtonColor,
+                      ),
+                      CustomButton(
+                        width: context.width * 0.22,
+                        onPressed: () {
+                          // Handle Reopen action
+                        },
+                        text: 'Reopen',
+                        color: AppColors.statusButtonColor1,
+                      ),
+                      CustomButton(
+                        width: context.width * 0.22,
+                        onPressed: () {
+                          // Handle Verify action
+                        },
+                        text: 'Verify',
+                        color: Colors.purple,
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 10),
+                  Center(
+                    child: CustomButton(
+                      width: context.width * 0.22,
+                      onPressed: () {
+                        // Handle Cancel action
+                      },
+                      text: 'Cancel',
+                      color: AppColors.dangerButtonColor,
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                  TextField(
+                    decoration: InputDecoration(
+                      labelText: 'Transfer to',
+                      suffixIcon: const Icon(Icons.search),
+                      labelStyle: Theme.of(context).textTheme.bodySmall,
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  SafeArea(
+                    child: SizedBox(
+                      height: context.height * 0.06,
+                      width: double.infinity,
+                      child: Card(
+                        color: AppColors.whatsappIconColor,
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                        
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                          
+                          children: [
+                            Text(ticket.assignedTo, style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Colors.white)),
+                           
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                              decoration: BoxDecoration(
+                                color: Colors.green[50],
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                              child: Text('19', style: Theme.of(context).textTheme.bodySmall?.copyWith(color: Colors.green)),
+                            ),
+                            
+                            Text('Not Available', style: Theme.of(context).textTheme.bodySmall?.copyWith(color: Colors.red,fontWeight: FontWeight.bold)),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
                   Text('Addons', style: Theme.of(context).textTheme.headlineSmall),
                   const SizedBox(height: 10),
                   ListView.builder(
@@ -258,70 +370,7 @@ class TicketDetailScreen extends StatelessWidget {
                     },
                   ),
                   const SizedBox(height: 20),
-                  Text(ticket.description, style: Theme.of(context).textTheme.headlineSmall),
-                  const SizedBox(height: 10),
-                  Text(ticket.block, style: Theme.of(context).textTheme.bodyMedium),
-                  const SizedBox(height: 20),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    children: [
-                      CustomButton(
-                        width: context.width * 0.3,
-                        onPressed: () {},
-                        text: 'Complete',
-                      ),
-                      CustomButton(
-                        width: context.width * 0.2,
-                        onPressed: () {},
-                        color: AppColors.holdButtonColor,
-                        text: 'Hold',
-                      ),
-                      CustomButton(
-                        width: context.width * 0.2,
-                        onPressed: () {},
-                        color: Colors.red,
-                        text: 'Cancel',
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 20),
-                  TextField(
-                    decoration: InputDecoration(
-                      labelText: 'Transfer to',
-                      suffixIcon: const Icon(Icons.search),
-                      labelStyle: Theme.of(context).textTheme.bodySmall,
-                    ),
-                  ),
-                  const SizedBox(height: 10),
-                  SafeArea(
-                    child: SizedBox(
-                      height: context.height * 0.06,
-                      width: double.infinity,
-                      child: Card(
-                        color: AppColors.whatsappIconColor,
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                        
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                          
-                          children: [
-                            Text(ticket.assignedTo, style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Colors.white)),
-                           
-                            Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                              decoration: BoxDecoration(
-                                color: Colors.green[50],
-                                borderRadius: BorderRadius.circular(10),
-                              ),
-                              child: Text('19', style: Theme.of(context).textTheme.bodySmall?.copyWith(color: Colors.green)),
-                            ),
-                            
-                            Text('Not Available', style: Theme.of(context).textTheme.bodySmall?.copyWith(color: Colors.red,fontWeight: FontWeight.bold)),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
+             
                 ],
               ),
             ),

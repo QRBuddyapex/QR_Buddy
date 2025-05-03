@@ -74,4 +74,13 @@ class TicketController extends GetxController {
   void dialPhone(String phoneNumber) {
   
   }
+
+  void updateTicketList(int index) {
+    // Update the ticket list based on the index
+    if (index >= 0 && index < tickets.length) {
+      // You can implement the specific update logic here
+      // For example, refreshing the ticket status or fetching new data
+      fetchTickets();
+    }
+  }
 }

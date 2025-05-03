@@ -29,6 +29,7 @@ class _LocationDialogState extends State<LocationDialog> {
   Widget build(BuildContext context) {
     return Dialog(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+      backgroundColor: Colors.white, // Explicitly set background color to white
       child: Container(
         padding: const EdgeInsets.all(16.0),
         width: 300,

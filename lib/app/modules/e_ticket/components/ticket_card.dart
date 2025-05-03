@@ -51,7 +51,7 @@ class _TicketCardState extends State<TicketCard> {
         onTap: widget.onTap,
         child: Stack(
           children: [
-      
+            // Large semi-transparent number
             Positioned(
               left: width * 0.0001,
               top: 0,
@@ -70,7 +70,7 @@ class _TicketCardState extends State<TicketCard> {
                 ),
               ),
             ),
-          
+            // Main card content
             Padding(
               padding: const EdgeInsets.all(12),
               child: Row(
@@ -151,7 +151,7 @@ class _TicketCardState extends State<TicketCard> {
                                 if (widget.isQuickRequest) ...[
                                   const SizedBox(width: 4),
                                   Text(
-                                    '**Quick Request**',
+                                    '**Quick Req**',
                                     style: Theme.of(context).textTheme.bodySmall!.copyWith(
                                           color: Colors.grey,
                                           fontStyle: FontStyle.italic,

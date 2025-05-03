@@ -4,7 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 class AppColors {
   static const Color backgroundColor = Color(0xFFF5F7FA); // Light gray background
   static const Color cardBackgroundColor = Colors.white; // White card background
-  static const Color primaryColor = Color(0xFF26C6DA); // Teal for the button
+  static const Color primaryColor = Color(0xFF006afd); // Teal for the button
   static const Color textColor = Color(0xFF333333); // Dark gray for text
   static const Color hintTextColor = Color(0xFFB0BEC5); // Light gray for hint text
   static const Color borderColor = Color(0xFFE0E0E0); // Light gray for borders
@@ -13,8 +13,13 @@ class AppColors {
   static const Color linkColor = Colors.blue; // Color for clickable links
   static const Color escalationIconColor = Colors.red; // Color for escalation icons
   static const Color assignmentIconColor = Colors.blue; // Color for assignment icons
-  static const Color whatsappIconColor = Colors.green; // Color for WhatsApp icons
-  static const Color holdButtonColor = Color.fromARGB(255, 161, 145, 0); // Color for Hold button
+  static const Color whatsappIconColor = Color(0xFF44a047); // Color for WhatsApp icons
+  static const Color statusButtonColor = Color(0xFF006afd);
+  static const Color holdButtonColor = Color.fromARGB(255, 161, 145, 0);
+  static const Color statusButtonColor1 = Color(0xFFffc008);
+  static const Color dangerButtonColor = Color(0xFFf44336);
+  static const Color blackColor = Colors.black; // Black color
+  // Color for Hold button
 }
 
 class AppTheme {

@@ -262,19 +262,46 @@ class TicketDetailScreen extends StatelessWidget {
                   const SizedBox(height: 10),
                   Text(ticket.block, style: Theme.of(context).textTheme.bodyMedium),
                   const SizedBox(height: 20),
+                  
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          children: [
+            CustomButton(
+              width: context.width * 0.2,
+              onPressed: () {},
+              text: 'Accept',
+            ),
+            CustomButton(
+              width: context.width * 0.2,
+              onPressed: () {},
+              text: 'Start',
+            ),
+            CustomButton(
+              width: context.width * 0.2,
+              onPressed: () {},
+              text: 'Complete',
+            ),
+            CustomButton(
+              width: context.width * 0.2,
+              onPressed: () {},
+              text: 'Hold',
+            ),
+          ],
+        ),
+     
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                     children: [
                       CustomButton(
                         width: context.width * 0.3,
                         onPressed: () {},
-                        text: 'Complete',
+                        text: 'ReOpen',
                       ),
                       CustomButton(
                         width: context.width * 0.2,
                         onPressed: () {},
-                        color: AppColors.holdButtonColor,
-                        text: 'Hold',
+                       
+                        text: 'Verify',
                       ),
                       CustomButton(
                         width: context.width * 0.2,
@@ -322,6 +349,7 @@ class TicketDetailScreen extends StatelessWidget {
                       ),
                     ),
                   ),
+                  
                 ],
               ),
             ),

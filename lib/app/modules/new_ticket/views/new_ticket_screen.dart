@@ -95,14 +95,14 @@ class NewETicketScreen extends StatelessWidget {
                   const SizedBox(height: 20),
                   Center(
                     child: GestureDetector(
-                      onTap: controller.pickImages,
+                      onTap: controller.captureImage, // Change to camera-only method
                       child: Container(
                         padding: const EdgeInsets.all(16.0),
                         decoration: BoxDecoration(
                           color: AppColors.primaryColor.withOpacity(0.1),
                           borderRadius: BorderRadius.circular(10),
                         ),
-                        child: const Icon(Icons.add_a_photo, size: 40, color: AppColors.primaryColor),
+                        child: const Icon(Icons.camera_alt, size: 40, color: AppColors.primaryColor), // Changed to camera icon
                       ),
                     ),
                   ),

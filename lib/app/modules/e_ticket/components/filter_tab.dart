@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:qr_buddy/app/core/theme/app_theme.dart';
 
 class FilterTab extends StatelessWidget {
   final String label;
@@ -22,7 +23,7 @@ class FilterTab extends StatelessWidget {
         margin: const EdgeInsets.symmetric(horizontal: 4),
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         decoration: BoxDecoration(
-          color: isSelected ? const Color(0xFF6A1B9A) : const Color(0xFFB0BEC5),
+          color: isSelected ? AppColors.primaryColor : const Color(0xFFB0BEC5),
           borderRadius: BorderRadius.circular(20),
         ),
         child: Text(

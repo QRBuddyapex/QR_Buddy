@@ -62,4 +62,20 @@ class NewETicketController extends GetxController {
     if (value == null || value.isEmpty) return 'This field is required';
     return null;
   }
+
+  Future<void> captureImage() async {
+    final ImagePicker picker = ImagePicker();
+    try {
+      final XFile? photo = await picker.pickImage(
+        source: ImageSource.camera,
+        imageQuality: 80,
+      );
+      
+      if (photo != null) {
+        selectedImages.add(photo);
+      }
+    } catch (e) {
+      // CustomSnackbar.error('Error capturing image: $e');
+    }
+  }
 }

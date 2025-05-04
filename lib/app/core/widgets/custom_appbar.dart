@@ -18,8 +18,8 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
     this.onBrightnessPressed,
     this.onLocationPressed,
     this.onProfilePressed,
-    this.leading, required List<IconButton> actions,
-  }) : super(key: key);
+    this.leading,
+  }) : super(key: key);  // Remove the required List<IconButton> actions parameter
 
   @override
   Widget build(BuildContext context) {

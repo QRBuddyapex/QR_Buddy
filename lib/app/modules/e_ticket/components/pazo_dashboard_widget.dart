@@ -1,11 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:qr_buddy/app/core/theme/app_theme.dart';
-import 'package:qr_buddy/app/modules/e_ticket/views/checklists_widget.dart';
-import 'package:qr_buddy/app/modules/e_ticket/views/daily_tasks_list.dart';
+import 'package:qr_buddy/app/modules/e_ticket/views/info_card_widget.dart';
 
 import '../controllers/ticket_controller.dart';
-
 
 class qrbuddyDashboardWidget extends StatefulWidget {
   const qrbuddyDashboardWidget({super.key});
@@ -77,21 +75,8 @@ class _qrbuddyDashboardWidgetState extends State<qrbuddyDashboardWidget> with Si
             _buildBottomTabs(size, textTheme),
             const SizedBox(height: 20),
             Obx(() {
-              if (controller.selectedInfoCard.value == 'Daily Tasks') {
-                return TaskListWidget(
-                  tasks: controller.tasks,
-                  size: size,
-                  textTheme: textTheme,
-                );
-              }
-              return const SizedBox.shrink();
-            }),
-
-             Obx(() {
-              if (controller.selectedInfoCard.value == 'Checklists') {
-                return ChecklistsWidget(
-                  
-                );
+              if (controller.selectedInfoCard.value.isNotEmpty) {
+                return InfoCardContentWidget();
               }
               return const SizedBox.shrink();
             }),
@@ -171,19 +156,19 @@ class _qrbuddyDashboardWidgetState extends State<qrbuddyDashboardWidget> with Si
       children: [
         _infoCard(
           "Daily Tasks",
-          controller.flags.value.toString(),
+          controller.tasksCount.value.toString(),
           Icons.flag_outlined,
           size,
           textTheme,
-          _getLineColor(controller.flags.value),
+          _getLineColor(controller.tasksCount.value),
         ),
         _infoCard(
           "E-Tickets",
-          controller.comments.value.toString(),
+          controller.tickets.length.toString(),
           Icons.sticky_note_2_outlined,
           size,
           textTheme,
-          _getLineColor(controller.comments.value),
+          _getLineColor(controller.tickets.length),
         ),
         _infoCard(
           "Checklists",
@@ -285,10 +270,10 @@ class _qrbuddyDashboardWidgetState extends State<qrbuddyDashboardWidget> with Si
         child: Obx(() => Row(
           children: [
             SizedBox(width: size.width * 0.01),
-            _bottomTabItem(controller.schedules.value.toString(), "Total", 0, size, textTheme),
-            _bottomTabItem(controller.openIssues.value.toString(), "Completed", 1, size, textTheme),
-            _bottomTabItem(controller.tasksCount.value.toString(), "Missed", 2, size, textTheme),
-            _bottomTabItem(controller.documents.value.toString(), "Pending", 3, size, textTheme),
+            _bottomTabItem(controller.tickets.length.toString(), "Total", 0, size, textTheme),
+            _bottomTabItem(controller.filteredTickets.where((t) => t.status == 'Accepted').length.toString(), "Completed", 1, size, textTheme),
+            _bottomTabItem(controller.filteredTickets.where((t) => t.status == 'Missed').length.toString(), "Missed", 2, size, textTheme),
+            _bottomTabItem(controller.filteredTickets.where((t) => t.status == 'Assigned').length.toString(), "Pending", 3, size, textTheme),
             SizedBox(width: size.width * 0.02),
           ],
         )),
@@ -326,7 +311,7 @@ class _qrbuddyDashboardWidgetState extends State<qrbuddyDashboardWidget> with Si
               ),
               SizedBox(height: size.height * 0.003),
               Text(
-                "$count",
+                count,
                 style: textTheme.bodyMedium?.copyWith(
                   color: isActive ? AppColors.primaryColor : AppColors.textColor.withOpacity(0.8),
                   fontWeight: isActive ? FontWeight.bold : FontWeight.normal,

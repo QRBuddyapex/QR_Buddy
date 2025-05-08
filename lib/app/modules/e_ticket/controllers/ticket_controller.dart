@@ -5,9 +5,10 @@ import 'package:qr_buddy/app/routes/routes.dart';
 class TicketController extends GetxController {
   var selectedFilter = 'New'.obs;
   var tickets = <Ticket>[].obs;
-  var selectedInfoCard = ''.obs; // Track the selected info card
-  var tasks = <Map<String, dynamic>>[].obs; // Store tasks for "Daily Tasks"
-  var checklists = <Map<String, dynamic>>[].obs; // Store checklists
+  var filteredTickets = <Ticket>[].obs; // Store filtered tickets for display
+  var selectedInfoCard = ''.obs;
+  var tasks = <Map<String, dynamic>>[].obs;
+  var checklists = <Map<String, dynamic>>[].obs;
 
   var todayStatus = 50.0.obs;
   var flags = 90.obs;
@@ -25,6 +26,7 @@ class TicketController extends GetxController {
     fetchTickets();
     fetchTasks();
     fetchChecklists();
+    updateTasksCount();
   }
 
   void fetchTickets() {
@@ -65,9 +67,11 @@ class TicketController extends GetxController {
         isQuickRequest: true,
       ),
     ]);
+    filteredTickets.assignAll(tickets); // Initialize with all tickets
   }
 
   void fetchTasks() {
+    tasks.clear();
     tasks.assignAll([
       {
         'group': 'Dummy Group 1',
@@ -81,7 +85,7 @@ class TicketController extends GetxController {
             'lastUpdated': 'Last Updated',
           },
           {
-            'taskName': 'Impliment cart functionality',
+            'taskName': 'Implement cart functionality',
             'assigned': ['RM', 'MK', 'AS'],
             'priority': 'High',
             'dueDate': 'Due Date',
@@ -104,9 +108,11 @@ class TicketController extends GetxController {
         ],
       },
     ]);
+    updateTasksCount();
   }
 
   void fetchChecklists() {
+    checklists.clear();
     checklists.assignAll([
       {
         'group': 'Checklist Group 1',
@@ -136,6 +142,11 @@ class TicketController extends GetxController {
     ]);
   }
 
+  void updateTasksCount() {
+    int totalTasks = tasks.fold(0, (sum, group) => sum + (group['tasks'] as List).length);
+    tasksCount.value = totalTasks;
+  }
+
   void setFilter(String filter) {
     selectedFilter.value = filter;
   }
@@ -151,8 +162,19 @@ class TicketController extends GetxController {
   void dialPhone(String phoneNumber) {}
 
   void updateTicketList(int index) {
-    if (index >= 0 && index < tickets.length) {
-      fetchTickets();
+    switch (index) {
+      case 0: // Total
+        filteredTickets.assignAll(tickets);
+        break;
+      case 1: // Completed
+        filteredTickets.assignAll(tickets.where((ticket) => ticket.status == 'Accepted').toList());
+        break;
+      case 2: // Missed
+        filteredTickets.assignAll(tickets.where((ticket) => ticket.status == 'Missed').toList());
+        break;
+      case 3: // Pending
+        filteredTickets.assignAll(tickets.where((ticket) => ticket.status == 'Assigned').toList());
+        break;
     }
   }
 }

@@ -13,7 +13,7 @@ class TicketCard extends StatefulWidget {
   final String serviceLabel;
   final bool isQuickRequest;
   final VoidCallback onTap;
-  final int index; 
+  final int index;
 
   const TicketCard({
     Key? key,
@@ -142,29 +142,39 @@ class _TicketCardState extends State<TicketCard> {
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            Row(
-                              children: [
-                                Text(
-                                  widget.description,
-                                  style: Theme.of(context).textTheme.bodySmall,
-                                ),
-                                if (widget.isQuickRequest) ...[
-                                  const SizedBox(width: 4),
-                                  Text(
-                                    '**Quick Req**',
-                                    style: Theme.of(context).textTheme.bodySmall!.copyWith(
-                                          color: Colors.grey,
-                                          fontStyle: FontStyle.italic,
-                                        ),
+                            Expanded(
+                              child: Row(
+                                children: [
+                                  Expanded(
+                                    child: Text(
+                                      widget.description,
+                                      style: Theme.of(context).textTheme.bodySmall,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
                                   ),
+                                  if (widget.isQuickRequest) ...[
+                                    const SizedBox(width: 4),
+                                    Text(
+                                      '**Quick Req**',
+                                      style: Theme.of(context).textTheme.bodySmall!.copyWith(
+                                            color: Colors.grey,
+                                            fontStyle: FontStyle.italic,
+                                          ),
+                                    ),
+                                  ],
                                 ],
-                              ],
+                              ),
                             ),
-                            Text(
-                              widget.phoneNumber,
-                              style: Theme.of(context).textTheme.bodySmall!.copyWith(
-                                    color: Colors.blue,
-                                  ),
+                            SizedBox(
+                              width: 100, // Fixed width for phone number
+                              child: Text(
+                                widget.phoneNumber,
+                                style: Theme.of(context).textTheme.bodySmall!.copyWith(
+                                      color: Colors.blue,
+                                    ),
+                                textAlign: TextAlign.right,
+                                overflow: TextOverflow.ellipsis,
+                              ),
                             ),
                           ],
                         ),

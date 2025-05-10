@@ -99,8 +99,7 @@ class _TicketCardState extends State<TicketCard> {
                                 widget.status,
                                 style: Theme.of(context).textTheme.bodySmall!.copyWith(
                                       color: widget.status == 'Accepted' ? Colors.green : Colors.yellow[800],
-                                      fontWeight: FontWeight.bold,
-                                    ),
+fontWeight: FontWeight.normal,                                    ),
                               ),
                             ),
                           ],

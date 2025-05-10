@@ -4,8 +4,8 @@ import 'package:qr_buddy/app/core/theme/app_theme.dart';
 import 'package:qr_buddy/app/core/widgets/custom_appbar.dart';
 import 'package:qr_buddy/app/core/widgets/custom_drawer.dart';
 import 'package:qr_buddy/app/modules/e_ticket/components/location_dialog.dart';
+import 'package:qr_buddy/app/modules/e_ticket/components/qrbuddy_dashboard_widget.dart';
 import 'package:qr_buddy/app/modules/e_ticket/components/ticket_card.dart';
-import 'package:qr_buddy/app/modules/e_ticket/views/pazo_dashboard_widget.dart';
 
 import '../controllers/ticket_controller.dart';
 

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:qr_buddy/app/core/theme/app_theme.dart';
-import 'package:qr_buddy/app/modules/e_ticket/views/info_card_widget.dart';
+import 'package:qr_buddy/app/modules/e_ticket/components/info_card_widget.dart';
 
 import '../controllers/ticket_controller.dart';
 

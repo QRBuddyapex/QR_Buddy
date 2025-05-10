@@ -19,7 +19,7 @@ class MyApp extends StatelessWidget {
       title: 'QR Buddy',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.theme, // Apply the custom theme
-      initialRoute: RoutesName.ticketDashboardView, // Set the initial route
+      initialRoute: RoutesName.loginScreen, // Set the initial route
       getPages: AppRoutes.appRoutes(),
       initialBinding: AuthBinding(), // Register the routes
      

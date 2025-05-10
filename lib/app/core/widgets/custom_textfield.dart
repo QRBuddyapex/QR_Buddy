@@ -37,7 +37,7 @@ class CustomTextField extends StatelessWidget {
           TextFormField(
             initialValue: initialValue,
             obscureText: obscureText,
-            keyboardType: TextInputType.numberWithOptions(decimal: true),
+            keyboardType: TextInputType.text,
             onChanged: onChanged,
             decoration: InputDecoration(
               hintText: hintText,

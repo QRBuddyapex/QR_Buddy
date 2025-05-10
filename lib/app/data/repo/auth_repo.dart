@@ -1,8 +1,6 @@
-
 import 'package:qr_buddy/app/core/config/api_config.dart';
 import 'package:qr_buddy/app/core/config/token_storage.dart';
 import 'package:qr_buddy/app/core/services/api_service.dart';
-
 
 class AuthRepository {
   final ApiService _apiService = ApiService();
@@ -11,20 +9,25 @@ class AuthRepository {
   Future<Map<String, dynamic>> login(String email, String password) async {
     try {
       final response = await _apiService.post(
-        "${AppUrl.login}/login.html",
+        "${AppUrl.login}",
         data: {
           "username": email,
           "password": password,
-          "visitorId": "272ff5db735849c733e1641eb8e15d94",
+          "visitorId": "b2d9f7071c784bb4c594972bc34b1e75",
         },
       );
 
-      final data = response as Map<String, dynamic>;
-      if (data["success"] == true && data["token"] != null) {
 
+      final data = response.data as Map<String, dynamic>;
+
+ 
+      if (data["status"] == 1 && data["token"] != null) {
         await _tokenStorage.saveToken(data["token"]);
+        return data;
+      } else {
+      
+        throw Exception(data["message"]?.isNotEmpty == true ? data["message"] : "Login failed: Invalid response");
       }
-      return data;
     } catch (e) {
       throw Exception("Login failed: $e");
     }

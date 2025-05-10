@@ -15,6 +15,6 @@ class AppUrl {
 
   static const Duration connectionTimeout = Duration(seconds: 60);
 
-  static const String  login= '/users';
+  static const String login = "$baseUrl/login.html?user_id=0";
 
 }

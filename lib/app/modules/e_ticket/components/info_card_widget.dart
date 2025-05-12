@@ -73,7 +73,7 @@ class InfoCardContentWidget extends StatelessWidget {
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(15),
           side: BorderSide(
-            color: AppColors.primaryColor.withOpacity(0.3),
+          color: AppColors.shadowColor.withOpacity(0.1),
             width: 1,
           ),
         ),

@@ -9,7 +9,7 @@ import 'package:qr_buddy/app/core/widgets/custom_drawer.dart';
 import 'package:qr_buddy/app/data/models/e_tickets.dart';
 import 'package:qr_buddy/app/modules/e_ticket/components/filter_tab.dart';
 import 'package:qr_buddy/app/modules/e_ticket/components/location_dialog.dart';
-import 'package:qr_buddy/app/modules/e_ticket/components/pazo_dashboard_widget.dart';
+import 'package:qr_buddy/app/modules/e_ticket/components/qrbuddy_dashboard_widget.dart';
 import 'package:qr_buddy/app/modules/e_ticket/components/ticket_card.dart';
 import 'package:qr_buddy/app/modules/e_ticket/controllers/ticket_controller.dart';
 

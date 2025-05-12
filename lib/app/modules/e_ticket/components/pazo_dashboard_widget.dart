@@ -1,9 +1,10 @@
+// app/modules/e_ticket/components/qrbuddy_dashboard_widget.dart
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:qr_buddy/app/core/theme/app_theme.dart';
+import 'package:qr_buddy/app/data/models/e_tickets.dart';
 import 'package:qr_buddy/app/modules/e_ticket/components/info_card_widget.dart';
-
-import '../controllers/ticket_controller.dart';
+import 'package:qr_buddy/app/modules/e_ticket/controllers/ticket_controller.dart';
 
 class qrbuddyDashboardWidget extends StatefulWidget {
   const qrbuddyDashboardWidget({super.key});
@@ -270,10 +271,46 @@ class _qrbuddyDashboardWidgetState extends State<qrbuddyDashboardWidget> with Si
         child: Obx(() => Row(
           children: [
             SizedBox(width: size.width * 0.01),
-            _bottomTabItem(controller.tickets.length.toString(), "Total", 0, size, textTheme),
-            _bottomTabItem(controller.filteredTickets.where((t) => t.status == 'Accepted').length.toString(), "Completed", 1, size, textTheme),
-            _bottomTabItem(controller.filteredTickets.where((t) => t.status == 'Missed').length.toString(), "Missed", 2, size, textTheme),
-            _bottomTabItem(controller.filteredTickets.where((t) => t.status == 'Assigned').length.toString(), "Pending", 3, size, textTheme),
+            _bottomTabItem(
+              controller.links.firstWhere(
+                (link) => link.type == 'ALL',
+                orElse: () => Link(type: 'ALL', title: 'Total', count: controller.tickets.length),
+              ).count.toString(),
+              "Total",
+              0,
+              size,
+              textTheme,
+            ),
+            _bottomTabItem(
+              controller.links.firstWhere(
+                (link) => link.type == 'COMP',
+                orElse: () => Link(type: 'COMP', title: 'Completed', count: 0),
+              ).count.toString(),
+              "Completed",
+              1,
+              size,
+              textTheme,
+            ),
+            _bottomTabItem(
+              controller.links.firstWhere(
+                (link) => link.type == 'NEW',
+                orElse: () => Link(type: 'NEW', title: 'New', count: 0),
+              ).count.toString(),
+              "New",
+              2,
+              size,
+              textTheme,
+            ),
+            _bottomTabItem(
+              controller.links.firstWhere(
+                (link) => link.type == 'ASI',
+                orElse: () => Link(type: 'ASI', title: 'Assigned', count: 0),
+              ).count.toString(),
+              "Assigned",
+              3,
+              size,
+              textTheme,
+            ),
             SizedBox(width: size.width * 0.02),
           ],
         )),
@@ -289,7 +326,7 @@ class _qrbuddyDashboardWidgetState extends State<qrbuddyDashboardWidget> with Si
         onTap: () {
           setState(() {
             _selectedBottomTabIndex = index;
-            controller.updateTicketList(index);
+            controller.setFilter(title);
           });
         },
         borderRadius: BorderRadius.circular(20),

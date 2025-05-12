@@ -23,7 +23,7 @@ class LoginController extends GetxController {
     try {
       final response = await _authRepository.login(email.value, password.value);
 
-      // Check status field for success
+     
       if (response["status"] == 1) {
         CustomSnackbar.success("Login successful!");
         Get.offAllNamed(RoutesName.ticketDashboardView);

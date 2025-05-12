@@ -1,12 +1,19 @@
+// app/modules/e_ticket/controllers/ticket_controller.dart
+
+
 import 'package:get/get.dart';
+import 'package:qr_buddy/app/core/services/api_service.dart';
+import 'package:qr_buddy/app/data/models/e_tickets.dart';
 import 'package:qr_buddy/app/data/models/ticket.dart';
+import 'package:qr_buddy/app/data/repo/e_ticket_repo.dart';
 import 'package:qr_buddy/app/routes/routes.dart';
 
 class TicketController extends GetxController {
-  var selectedFilter = 'New'.obs;
+  var selectedFilter = 'All'.obs;
   var tickets = <Ticket>[].obs;
-  var filteredTickets = <Ticket>[].obs; // Store filtered tickets for display
-  var selectedInfoCard = ''.obs;
+  var filteredTickets = <Ticket>[].obs;
+  var links = <Link>[].obs;
+  var selectedInfoCard = 'E-Tickets'.obs;
   var tasks = <Map<String, dynamic>>[].obs;
   var checklists = <Map<String, dynamic>>[].obs;
 
@@ -20,54 +27,55 @@ class TicketController extends GetxController {
   var tasksCount = 0.obs;
   var documents = 0.obs;
 
+  late final TicketRepository _ticketRepository;
+
   @override
   void onInit() {
     super.onInit();
+    _ticketRepository = TicketRepository(ApiService());
     fetchTickets();
     fetchTasks();
     fetchChecklists();
     updateTasksCount();
   }
 
-  void fetchTickets() {
-    tickets.assignAll([
-      Ticket(
-        orderNumber: 'MAX00309',
-        description: 'AC not working',
-        block: 'Block A/GF',
-        status: 'Accepted',
-        date: '15/04/2025, 07:10 PM',
-        department: 'E & M',
-        phoneNumber: '7210000700',
-        assignedTo: 'em',
-        serviceLabel: 'Apple',
-      ),
-      Ticket(
-        orderNumber: 'MAX00216',
-        description: 'AC not working',
-        block: 'Block A/GF',
-        status: 'Assigned',
-        date: '31/01/2025, 01:05 PM',
-        department: 'E & M',
-        phoneNumber: '7210000701',
-        assignedTo: 'em',
-        serviceLabel: 'Pvt 102',
-        isQuickRequest: true,
-      ),
-      Ticket(
-        orderNumber: 'MAX00215',
-        description: 'AC not working',
-        block: 'Block A/GF',
-        status: 'Assigned',
-        date: '31/01/2025, 01:03 PM',
-        department: 'E & M',
-        phoneNumber: '7210000702',
-        assignedTo: 'em',
-        serviceLabel: 'Pvt 102',
-        isQuickRequest: true,
-      ),
-    ]);
-    filteredTickets.assignAll(tickets); // Initialize with all tickets
+  Future<void> fetchTickets() async {
+    try {
+      final response = await _ticketRepository.fetchTickets(
+        hcoId: '80',
+        requestStatus: _mapFilterToRequestStatus(selectedFilter.value),
+      );
+      tickets.assignAll(response.orders.map((order) => order.toTicket()).toList());
+      links.assignAll(response.links as Iterable<Link>);
+      updateTicketList();
+    } catch (e) {
+      Get.snackbar('Error', 'Failed to fetch tickets: $e');
+    }
+  }
+
+  String _mapFilterToRequestStatus(String filter) {
+    switch (filter) {
+      case 'New':
+        return 'NEW';
+      case 'Assigned':
+        return 'ASI';
+      case 'Accepted':
+        return 'ACC';
+      case 'Completed':
+        return 'COMP';
+      case 'Verified':
+        return 'VER';
+      case 'On Hold':
+        return 'HOLD';
+      case 'Re-Open':
+        return 'REO';
+      case 'Cancelled':
+        return 'CAN';
+      case 'Total':
+      case 'All':
+      default:
+        return 'ALL';
+    }
   }
 
   void fetchTasks() {
@@ -149,6 +157,7 @@ class TicketController extends GetxController {
 
   void setFilter(String filter) {
     selectedFilter.value = filter;
+    fetchTickets();
   }
 
   void setSelectedInfoCard(String card) {
@@ -161,19 +170,36 @@ class TicketController extends GetxController {
 
   void dialPhone(String phoneNumber) {}
 
-  void updateTicketList(int index) {
-    switch (index) {
-      case 0: // Total
-        filteredTickets.assignAll(tickets);
+  void updateTicketList() {
+    switch (selectedFilter.value) {
+      case 'New':
+        filteredTickets.assignAll(tickets.where((ticket) => ticket.status == 'New').toList());
         break;
-      case 1: // Completed
+      case 'Assigned':
+        filteredTickets.assignAll(tickets.where((ticket) => ticket.status == 'Assigned').toList());
+        break;
+      case 'Accepted':
         filteredTickets.assignAll(tickets.where((ticket) => ticket.status == 'Accepted').toList());
         break;
-      case 2: // Missed
-        filteredTickets.assignAll(tickets.where((ticket) => ticket.status == 'Missed').toList());
+      case 'Completed':
+        filteredTickets.assignAll(tickets.where((ticket) => ticket.status == 'Completed').toList());
         break;
-      case 3: // Pending
-        filteredTickets.assignAll(tickets.where((ticket) => ticket.status == 'Assigned').toList());
+      case 'Verified':
+        filteredTickets.assignAll(tickets.where((ticket) => ticket.status == 'Verified').toList());
+        break;
+      case 'On Hold':
+        filteredTickets.assignAll(tickets.where((ticket) => ticket.status == 'On Hold').toList());
+        break;
+      case 'Re-Open':
+        filteredTickets.assignAll(tickets.where((ticket) => ticket.status == 'Re-Open').toList());
+        break;
+      case 'Cancelled':
+        filteredTickets.assignAll(tickets.where((ticket) => ticket.status == 'Cancelled').toList());
+        break;
+      case 'Total':
+      case 'All':
+      default:
+        filteredTickets.assignAll(tickets);
         break;
     }
   }

@@ -1,3 +1,4 @@
+// app/modules/e_ticket/components/filter_tab.dart
 import 'package:flutter/material.dart';
 import 'package:qr_buddy/app/core/theme/app_theme.dart';
 
@@ -28,10 +29,11 @@ class FilterTab extends StatelessWidget {
         ),
         child: Text(
           '$label ($count)',
-          style: const TextStyle(
+          style: TextStyle(
             color: Colors.white,
             fontSize: 14,
             fontWeight: FontWeight.w500,
+            fontFamily: Theme.of(context).textTheme.bodyMedium?.fontFamily,
           ),
         ),
       ),

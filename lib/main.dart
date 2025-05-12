@@ -18,10 +18,10 @@ class MyApp extends StatelessWidget {
     return GetMaterialApp(
       title: 'QR Buddy',
       debugShowCheckedModeBanner: false,
-      theme: AppTheme.theme, // Apply the custom theme
-      initialRoute: RoutesName.loginScreen, // Set the initial route
+      theme: AppTheme.theme, 
+      initialRoute: RoutesName.loginScreen, 
       getPages: AppRoutes.appRoutes(),
-      initialBinding: AuthBinding(), // Register the routes
+      initialBinding: AuthBinding(), 
      
     );
   }

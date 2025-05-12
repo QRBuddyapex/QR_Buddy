@@ -1,28 +1,35 @@
-
 import 'package:dio/dio.dart';
 import 'package:qr_buddy/app/core/config/api_config.dart';
+import 'package:qr_buddy/app/core/config/token_storage.dart';
 import 'package:qr_buddy/app/core/services/api_exception.dart';
 import 'package:qr_buddy/app/core/services/api_service.dart';
 import 'package:qr_buddy/app/data/models/e_tickets.dart';
 
-
 class TicketRepository {
   final ApiService _apiService;
+  final TokenStorage _tokenStorage;
 
-  TicketRepository(this._apiService);
+  TicketRepository(this._apiService, this._tokenStorage);
 
   Future<TicketResponse> fetchTickets({
-    required String hcoId,
+    required String hcoId, 
     String? dateFrom,
     String? dateTo,
     String? orderNumber,
     String? requestStatus,
   }) async {
     try {
+      final userId = await _tokenStorage.getUserId();
+      final storedHcoId = await _tokenStorage.getHcoId();
+
+      if (userId == null || storedHcoId == null) {
+        throw Exception('User ID or HCO ID not found in storage');
+      }
+
       final response = await _apiService.post(
-        '${AppUrl.baseUrl}/orders.html?user_id=2600&hco_id=$hcoId',
+        '${AppUrl.baseUrl}/orders.html?user_id=$userId&hco_id=$storedHcoId',
         data: {
-          'hco_id': hcoId,
+          'hco_id': storedHcoId,
           'date_from': dateFrom ?? '',
           'date_to': dateTo ?? '',
           'order_number': orderNumber ?? '',

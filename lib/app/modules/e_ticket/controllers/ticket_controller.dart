@@ -1,7 +1,5 @@
-// app/modules/e_ticket/controllers/ticket_controller.dart
-
-
 import 'package:get/get.dart';
+import 'package:qr_buddy/app/core/config/token_storage.dart';
 import 'package:qr_buddy/app/core/services/api_service.dart';
 import 'package:qr_buddy/app/data/models/e_tickets.dart';
 import 'package:qr_buddy/app/data/models/ticket.dart';
@@ -9,6 +7,7 @@ import 'package:qr_buddy/app/data/repo/e_ticket_repo.dart';
 import 'package:qr_buddy/app/routes/routes.dart';
 
 class TicketController extends GetxController {
+  
   var selectedFilter = 'All'.obs;
   var tickets = <Ticket>[].obs;
   var filteredTickets = <Ticket>[].obs;
@@ -29,10 +28,14 @@ class TicketController extends GetxController {
 
   late final TicketRepository _ticketRepository;
 
+ 
   @override
   void onInit() {
     super.onInit();
-    _ticketRepository = TicketRepository(ApiService());
+    _ticketRepository = TicketRepository(
+      ApiService(),
+      TokenStorage(),
+    );
     fetchTickets();
     fetchTasks();
     fetchChecklists();
@@ -41,8 +44,9 @@ class TicketController extends GetxController {
 
   Future<void> fetchTickets() async {
     try {
+     
       final response = await _ticketRepository.fetchTickets(
-        hcoId: '80',
+        hcoId: await TokenStorage().getHcoId() ?? '',
         requestStatus: _mapFilterToRequestStatus(selectedFilter.value),
       );
       tickets.assignAll(response.orders.map((order) => order.toTicket()).toList());

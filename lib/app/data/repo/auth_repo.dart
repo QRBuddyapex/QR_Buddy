@@ -17,15 +17,20 @@ class AuthRepository {
         },
       );
 
-
       final data = response.data as Map<String, dynamic>;
 
- 
       if (data["status"] == 1 && data["token"] != null) {
-        await _tokenStorage.saveToken(data["token"]);
+        final user = data["user"] as Map<String, dynamic>?;
+        if (user == null || user["id"] == null || user["hco_id"] == null) {
+          throw Exception("Invalid user data in response");
+        }
+        await _tokenStorage.saveAuthData(
+          token: data["token"],
+          userId: user["id"].toString(),
+          hcoId: user["hco_id"].toString(),
+        );
         return data;
       } else {
-      
         throw Exception(data["message"]?.isNotEmpty == true ? data["message"] : "Login failed: Invalid response");
       }
     } catch (e) {
@@ -39,5 +44,13 @@ class AuthRepository {
 
   Future<String?> getToken() async {
     return await _tokenStorage.getToken();
+  }
+
+  Future<String?> getUserId() async {
+    return await _tokenStorage.getUserId();
+  }
+
+  Future<String?> getHcoId() async {
+    return await _tokenStorage.getHcoId();
   }
 }

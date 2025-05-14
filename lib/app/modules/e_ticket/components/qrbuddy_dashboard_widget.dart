@@ -73,8 +73,7 @@ class _qrbuddyDashboardWidgetState extends State<qrbuddyDashboardWidget> with Si
             _buildTodaysStatusSection(size, textTheme),
             SizedBox(height: verticalPadding * 1.7),
             _buildInfoGrid(size, textTheme),
-            _buildBottomTabs(size, textTheme),
-            const SizedBox(height: 20),
+            // _buildBottomTabs(size, textTheme),
             Obx(() {
               if (controller.selectedInfoCard.value.isNotEmpty) {
                 return InfoCardContentWidget();
@@ -252,71 +251,71 @@ class _qrbuddyDashboardWidgetState extends State<qrbuddyDashboardWidget> with Si
     });
   }
 
-  Widget _buildBottomTabs(Size size, TextTheme textTheme) {
-    return Container(
-      padding: EdgeInsets.symmetric(vertical: size.height * 0.006),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.08),
-            blurRadius: 6,
-            offset: const Offset(0, 3),
-          )
-        ],
-      ),
-      child: SingleChildScrollView(
-        scrollDirection: Axis.horizontal,
-        child: Obx(() => Row(
-          children: [
-            SizedBox(width: size.width * 0.01),
-            _bottomTabItem(
-              controller.links.firstWhere(
-                (link) => link.type == 'ALL',
-                orElse: () => Link(type: 'ALL', title: 'Total', count: controller.tickets.length),
-              ).count.toString(),
-              "Total",
-              0,
-              size,
-              textTheme,
-            ),
-            _bottomTabItem(
-              controller.links.firstWhere(
-                (link) => link.type == 'COMP',
-                orElse: () => Link(type: 'COMP', title: 'Completed', count: 0),
-              ).count.toString(),
-              "Completed",
-              1,
-              size,
-              textTheme,
-            ),
-            _bottomTabItem(
-              controller.links.firstWhere(
-                (link) => link.type == 'NEW',
-                orElse: () => Link(type: 'NEW', title: 'New', count: 0),
-              ).count.toString(),
-              "New",
-              2,
-              size,
-              textTheme,
-            ),
-            _bottomTabItem(
-              controller.links.firstWhere(
-                (link) => link.type == 'ASI',
-                orElse: () => Link(type: 'ASI', title: 'Assigned', count: 0),
-              ).count.toString(),
-              "Assigned",
-              3,
-              size,
-              textTheme,
-            ),
-            SizedBox(width: size.width * 0.02),
-          ],
-        )),
-      ),
-    );
-  }
+  // Widget _buildBottomTabs(Size size, TextTheme textTheme) {
+  //   return Container(
+  //     padding: EdgeInsets.symmetric(vertical: size.height * 0.006),
+  //     decoration: BoxDecoration(
+  //       color: Colors.white,
+  //       borderRadius: BorderRadius.circular(12),
+  //       boxShadow: [
+  //         BoxShadow(
+  //           color: Colors.black.withOpacity(0.08),
+  //           blurRadius: 6,
+  //           offset: const Offset(0, 3),
+  //         )
+  //       ],
+  //     ),
+  //     child: SingleChildScrollView(
+  //       scrollDirection: Axis.horizontal,
+  //       child: Obx(() => Row(
+  //         children: [
+  //           SizedBox(width: size.width * 0.01),
+  //           _bottomTabItem(
+  //             controller.links.firstWhere(
+  //               (link) => link.type == 'ALL',
+  //               orElse: () => Link(type: 'ALL', title: 'Total', count: controller.tickets.length),
+  //             ).count.toString(),
+  //             "Total",
+  //             0,
+  //             size,
+  //             textTheme,
+  //           ),
+  //           _bottomTabItem(
+  //             controller.links.firstWhere(
+  //               (link) => link.type == 'COMP',
+  //               orElse: () => Link(type: 'COMP', title: 'Completed', count: 0),
+  //             ).count.toString(),
+  //             "Completed",
+  //             1,
+  //             size,
+  //             textTheme,
+  //           ),
+  //           _bottomTabItem(
+  //             controller.links.firstWhere(
+  //               (link) => link.type == 'NEW',
+  //               orElse: () => Link(type: 'NEW', title: 'New', count: 0),
+  //             ).count.toString(),
+  //             "New",
+  //             2,
+  //             size,
+  //             textTheme,
+  //           ),
+  //           _bottomTabItem(
+  //             controller.links.firstWhere(
+  //               (link) => link.type == 'ASI',
+  //               orElse: () => Link(type: 'ASI', title: 'Assigned', count: 0),
+  //             ).count.toString(),
+  //             "Assigned",
+  //             3,
+  //             size,
+  //             textTheme,
+  //           ),
+  //           SizedBox(width: size.width * 0.02),
+  //         ],
+  //       )),
+  //     ),
+  //   );
+  // }
 
   Widget _bottomTabItem(String count, String title, int index, Size size, TextTheme textTheme) {
     bool isActive = _selectedBottomTabIndex == index;

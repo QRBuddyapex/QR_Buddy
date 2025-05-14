@@ -19,7 +19,7 @@ class CustomDropdownField extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Ensure value is valid or set to null if not in items
+    
     final validValue = items.contains(value) ? value : null;
 
     return Padding(
@@ -32,11 +32,13 @@ class CustomDropdownField extends StatelessWidget {
             style: const TextStyle(
               fontSize: 14,
               color: AppColors.textColor,
+            
             ),
           ),
           const SizedBox(height: 4),
           DropdownButtonFormField<String>(
             value: validValue,
+            isExpanded: true,
             items: items.map((item) {
               return DropdownMenuItem<String>(
                 value: item,
@@ -46,7 +48,7 @@ class CustomDropdownField extends StatelessWidget {
             onChanged: onChanged,
             decoration: InputDecoration(
               hintText: 'Select $label',
-              hintStyle: const TextStyle(color: AppColors.hintTextColor),
+              hintStyle: const TextStyle(color: AppColors.hintTextColor,  overflow: TextOverflow.ellipsis,),
               filled: true,
               fillColor: AppColors.cardBackgroundColor,
               contentPadding: const EdgeInsets.symmetric(vertical: 16.0, horizontal: 20.0),

@@ -1,6 +1,10 @@
+import 'package:dio/dio.dart' as dio;
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:qr_buddy/app/core/config/token_storage.dart';
+import 'package:qr_buddy/app/core/services/api_service.dart';
+import 'package:qr_buddy/app/data/models/new_e_ticket_response.dart';
 
 class NewETicketController extends GetxController {
   var room = ''.obs;
@@ -8,16 +12,65 @@ class NewETicketController extends GetxController {
   var complainantName = ''.obs;
   var complainantPhone = ''.obs;
   var priority = 'Normal'.obs;
-  var remarks = ''.obs;
   var ticketType = Rx<String?>(null);
+  var remarks = ''.obs;
   var selectedImages = <XFile>[].obs;
+  var isLoading = false.obs;
 
   final formKey = GlobalKey<FormState>();
   final ImagePicker _picker = ImagePicker();
+  final ApiService _apiService = ApiService();
+  final TokenStorage _tokenStorage = TokenStorage();
 
-  final List<String> roomOptions = ['Room 101', 'Room 102', 'Room 103', 'Room 104'];
-  final List<String> serviceOptions = ['Cleaning', 'Maintenance', 'Plumbing', 'Electrical'];
-  final List<String> priorityOptions = ['Low', 'Normal', 'High', 'Urgent'];
+  var roomOptions = <String>[].obs;
+  var serviceOptions = <String>[].obs;
+  final List<String> priorityOptions = ['Low', 'Normal', 'High', 'Critical'];
+  NewETicketResponseModel? formResponse;
+
+  @override
+  void onInit() {
+    super.onInit();
+    fetchFormData();
+  }
+
+  Future<void> fetchFormData() async {
+    try {
+      isLoading.value = true;
+
+      final userId = await _tokenStorage.getUserId();
+      final hcoId = await _tokenStorage.getHcoId();
+
+      if (userId == null || hcoId == null) {
+        Get.snackbar('Error', 'Authentication data missing',
+            snackPosition: SnackPosition.BOTTOM);
+        return;
+      }
+
+      final payload = {
+        'user_id': userId,
+        'hco_id': hcoId,
+      };
+
+      final response = await _apiService.post(
+        '/mobile.html?action=fetch_form&user_id=$userId&hco_id=$hcoId',
+        data: payload,
+      );
+
+      if (response.statusCode == 200 && response.data['status'] == 1) {
+        formResponse = NewETicketResponseModel.fromJson(response.data);
+        roomOptions.value = formResponse!.rooms.map((room) => room.roomNumber).toList();
+        serviceOptions.value = formResponse!.services.map((service) => service.serviceName).toList();
+      } else {
+        Get.snackbar('Error', 'Failed to fetch data: ${response.data['message']}',
+            snackPosition: SnackPosition.BOTTOM);
+      }
+    } catch (e) {
+      Get.snackbar('Error', 'Failed to fetch data: $e',
+          snackPosition: SnackPosition.BOTTOM);
+    } finally {
+      isLoading.value = false;
+    }
+  }
 
   void updateRoom(String? value) => room.value = value ?? '';
   void updateServices(String? value) => services.value = value ?? '';
@@ -43,18 +96,97 @@ class NewETicketController extends GetxController {
     selectedImages.removeAt(index);
   }
 
-  void submit() {
-    if (formKey.currentState!.validate()) {
-      print({
-        'room': room.value,
-        'services': services.value,
-        'complainantName': complainantName.value,
-        'complainantPhone': complainantPhone.value,
-        'ticketType': ticketType.value,
-        'priority': priority.value,
-        'remarks': remarks.value,
-        'imageCount': selectedImages.length,
+  Future<void> submit() async {
+    if (!formKey.currentState!.validate()) {
+      return;
+    }
+
+    try {
+      isLoading.value = true;
+
+      final userId = await _tokenStorage.getUserId();
+      final hcoId = await _tokenStorage.getHcoId();
+
+      if (userId == null || hcoId == null || formResponse == null) {
+        Get.snackbar('Error', 'Authentication data or form data missing',
+            snackPosition: SnackPosition.BOTTOM);
+        return;
+      }
+
+      // Find room_uuid and service_id
+      final selectedRoom = formResponse!.rooms.firstWhereOrNull(
+        (room) => room.roomNumber == room,
+      );
+      final selectedService = formResponse!.services.firstWhereOrNull(
+        (service) => service.serviceName == services.value,
+      );
+
+      if (selectedRoom == null || selectedService == null) {
+        Get.snackbar('Error', 'Please select a valid room and service',
+            snackPosition: SnackPosition.BOTTOM);
+        return;
+      }
+
+      // Normalize priority to match API (e.g., "Low" -> "LOW")
+      final normalizedPriority = priority.value.toUpperCase();
+
+      // Hardcoded payload
+      final formData = dio.FormData.fromMap({
+        'file_count': selectedImages.length.toString(),
+        'user_id': userId,
+        'room_uuid': selectedRoom.uuid,
+        'stock_uuid': 'undefined',
+        'stock_down': 'undefined',
+        'service_id': selectedService.id,
+        'parameter_category_id': '0',
+        'parameters': 'priority=$normalizedPriority',
+        'map_long': 'undefined',
+        'map_lat': 'undefined',
+        'map_distance': 'undefined',
+        'source': 'WEB',
+        'request_type': ticketType.value ?? 'undefined',
+        'addons[phone_number]': complainantPhone.value.isEmpty ? '' : complainantPhone.value,
+        'addons[full_name]': complainantName.value.isEmpty ? '' : complainantName.value,
+        'addons[image]': '',
+        'addons[notes]': remarks.value.isEmpty ? '' : remarks.value,
       });
+
+      // Add image files
+      for (var i = 0; i < selectedImages.length; i++) {
+        final file = selectedImages[i];
+        formData.files.add(MapEntry(
+          'file$i',
+          await dio.MultipartFile.fromFile(file.path, filename: file.name),
+        ));
+      }
+
+      // Make API call
+      final response = await _apiService.post(
+        '/ticket/ticket.html?action=save&user_id=$userId&hco_id=$hcoId',
+        data: formData,
+      );
+
+      if (response.statusCode == 200 && response.data['status'] == 1) {
+        Get.snackbar('Success', 'Ticket saved successfully',
+            snackPosition: SnackPosition.BOTTOM);
+        // Reset form
+        room.value = '';
+        services.value = '';
+        complainantName.value = '';
+        complainantPhone.value = '';
+        priority.value = 'Normal';
+        ticketType.value = null;
+        remarks.value = '';
+        selectedImages.clear();
+      } else {
+        Get.snackbar('Error', 'Failed to save ticket: ${response.data['message']}',
+            snackPosition: SnackPosition.BOTTOM);
+      }
+    } catch (e) {
+      Get.snackbar('Error', 'Failed to save ticket: $e',
+          snackPosition: SnackPosition.BOTTOM);
+    } finally {
+      isLoading.value = false;
     }
   }
 
@@ -64,18 +196,17 @@ class NewETicketController extends GetxController {
   }
 
   Future<void> captureImage() async {
-    final ImagePicker picker = ImagePicker();
     try {
-      final XFile? photo = await picker.pickImage(
+      final XFile? photo = await _picker.pickImage(
         source: ImageSource.camera,
         imageQuality: 80,
       );
-      
       if (photo != null) {
         selectedImages.add(photo);
       }
     } catch (e) {
-      // CustomSnackbar.error('Error capturing image: $e');
+      Get.snackbar('Error', 'Failed to capture image: $e',
+          snackPosition: SnackPosition.BOTTOM);
     }
   }
 }

@@ -1,3 +1,4 @@
 {
-  "dart.flutterSdkPath": ".fvm/versions/3.27.0"
+  "dart.flutterSdkPath": ".fvm/versions/3.27.0",
+  "cmake.sourceDirectory": "C:/Users/wwwpr/Desktop/QRBuddy/qr_buddy/linux/flutter"
 }

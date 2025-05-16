@@ -1,5 +1,8 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:qr_buddy/app/core/config/token_storage.dart';
 import 'package:qr_buddy/app/core/services/api_service.dart';
 import 'package:qr_buddy/app/data/models/e_tickets.dart';
@@ -30,6 +33,11 @@ class TicketController extends GetxController {
 
   late final TicketRepository _ticketRepository;
 
+ 
+  final remarksController = TextEditingController();
+  final holdDateTimeController = TextEditingController();
+  var selectedImage = Rxn<File>(); 
+
   @override
   void onInit() {
     super.onInit();
@@ -41,6 +49,13 @@ class TicketController extends GetxController {
     fetchTasks();
     fetchChecklists();
     updateTasksCount();
+  }
+
+  @override
+  void onClose() {
+    remarksController.dispose();
+    holdDateTimeController.dispose();
+    super.onClose();
   }
 
   Future<void> fetchTickets() async {
@@ -233,5 +248,58 @@ class TicketController extends GetxController {
         filteredTickets.assignAll(tickets);
         break;
     }
+  }
+
+ 
+  Future<void> pickImage(ImageSource source) async {
+    final picker = ImagePicker();
+    final pickedFile = await picker.pickImage(source: source);
+    if (pickedFile != null) {
+      selectedImage.value = File(pickedFile.path);
+    }
+  }
+
+
+  void clearImage() {
+    selectedImage.value = null;
+  }
+
+ 
+  Future<void> pickDateTime(BuildContext context) async {
+    final DateTime? pickedDate = await showDatePicker(
+      context: context,
+      initialDate: DateTime.now(),
+      firstDate: DateTime.now(),
+      lastDate: DateTime(2100),
+    );
+
+    if (pickedDate != null) {
+      final TimeOfDay? pickedTime = await showTimePicker(
+        context: context,
+        initialTime: TimeOfDay.now(),
+      );
+
+      if (pickedTime != null) {
+        final selectedDateTime = DateTime(
+          pickedDate.year,
+          pickedDate.month,
+          pickedDate.day,
+          pickedTime.hour,
+          pickedTime.minute,
+        );
+        holdDateTimeController.text = '${selectedDateTime.day.toString().padLeft(2, '0')}-'
+            '${selectedDateTime.month.toString().padLeft(2, '0')}-'
+            '${selectedDateTime.year} '
+            '${selectedDateTime.hour.toString().padLeft(2, '0')}:'
+            '${selectedDateTime.minute.toString().padLeft(2, '0')}';
+      }
+    }
+  }
+
+
+  void clearDialogFields() {
+    remarksController.clear();
+    holdDateTimeController.clear();
+    selectedImage.value = null;
   }
 }

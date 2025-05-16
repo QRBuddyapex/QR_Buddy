@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:qr_buddy/app/core/config/token_storage.dart';
 import 'package:qr_buddy/app/core/services/api_service.dart';
@@ -5,14 +6,15 @@ import 'package:qr_buddy/app/data/models/e_tickets.dart';
 import 'package:qr_buddy/app/data/models/ticket.dart';
 import 'package:qr_buddy/app/data/repo/e_ticket_repo.dart';
 import 'package:qr_buddy/app/routes/routes.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class TicketController extends GetxController {
-  
   var selectedFilter = 'All'.obs;
   var tickets = <Ticket>[].obs;
   var filteredTickets = <Ticket>[].obs;
   var links = <Link>[].obs;
   var selectedInfoCard = 'E-Tickets'.obs;
+
   var tasks = <Map<String, dynamic>>[].obs;
   var checklists = <Map<String, dynamic>>[].obs;
 
@@ -28,7 +30,6 @@ class TicketController extends GetxController {
 
   late final TicketRepository _ticketRepository;
 
- 
   @override
   void onInit() {
     super.onInit();
@@ -44,13 +45,12 @@ class TicketController extends GetxController {
 
   Future<void> fetchTickets() async {
     try {
-     
       final response = await _ticketRepository.fetchTickets(
         hcoId: await TokenStorage().getHcoId() ?? '',
         requestStatus: _mapFilterToRequestStatus(selectedFilter.value),
       );
       tickets.assignAll(response.orders.map((order) => order.toTicket()).toList());
-      links.assignAll(response.links as Iterable<Link>);
+      links.assignAll(response.links);
       updateTicketList();
     } catch (e) {
       Get.snackbar('Error', 'Failed to fetch tickets: $e');
@@ -169,10 +169,37 @@ class TicketController extends GetxController {
   }
 
   void navigateToDetail(Ticket ticket) {
+    if (ticket.uuid!.isEmpty) {
+      Get.snackbar('Error', 'Order ID (UUID) is missing for this ticket');
+      return;
+    }
     Get.toNamed(RoutesName.ticketDetailsView, arguments: ticket);
   }
 
-  void dialPhone(String phoneNumber) {}
+  void dialPhone(String phoneNumber) async {
+    final Uri url = Uri.parse('tel:$phoneNumber');
+    try {
+      if (await canLaunchUrl(url)) {
+        await launchUrl(url);
+      } else {
+        Get.snackbar(
+          'Error',
+          'Could not launch dialer. Please check permissions or try again.',
+          snackPosition: SnackPosition.BOTTOM,
+          backgroundColor: Colors.red.withOpacity(0.8),
+          colorText: Colors.white,
+        );
+      }
+    } catch (e) {
+      Get.snackbar(
+        'Error',
+        'Failed to open dialer: $e',
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Colors.red.withOpacity(0.8),
+        colorText: Colors.white,
+      );
+    }
+  }
 
   void updateTicketList() {
     switch (selectedFilter.value) {

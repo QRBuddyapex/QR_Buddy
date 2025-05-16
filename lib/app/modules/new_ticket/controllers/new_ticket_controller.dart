@@ -95,101 +95,110 @@ class NewETicketController extends GetxController {
   void removeImage(int index) {
     selectedImages.removeAt(index);
   }
+Future<void> submit() async {
+  if (!formKey.currentState!.validate()) {
+    return;
+  }
 
-  Future<void> submit() async {
-    if (!formKey.currentState!.validate()) {
+  // Additional validation for room and services
+  if (room.value.isEmpty || services.value.isEmpty) {
+    Get.snackbar('Error', 'Please select a valid room and service',
+        snackPosition: SnackPosition.BOTTOM);
+    return;
+  }
+
+  try {
+    isLoading.value = true;
+
+    final userId = await _tokenStorage.getUserId();
+    final hcoId = await _tokenStorage.getHcoId();
+
+    if (userId == null || hcoId == null || formResponse == null) {
+      Get.snackbar('Error', 'Authentication data or form data missing',
+          snackPosition: SnackPosition.BOTTOM);
       return;
     }
 
-    try {
-      isLoading.value = true;
+    // Find room_uuid and service_id
+    final selectedRoom = formResponse!.rooms.firstWhereOrNull(
+      (r) => r.roomNumber == room.value, // Use room.value
+    );
+    final selectedService = formResponse!.services.firstWhereOrNull(
+      (service) => service.serviceName == services.value, // Use services.value
+    );
 
-      final userId = await _tokenStorage.getUserId();
-      final hcoId = await _tokenStorage.getHcoId();
-
-      if (userId == null || hcoId == null || formResponse == null) {
-        Get.snackbar('Error', 'Authentication data or form data missing',
-            snackPosition: SnackPosition.BOTTOM);
-        return;
-      }
-
-      // Find room_uuid and service_id
-      final selectedRoom = formResponse!.rooms.firstWhereOrNull(
-        (room) => room.roomNumber == room,
-      );
-      final selectedService = formResponse!.services.firstWhereOrNull(
-        (service) => service.serviceName == services.value,
-      );
-
-      if (selectedRoom == null || selectedService == null) {
-        Get.snackbar('Error', 'Please select a valid room and service',
-            snackPosition: SnackPosition.BOTTOM);
-        return;
-      }
-
-      // Normalize priority to match API (e.g., "Low" -> "LOW")
-      final normalizedPriority = priority.value.toUpperCase();
-
-      // Hardcoded payload
-      final formData = dio.FormData.fromMap({
-        'file_count': selectedImages.length.toString(),
-        'user_id': userId,
-        'room_uuid': selectedRoom.uuid,
-        'stock_uuid': 'undefined',
-        'stock_down': 'undefined',
-        'service_id': selectedService.id,
-        'parameter_category_id': '0',
-        'parameters': 'priority=$normalizedPriority',
-        'map_long': 'undefined',
-        'map_lat': 'undefined',
-        'map_distance': 'undefined',
-        'source': 'WEB',
-        'request_type': ticketType.value ?? 'undefined',
-        'addons[phone_number]': complainantPhone.value.isEmpty ? '' : complainantPhone.value,
-        'addons[full_name]': complainantName.value.isEmpty ? '' : complainantName.value,
-        'addons[image]': '',
-        'addons[notes]': remarks.value.isEmpty ? '' : remarks.value,
-      });
-
-      // Add image files
-      for (var i = 0; i < selectedImages.length; i++) {
-        final file = selectedImages[i];
-        formData.files.add(MapEntry(
-          'file$i',
-          await dio.MultipartFile.fromFile(file.path, filename: file.name),
-        ));
-      }
-
-      // Make API call
-      final response = await _apiService.post(
-        '/ticket/ticket.html?action=save&user_id=$userId&hco_id=$hcoId',
-        data: formData,
-      );
-
-      if (response.statusCode == 200 && response.data['status'] == 1) {
-        Get.snackbar('Success', 'Ticket saved successfully',
-            snackPosition: SnackPosition.BOTTOM);
-        // Reset form
-        room.value = '';
-        services.value = '';
-        complainantName.value = '';
-        complainantPhone.value = '';
-        priority.value = 'Normal';
-        ticketType.value = null;
-        remarks.value = '';
-        selectedImages.clear();
-      } else {
-        Get.snackbar('Error', 'Failed to save ticket: ${response.data['message']}',
-            snackPosition: SnackPosition.BOTTOM);
-      }
-    } catch (e) {
-      Get.snackbar('Error', 'Failed to save ticket: $e',
+    if (selectedRoom == null || selectedService == null) {
+      Get.snackbar('Error', 'Please select a valid room and service',
           snackPosition: SnackPosition.BOTTOM);
-    } finally {
-      isLoading.value = false;
+      return;
     }
-  }
 
+    // Normalize priority to match API (e.g., "Low" -> "LOW")
+    final normalizedPriority = priority.value.toUpperCase().substring(0, 3); // Convert to "LOW", "NOR", "HIG", "CRI"
+
+    // Construct parameters as an object to match the provided payload
+    final parameters = {
+      'priority': normalizedPriority,
+      'map_long': 'undefined',
+      'map_lat': 'undefined',
+      'map_distance': 'undefined',
+    };
+
+    // Construct form data
+    final formData = dio.FormData.fromMap({
+      'file_count': "0",
+      'user_id': userId,
+      'room_uuid': selectedRoom.uuid,
+      'stock_uuid': 'undefined',
+      'stock_down': 'undefined',
+      'service_id': selectedService.id,
+      'parameter_category_id': '0',
+      'parameters': parameters, 
+      'source': 'WEB',
+      'request_type': ticketType.value ?? 'SER',
+      'addons[phone_number]': complainantPhone.value.isEmpty ? 'test' : complainantPhone.value,
+      'addons[full_name]': complainantName.value.isEmpty ? 'test' : complainantName.value,
+      'addons[notes]': remarks.value.isEmpty ? 'test' : remarks.value,
+    });
+
+    // Add image files
+    for (var i = 0; i < selectedImages.length; i++) {
+      final file = selectedImages[i];
+      formData.files.add(MapEntry(
+        'file$i',
+        await dio.MultipartFile.fromFile(file.path, filename: file.name),
+      ));
+    }
+
+    // Make API call
+    final response = await _apiService.post(
+      '/ticket/ticket.html?action=save&user_id=$userId&hco_id=$hcoId',
+      data: formData,
+    );
+
+    if (response.statusCode == 200 && response.data['status'] == 1) {
+      Get.snackbar('Success', 'Ticket saved successfully',
+          snackPosition: SnackPosition.BOTTOM);
+      // Reset form
+      room.value = '';
+      services.value = '';
+      complainantName.value = '';
+      complainantPhone.value = '';
+      priority.value = 'Normal';
+      ticketType.value = null;
+      remarks.value = '';
+      selectedImages.clear();
+    } else {
+      Get.snackbar('Error', 'Failed to save ticket: ${response.data['message']}',
+          snackPosition: SnackPosition.BOTTOM);
+    }
+  } catch (e) {
+    Get.snackbar('Error', 'Failed to save ticket: $e',
+        snackPosition: SnackPosition.BOTTOM);
+  } finally {
+    isLoading.value = false;
+  }
+}
   String? validateField(String? value) {
     if (value == null || value.isEmpty) return 'This field is required';
     return null;

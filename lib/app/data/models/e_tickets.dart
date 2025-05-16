@@ -1,4 +1,3 @@
-// app/data/models/ticket_response.dart
 import 'package:qr_buddy/app/data/models/ticket.dart';
 
 class TicketResponse {
@@ -205,6 +204,7 @@ class Order {
       assignedTo: assignedToUsername.split('@').first,
       serviceLabel: serviceName,
       isQuickRequest: source == 'QR',
+      uuid: uuid, // Add uuid mapping
     );
   }
 
@@ -277,3 +277,4 @@ class Options {
     );
   }
 }
+

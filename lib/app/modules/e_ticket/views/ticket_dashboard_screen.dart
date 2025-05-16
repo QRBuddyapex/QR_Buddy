@@ -165,6 +165,8 @@ class _TicketDashboardScreenState extends State<TicketDashboardScreen> {
                                     assignedTo: ticket.assignedTo,
                                     serviceLabel: ticket.serviceLabel,
                                     isQuickRequest: ticket.isQuickRequest ?? false,
+                                    uuid: ticket.uuid,
+                                    
                                     onTap: () => controller.navigateToDetail(ticket),
                                   ),
                                 ],

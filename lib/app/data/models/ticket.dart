@@ -9,6 +9,7 @@ class Ticket {
   final String serviceLabel;
   final String assignedTo;
   final bool? isQuickRequest;
+  final String? uuid;
 
   Ticket({
     required this.orderNumber,
@@ -21,5 +22,6 @@ class Ticket {
     required this.assignedTo, 
     required this.serviceLabel,
     this.isQuickRequest= false,
+    this.uuid,
   });
 }

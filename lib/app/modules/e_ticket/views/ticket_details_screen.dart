@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:image_picker/image_picker.dart';
 import 'package:qr_buddy/app/core/config/token_storage.dart';
 import 'package:qr_buddy/app/core/services/api_service.dart';
 import 'package:qr_buddy/app/core/theme/app_theme.dart';
@@ -93,175 +92,7 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
     }
   }
 
-  // Show dialog for Complete, Hold, and Cancel actions
-  void _showActionDialog(BuildContext context, String action) {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                widget.ticket.orderNumber,
-                style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-              ),
-              Text(
-                action == 'Complete'
-                    ? widget.ticket.serviceLabel
-                    : action == 'Hold'
-                        ? widget.ticket.serviceLabel
-                        : widget.ticket.serviceLabel,
-                style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
-              ),
-              IconButton(
-                icon: const Icon(Icons.close),
-                onPressed: () {
-                  ticketController.clearDialogFields();
-                  Navigator.of(context).pop();
-                },
-              ),
-            ],
-          ),
-          content: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                if (action == 'Hold') ...[
-                  const Text('For how long do you want to hold this request?'),
-                  const SizedBox(height: 10),
-                  TextField(
-                    controller: ticketController.holdDateTimeController,
-                    readOnly: true,
-                    onTap: () => ticketController.pickDateTime(context),
-                    decoration: InputDecoration(
-                      hintText: 'dd-mm-yyyy --:--',
-                      suffixIcon: const Icon(Icons.calendar_today),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 10),
-                ],
-                const Text('Comment on your contribution to the request process'),
-                const SizedBox(height: 10),
-                TextField(
-                  controller: ticketController.remarksController,
-                  maxLines: 5,
-                  decoration: InputDecoration(
-                    hintText: 'Enter remarks',
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 20),
-                Obx(() => Center(
-                      child: GestureDetector(
-                        onTap: () {
-                          showModalBottomSheet(
-                            context: context,
-                            builder: (BuildContext context) {
-                              return SafeArea(
-                                child: Column(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    ListTile(
-                                      leading: const Icon(Icons.photo_library),
-                                      title: const Text('Pick from Gallery'),
-                                      onTap: () {
-                                        ticketController.pickImage(ImageSource.gallery);
-                                        Navigator.of(context).pop();
-                                      },
-                                    ),
-                                    ListTile(
-                                      leading: const Icon(Icons.camera_alt),
-                                      title: const Text('Take a Photo'),
-                                      onTap: () {
-                                        ticketController.pickImage(ImageSource.camera);
-                                        Navigator.of(context).pop();
-                                      },
-                                    ),
-                                    if (ticketController.selectedImage.value != null)
-                                      ListTile(
-                                        leading: const Icon(Icons.delete),
-                                        title: const Text('Remove Image'),
-                                        onTap: () {
-                                          ticketController.clearImage();
-                                          Navigator.of(context).pop();
-                                        },
-                                      ),
-                                  ],
-                                ),
-                              );
-                            },
-                          );
-                        },
-                        child: Container(
-                          padding: const EdgeInsets.all(20),
-                          decoration: BoxDecoration(
-                            color: Colors.blue.withOpacity(0.1),
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                          child: ticketController.selectedImage.value == null
-                              ? const Icon(
-                                  Icons.camera_alt,
-                                  color: Colors.blue,
-                                  size: 40,
-                                )
-                              : ClipRRect(
-                                  borderRadius: BorderRadius.circular(10),
-                                  child: Image.file(
-                                    ticketController.selectedImage.value!,
-                                    width: 100,
-                                    height: 100,
-                                    fit: BoxFit.cover,
-                                  ),
-                                ),
-                        ),
-                      ),
-                    )),
-              ],
-            ),
-          ),
-          actions: [
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                onPressed: () {
-                  Navigator.of(context).pop();
-                  Get.snackbar(
-                    'Success',
-                    '$action action submitted successfully',
-                    snackPosition: SnackPosition.BOTTOM,
-                    backgroundColor: Colors.green.withOpacity(0.8),
-                    colorText: Colors.white,
-                  );
-                  ticketController.clearDialogFields();
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.yellow[700],
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                ),
-                child: const Text(
-                  'Submit',
-                  style: TextStyle(color: Colors.black),
-                ),
-              ),
-            ),
-          ],
-        );
-      },
-    );
-  }
-
-  // Show dialog when active user card is tapped
   void _showActiveUserDialog(BuildContext context, ActiveUser activeUser) {
-    // Mock task data for demonstration
     final List<Map<String, String>> tasks = [
       {
         'title': 'Integrate payment method',
@@ -279,15 +110,19 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
+          backgroundColor: AppColors.cardBackgroundColor,
           title: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
                 activeUser.username,
-                style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                      color: AppColors.textColor,
+                      fontWeight: FontWeight.bold,
+                    ),
               ),
               IconButton(
-                icon: const Icon(Icons.close),
+                icon: const Icon(Icons.close, color: AppColors.hintTextColor),
                 onPressed: () => Navigator.of(context).pop(),
               ),
             ],
@@ -302,22 +137,21 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
                   children: [
                     Text(
                       'Active Tasks: ${activeUser.activeTasks}',
-                      style: const TextStyle(fontSize: 16, color: Colors.green),
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Colors.green),
                     ),
                     Text(
                       activeUser.shiftStatus == 'END' ? 'Not Available' : 'Available',
-                      style: TextStyle(
-                        fontSize: 16,
-                        color: activeUser.shiftStatus == 'END' ? Colors.red : Colors.green,
-                        fontWeight: FontWeight.bold,
-                      ),
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                            color: activeUser.shiftStatus == 'END' ? Colors.red : Colors.green,
+                            fontWeight: FontWeight.bold,
+                          ),
                     ),
                   ],
                 ),
                 const SizedBox(height: 20),
-                const Text(
+                Text(
                   'Tasks',
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                  style: Theme.of(context).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 10),
                 ...tasks.map((task) => Card(
@@ -335,7 +169,7 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
                               ),
                               child: Text(
                                 task['priority']!,
-                                style: const TextStyle(color: Colors.blue),
+                                style: Theme.of(context).textTheme.bodySmall?.copyWith(color: Colors.blue),
                               ),
                             ),
                             const SizedBox(width: 10),
@@ -349,7 +183,6 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
                   width: double.infinity,
                   child: ElevatedButton(
                     onPressed: () {
-                      // Logic to assign a new task (can be implemented later)
                       Navigator.of(context).pop();
                       Get.snackbar(
                         'Success',
@@ -360,14 +193,17 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
                       );
                     },
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.yellow[700],
+                      backgroundColor: AppColors.primaryColor,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(20),
                       ),
                     ),
-                    child: const Text(
+                    child: Text(
                       'Assign Task',
-                      style: TextStyle(color: Colors.black),
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                          ),
                     ),
                   ),
                 ),
@@ -542,7 +378,16 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
             ),
             CustomButton(
               width: context.width * 0.22,
-              onPressed: () => _showActionDialog(context, 'Complete'),
+              onPressed: () => ticketController.showConfirmationDialog(
+                context,
+                'Complete',
+                () => ticketController.showActionFormDialog(
+                  context,
+                  'Complete',
+                  widget.ticket.orderNumber,
+                  widget.ticket.serviceLabel,
+                ),
+              ),
               text: 'Complete',
               color: AppColors.statusButtonColor,
             ),
@@ -554,7 +399,16 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
           children: [
             CustomButton(
               width: context.width * 0.22,
-              onPressed: () => _showActionDialog(context, 'Hold'),
+              onPressed: () => ticketController.showConfirmationDialog(
+                context,
+                'Hold',
+                () => ticketController.showActionFormDialog(
+                  context,
+                  'Hold',
+                  widget.ticket.orderNumber,
+                  widget.ticket.serviceLabel,
+                ),
+              ),
               text: 'Hold',
               color: AppColors.holdButtonColor,
             ),
@@ -580,7 +434,16 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
     return Center(
       child: CustomButton(
         width: context.width * 0.22,
-        onPressed: () => _showActionDialog(context, 'Cancel'),
+        onPressed: () => ticketController.showConfirmationDialog(
+          context,
+          'Cancel',
+          () => ticketController.showActionFormDialog(
+            context,
+            'Cancel',
+            widget.ticket.orderNumber,
+            widget.ticket.serviceLabel,
+          ),
+        ),
         text: 'Cancel',
         color: AppColors.dangerButtonColor,
       ),
@@ -591,8 +454,20 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
     return TextField(
       decoration: InputDecoration(
         labelText: 'Transfer to',
-        suffixIcon: const Icon(Icons.search),
+        suffixIcon: const Icon(Icons.search, color: AppColors.hintTextColor),
         labelStyle: Theme.of(context).textTheme.bodySmall,
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(10),
+          borderSide: BorderSide(color: AppColors.borderColor),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(10),
+          borderSide: BorderSide(color: AppColors.borderColor),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(10),
+          borderSide: BorderSide(color: AppColors.primaryColor),
+        ),
       ),
     );
   }

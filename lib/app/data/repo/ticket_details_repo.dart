@@ -17,8 +17,6 @@ class OrderDetailRepository {
     final response = await _apiService.get(
       '/orders.html?action=order_detail&hco_id=$hcoId&order_id=$orderId&user_id=$userId&phone_uuid=5678b6baf95911ef8b460200d429951a&hco_key=0',
     );
-    
-
 
     if (response.statusCode == 200) {
       return OrderDetailResponse.fromJson(response.data);
@@ -27,7 +25,7 @@ class OrderDetailRepository {
     }
   }
 
-  Future<void> updateRequest({
+  Future<Map<String, dynamic>> updateRequest({
     required String userId,
     required String hcoId,
     required String orderId,
@@ -56,9 +54,14 @@ class OrderDetailRepository {
     final response = await _apiService.post(
       '/ticket/ticket.html?action=update_request&user_id=$userId&hco_id=$hcoId&phone_uuid=$phoneUuid&hco_key=$hcoKey',
       data: formData,
+      options: Options(
+        contentType: 'multipart/form-data', // Explicitly set content-type
+      ),
     );
 
-    if (response.statusCode != 200 || response.data['status'] != 1) {
+    if (response.statusCode == 200 && response.data['status'] == 1) {
+      return response.data; // Return the response data
+    } else {
       throw Exception(response.data['message'] ?? 'Failed to update request');
     }
   }

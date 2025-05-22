@@ -24,6 +24,7 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
   late OrderDetailRepository _repository;
   OrderDetailResponse? _orderDetailResponse;
   bool _isLoading = true;
+  bool _showInitialButtons = true;
   final TicketController ticketController = Get.find<TicketController>();
 
   @override
@@ -52,6 +53,7 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
       setState(() {
         _orderDetailResponse = response;
         _isLoading = false;
+        _showInitialButtons = !['COMP', 'HOLD', 'CAN', 'ACC'].contains(response.order.requestStatus);
       });
     } catch (e) {
       setState(() {
@@ -64,6 +66,15 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
         backgroundColor: Colors.red.withOpacity(0.8),
         colorText: Colors.white,
       );
+    }
+  }
+
+  void _updateButtonVisibility(String action, Map<String, dynamic> response) {
+    if (response['status'] == 1 || response['status'] == '1') {
+      setState(() {
+        // Revert to initial buttons for Reopen, keep Reopen/Verify for others
+        _showInitialButtons = action == 'Reopen';
+      });
     }
   }
 
@@ -275,8 +286,6 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
               Text('${order.blockName}/${order.floorName}', style: Theme.of(context).textTheme.bodyMedium),
               const SizedBox(height: 20),
               _buildActionButtons(context),
-              const SizedBox(height: 10),
-              _buildCancelButton(context),
               const SizedBox(height: 20),
               Text('Assign task to', style: Theme.of(context).textTheme.headlineSmall),
               const SizedBox(height: 10),
@@ -361,71 +370,113 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
   Widget _buildActionButtons(BuildContext context) {
     return Column(
       children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-          children: [
-            CustomButton(
-              width: context.width * 0.22,
-              onPressed: () {},
-              text: 'Accept',
-              color: AppColors.primaryColor,
-            ),
-            CustomButton(
-              width: context.width * 0.22,
-              onPressed: () {},
-              text: 'Start',
-              color: AppColors.whatsappIconColor,
-            ),
-            CustomButton(
-              width: context.width * 0.22,
-              onPressed: () => ticketController.showConfirmationDialog(
-                context,
-                'Complete',
-                () => ticketController.showActionFormDialog(
+        if (_showInitialButtons) ...[
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: [
+              CustomButton(
+                width: context.width * 0.22,
+                onPressed: () {
+                  ticketController.showConfirmationDialog(
+                    context,
+                    'Accept',
+                    () => ticketController.showActionFormDialog(
+                      context,
+                      'Accept',
+                      widget.ticket.orderNumber,
+                      widget.ticket.serviceLabel,
+                      onSuccess: (response) {
+                        _updateButtonVisibility('Accept', response);
+                      },
+                    ),
+                  );
+                },
+                text: 'Accept',
+                color: AppColors.primaryColor,
+              ),
+              CustomButton(
+                width: context.width * 0.22,
+                onPressed: () => ticketController.showConfirmationDialog(
                   context,
                   'Complete',
-                  widget.ticket.orderNumber,
-                  widget.ticket.serviceLabel,
+                  () => ticketController.showActionFormDialog(
+                    context,
+                    'Complete',
+                    widget.ticket.orderNumber,
+                    widget.ticket.serviceLabel,
+                    onSuccess: (response) {
+                      _updateButtonVisibility('Complete', response);
+                    },
+                  ),
                 ),
+                text: 'Complete',
+                color: AppColors.statusButtonColor,
               ),
-              text: 'Complete',
-              color: AppColors.statusButtonColor,
-            ),
-          ],
-        ),
-        const SizedBox(height: 10),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-          children: [
-            CustomButton(
-              width: context.width * 0.22,
-              onPressed: () => ticketController.showConfirmationDialog(
-                context,
-                'Hold',
-                () => ticketController.showActionFormDialog(
+              CustomButton(
+                width: context.width * 0.22,
+                onPressed: () => ticketController.showConfirmationDialog(
                   context,
                   'Hold',
-                  widget.ticket.orderNumber,
-                  widget.ticket.serviceLabel,
+                  () => ticketController.showActionFormDialog(
+                    context,
+                    'Hold',
+                    widget.ticket.orderNumber,
+                    widget.ticket.serviceLabel,
+                    onSuccess: (response) {
+                      _updateButtonVisibility('Hold', response);
+                    },
+                  ),
                 ),
+                text: 'Hold',
+                color: AppColors.holdButtonColor,
               ),
-              text: 'Hold',
-              color: AppColors.holdButtonColor,
-            ),
-            CustomButton(
-              width: context.width * 0.22,
-              onPressed: () {},
-              text: 'Reopen',
-              color: AppColors.statusButtonColor1,
-            ),
-            CustomButton(
-              width: context.width * 0.22,
-              onPressed: () {},
-              text: 'Verify',
-              color: Colors.purple,
-            ),
-          ],
-        ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          _buildCancelButton(context),
+        ] else ...[
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: [
+              CustomButton(
+                width: context.width * 0.22,
+                onPressed: () => ticketController.showConfirmationDialog(
+                  context,
+                  'Reopen',
+                  () => ticketController.showActionFormDialog(
+                    context,
+                    'Reopen',
+                    widget.ticket.orderNumber,
+                    widget.ticket.serviceLabel,
+                    onSuccess: (response) {
+                      _updateButtonVisibility('Reopen', response);
+                    },
+                  ),
+                ),
+                text: 'Reopen',
+                color: AppColors.statusButtonColor1,
+              ),
+              CustomButton(
+                width: context.width * 0.22,
+                onPressed: () => ticketController.showConfirmationDialog(
+                  context,
+                  'Verify',
+                  () => ticketController.showActionFormDialog(
+                    context,
+                    'Verify',
+                    widget.ticket.orderNumber,
+                    widget.ticket.serviceLabel,
+                    onSuccess: (response) {
+                      _updateButtonVisibility('Verify', response);
+                    },
+                  ),
+                ),
+                text: 'Verify',
+                color: Colors.purple,
+              ),
+            ],
+          ),
+        ],
       ],
     );
   }
@@ -442,6 +493,9 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
             'Cancel',
             widget.ticket.orderNumber,
             widget.ticket.serviceLabel,
+            onSuccess: (response) {
+              _updateButtonVisibility('Cancel', response);
+            },
           ),
         ),
         text: 'Cancel',

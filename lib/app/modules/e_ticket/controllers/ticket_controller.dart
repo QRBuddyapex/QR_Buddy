@@ -306,18 +306,27 @@ class TicketController extends GetxController {
     selectedImage.value = null;
   }
 
-  Future<void> updateRequest({
+  Future<Map<String, dynamic>> updateRequest({
     required String action,
     required String orderId,
   }) async {
     try {
       final userId = await TokenStorage().getUserId() ?? '';
       final hcoId = await TokenStorage().getHcoId() ?? '';
-      final phoneUuid = '5678b6baf95911ef8b460200d429951a'; 
-      final hcoKey = '0'; 
+      final phoneUuid = '5678b6baf95911ef8b460200d429951a';
+      final hcoKey = '0';
       final remarks = remarksController.text;
       final timeHoldTill = action == 'Hold' ? holdDateTimeController.text : '';
-      final requestStatus = action == 'Complete' ? 'COMP' : action == 'Hold' ? 'HOLD' : 'CAN';
+
+      // Map action to request_status
+      final requestStatus = {
+        'Accept': 'ACC',
+        'Complete': 'COMP',
+        'Hold': 'HOLD',
+        'Cancel': 'CAN',
+        'Reopen': 'REO',
+        'Verify': 'VER',
+      }[action] ?? 'CAN';
 
       dio.MultipartFile? file;
       if (selectedImage.value != null) {
@@ -327,7 +336,7 @@ class TicketController extends GetxController {
         );
       }
 
-      await _orderDetailRepository.updateRequest(
+      final response = await _orderDetailRepository.updateRequest(
         userId: userId,
         hcoId: hcoId,
         orderId: orderId,
@@ -346,6 +355,8 @@ class TicketController extends GetxController {
         backgroundColor: Colors.green.withOpacity(0.8),
         colorText: Colors.white,
       );
+
+      return response;
     } catch (e) {
       Get.snackbar(
         'Error',
@@ -399,7 +410,13 @@ class TicketController extends GetxController {
     );
   }
 
-  void showActionFormDialog(BuildContext context, String action, String orderNumber, String serviceLabel) {
+  void showActionFormDialog(
+    BuildContext context,
+    String action,
+    String orderNumber,
+    String serviceLabel, {
+    Function(Map<String, dynamic>)? onSuccess,
+  }) {
     showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -578,12 +595,13 @@ class TicketController extends GetxController {
               child: ElevatedButton(
                 onPressed: () async {
                   try {
-                    await updateRequest(action: action, orderId: orderNumber);
+                    final response = await updateRequest(action: action, orderId: orderNumber);
                     Navigator.of(context).pop();
                     clearDialogFields();
-                    await fetchTickets(); // Refresh ticket list
+                    await fetchTickets();
+                    onSuccess?.call(response);
                   } catch (e) {
-                 
+                    // Error handling is already done in updateRequest
                   }
                 },
                 style: ElevatedButton.styleFrom(

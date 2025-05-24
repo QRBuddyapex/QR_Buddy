@@ -577,12 +577,28 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
   }
 
   Widget _buildHistoryList(BuildContext context) {
+    // Map of history type to icon and color
+    final Map<String, ({IconData icon, Color color})> historyIconMap = {
+      'ESC': (icon: Icons.flag, color: AppColors.escalationIconColor),
+      'ASI': (icon: Icons.person_add, color: AppColors.assignmentIconColor),
+      'ACC': (icon: Icons.check_circle, color: AppColors.primaryColor),
+      'COMP': (icon: Icons.done_all, color: AppColors.statusButtonColor),
+      'HOLD': (icon: Icons.pause_circle, color: AppColors.holdButtonColor),
+      'CAN': (icon: Icons.cancel, color: AppColors.dangerButtonColor),
+      'REO': (icon: Icons.restart_alt, color: AppColors.statusButtonColor1),
+      'VER': (icon: Icons.verified, color: Colors.purple),
+    };
+
     return ListView.builder(
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
       itemCount: _orderDetailResponse!.history.length,
       itemBuilder: (context, index) {
         final history = _orderDetailResponse!.history[index];
+        // Get icon and color for the history type, fallback to generic icon if type is unknown
+        final iconData = historyIconMap[history.type] ??
+            (icon: Icons.info, color: AppColors.hintTextColor);
+
         return Stack(
           children: [
             Positioned(
@@ -597,10 +613,8 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
             ListTile(
               contentPadding: const EdgeInsets.symmetric(vertical: 4.0),
               leading: Icon(
-                history.type == 'ESC' ? Icons.flag : Icons.person,
-                color: history.type == 'ESC'
-                    ? AppColors.escalationIconColor
-                    : AppColors.assignmentIconColor,
+                iconData.icon,
+                color: iconData.color,
                 size: 24,
               ),
               title: Row(

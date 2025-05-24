@@ -5,6 +5,7 @@ import 'package:qr_buddy/app/modules/auth/views/login_view.dart';
 import 'package:qr_buddy/app/modules/daily_checklist/bindings/daily_checklist_binding.dart';
 import 'package:qr_buddy/app/modules/daily_checklist/views/daily_checklist_view.dart';
 import 'package:qr_buddy/app/modules/e_ticket/bindings/ticket_dashboard_binding.dart';
+import 'package:qr_buddy/app/modules/e_ticket/views/accept_ticket_screen.dart';
 import 'package:qr_buddy/app/modules/e_ticket/views/ticket_dashboard_screen.dart';
 import 'package:qr_buddy/app/modules/e_ticket/views/ticket_details_screen.dart';
 import 'package:qr_buddy/app/modules/new_ticket/bindings/new_ticket_bindings.dart';
@@ -41,6 +42,12 @@ class AppRoutes {
           transition: Transition.leftToRight,
           transitionDuration: const Duration(milliseconds: 250),
         ),
+        GetPage(
+  name: RoutesName.acceptTicketScreen,
+  page: () => AcceptTicketScreen(
+    ticket: Get.arguments as Ticket,
+  ),
+),
         GetPage(
           name: RoutesName.ticketDetailsView,
           page: () {

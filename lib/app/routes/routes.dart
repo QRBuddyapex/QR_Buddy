@@ -6,6 +6,7 @@ class RoutesName {
     static const String newtTicketView = '/new_ticket_view';
   static const String ticketDetailsView = '/ticket_details_view';
   static const String dailyChecklistView = '/daily_checklist_view';
+   static const String acceptTicketScreen = '/accept-ticket';
 
   // static const String ticketHistoryView = '/ticket_history_view';
   // static const String registerUserView = '/user_signup_view';

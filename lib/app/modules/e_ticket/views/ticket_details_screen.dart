@@ -9,6 +9,7 @@ import 'package:qr_buddy/app/data/models/order_details_model.dart';
 import 'package:qr_buddy/app/data/models/ticket.dart';
 import 'package:qr_buddy/app/data/repo/ticket_details_repo.dart';
 import 'package:qr_buddy/app/modules/e_ticket/controllers/ticket_controller.dart';
+import 'package:qr_buddy/app/routes/routes.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class TicketDetailScreen extends StatefulWidget {
@@ -72,7 +73,6 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
   void _updateButtonVisibility(String action, Map<String, dynamic> response) {
     if (response['status'] == 1 || response['status'] == '1') {
       setState(() {
-        // Revert to initial buttons for Reopen, keep Reopen/Verify for others
         _showInitialButtons = action == 'Reopen';
       });
     }
@@ -339,6 +339,7 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
   Widget _buildPriorityRow(String priority) {
     final isNormal = priority == 'NOR';
     return Row(
+     
       children: [
         Text('Priority', style: Theme.of(context).textTheme.bodyMedium),
         const Spacer(),
@@ -368,32 +369,23 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
   }
 
   Widget _buildActionButtons(BuildContext context) {
+    final isAssigned = _orderDetailResponse?.order.requestStatus == 'ASI';
+
     return Column(
       children: [
         if (_showInitialButtons) ...[
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
-              CustomButton(
-                width: context.width * 0.22,
-                onPressed: () {
-                  ticketController.showConfirmationDialog(
-                    context,
-                    'Accept',
-                    () => ticketController.showActionFormDialog(
-                      context,
-                      'Accept',
-                      widget.ticket.orderNumber,
-                      widget.ticket.serviceLabel,
-                      onSuccess: (response) {
-                        _updateButtonVisibility('Accept', response);
-                      },
-                    ),
-                  );
-                },
-                text: 'Accept',
-                color: AppColors.primaryColor,
-              ),
+              if (isAssigned)
+                CustomButton(
+                  width: context.width * 0.22,
+                  onPressed: () {
+                    Get.toNamed(RoutesName.acceptTicketScreen, arguments: widget.ticket);
+                  },
+                  text: 'Accept',
+                  color: AppColors.primaryColor,
+                ),
               CustomButton(
                 width: context.width * 0.22,
                 onPressed: () => ticketController.showConfirmationDialog(

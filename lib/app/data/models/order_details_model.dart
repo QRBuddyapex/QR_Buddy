@@ -19,17 +19,17 @@ class OrderDetailResponse {
 
   factory OrderDetailResponse.fromJson(Map<String, dynamic> json) {
     return OrderDetailResponse(
-      order: Order.fromJson(json['order']),
-      history: (json['history'] as List)
+      order: Order.fromJson(json['order'] ?? {}),
+      history: (json['history'] as List? ?? [])
           .map((item) => History.fromJson(item))
           .toList(),
-      activeUsers: (json['active_users'] as List)
+      activeUsers: (json['active_users'] as List? ?? [])
           .map((item) => ActiveUser.fromJson(item))
           .toList(),
-      users: Users.fromJson(json['users']),
-      department: Department.fromJson(json['department']),
-      status: json['status'],
-      message: json['message'],
+      users: Users.fromJson(json['users'] ?? {}),
+      department: Department.fromJson(json['department'] ?? {}),
+      status: json['status'] ?? 0,
+      message: json['message'] ?? '',
     );
   }
 }
@@ -91,31 +91,31 @@ class Order {
 
   factory Order.fromJson(Map<String, dynamic> json) {
     return Order(
-      id: json['id'],
-      uuid: json['uuid'],
-      requestNumber: json['request_number'],
-      hcoId: json['hco_id'],
-      departmentId: json['department_id'],
-      departmentName: json['department_name'],
-      roomId: json['room_id'],
-      roomNumber: json['room_number'],
-      blockName: json['block_name'],
-      floorName: json['floor_name'],
-      serviceId: json['service_id'],
-      serviceName: json['service_name'],
-      assignedTo: json['assigned_to'],
-      assignedToUsername: json['assigned_to_username'],
-      requestStatus: json['request_status'],
-      requestType: json['request_type'],
-      priority: json['priority'],
-      source: json['source'],
-      mapLong: json['map_long'],
-      mapLat: json['map_lat'],
-      phoneNumber: json['phone_number'],
-      timeStart: json['time_start'],
-      timeAccepted: json['time_accepted'],
-      createdAt: json['created_at'],
-      createdAtDate: json['created_at_date'],
+      id: json['id']?.toString() ?? '',
+      uuid: json['uuid']?.toString() ?? '',
+      requestNumber: json['request_number']?.toString() ?? '',
+      hcoId: json['hco_id']?.toString() ?? '',
+      departmentId: json['department_id']?.toString() ?? '',
+      departmentName: json['department_name']?.toString() ?? '',
+      roomId: json['room_id']?.toString() ?? '',
+      roomNumber: json['room_number']?.toString() ?? '',
+      blockName: json['block_name']?.toString() ?? '',
+      floorName: json['floor_name']?.toString() ?? '',
+      serviceId: json['service_id']?.toString() ?? '',
+      serviceName: json['service_name']?.toString() ?? '',
+      assignedTo: json['assigned_to']?.toString() ?? '',
+      assignedToUsername: json['assigned_to_username']?.toString() ?? '',
+      requestStatus: json['request_status']?.toString() ?? '',
+      requestType: json['request_type']?.toString() ?? '',
+      priority: json['priority']?.toString() ?? '',
+      source: json['source']?.toString() ?? '',
+      mapLong: json['map_long']?.toString() ?? '',
+      mapLat: json['map_lat']?.toString() ?? '',
+      phoneNumber: json['phone_number']?.toString() ?? '',
+      timeStart: json['time_start']?.toString() ?? '',
+      timeAccepted: json['time_accepted']?.toString() ?? '',
+      createdAt: json['created_at']?.toString() ?? '',
+      createdAtDate: json['created_at_date']?.toString() ?? '',
     );
   }
 }
@@ -149,17 +149,17 @@ class History {
 
   factory History.fromJson(Map<String, dynamic> json) {
     return History(
-      id: json['id'],
-      orderId: json['order_id'],
-      userId: json['user_id'],
-      type: json['type'],
-      caption: json['caption'],
-      remarks: json['remarks'],
-      messageType: json['message_type'],
-      phoneNumber: json['phone_number'],
-      statusWhatsapp: json['status_whatsapp'],
-      createdAt: json['created_at'],
-      createdAtDate: json['created_at_date'],
+      id: json['id']?.toString() ?? '',
+      orderId: json['order_id']?.toString() ?? '',
+      userId: json['user_id']?.toString() ?? '',
+      type: json['type']?.toString() ?? '',
+      caption: json['caption']?.toString() ?? '',
+      remarks: json['remarks']?.toString() ?? '',
+      messageType: json['message_type']?.toString() ?? '',
+      phoneNumber: json['phone_number']?.toString() ?? '',
+      statusWhatsapp: json['status_whatsapp']?.toString() ?? '',
+      createdAt: json['created_at']?.toString() ?? '',
+      createdAtDate: json['created_at_date']?.toString() ?? '',
     );
   }
 }
@@ -187,14 +187,14 @@ class ActiveUser {
 
   factory ActiveUser.fromJson(Map<String, dynamic> json) {
     return ActiveUser(
-      id: json['id'],
-      uuid: json['uuid'],
-      hcoId: json['hco_id'],
-      departmentId: json['department_id'],
-      username: json['username'],
-      userType: json['user_type'],
-      shiftStatus: json['shift_status'],
-      activeTasks: json['active_tasks'],
+      id: json['id']?.toString() ?? '',
+      uuid: json['uuid']?.toString() ?? '',
+      hcoId: json['hco_id']?.toString() ?? '',
+      departmentId: json['department_id']?.toString() ?? '',
+      username: json['username']?.toString() ?? '',
+      userType: json['user_type']?.toString() ?? '',
+      shiftStatus: json['shift_status']?.toString() ?? '',
+      activeTasks: json['active_tasks']?.toString() ?? '',
     );
   }
 }
@@ -212,11 +212,11 @@ class Users {
 
   factory Users.fromJson(Map<String, dynamic> json) {
     return Users(
-      result: (json['RESULT'] as List)
+      result: (json['RESULT'] as List? ?? [])
           .map((item) => User.fromJson(item))
           .toList(),
-      count: json['COUNT'],
-      total: json['TOTAL'],
+      count: json['COUNT'] ?? 0,
+      total: json['TOTAL'] ?? 0,
     );
   }
 }
@@ -244,14 +244,14 @@ class User {
 
   factory User.fromJson(Map<String, dynamic> json) {
     return User(
-      id: json['id'],
-      uuid: json['uuid'],
-      hcoId: json['hco_id'],
-      departmentId: json['department_id'],
-      username: json['username'],
-      userType: json['user_type'],
-      shiftStatus: json['shift_status'],
-      activeTasks: json['active_tasks'],
+      id: json['id']?.toString() ?? '',
+      uuid: json['uuid']?.toString() ?? '',
+      hcoId: json['hco_id']?.toString() ?? '',
+      departmentId: json['department_id']?.toString() ?? '',
+      username: json['username']?.toString() ?? '',
+      userType: json['user_type']?.toString() ?? '',
+      shiftStatus: json['shift_status']?.toString() ?? '',
+      activeTasks: json['active_tasks']?.toString() ?? '',
     );
   }
 }
@@ -271,10 +271,10 @@ class Department {
 
   factory Department.fromJson(Map<String, dynamic> json) {
     return Department(
-      id: json['id'],
-      uuid: json['uuid'],
-      hcoId: json['hco_id'],
-      departmentName: json['department_name'],
+      id: json['id']?.toString() ?? '',
+      uuid: json['uuid']?.toString() ?? '',
+      hcoId: json['hco_id']?.toString() ?? '',
+      departmentName: json['department_name']?.toString() ?? '',
     );
   }
 }

@@ -5,7 +5,7 @@ import 'package:qr_buddy/app/core/config/token_storage.dart';
 import 'package:qr_buddy/app/core/services/api_service.dart';
 import 'package:qr_buddy/app/core/theme/app_theme.dart';
 import 'package:qr_buddy/app/core/widgets/custom_buttom.dart';
-import 'package:qr_buddy/app/data/models/order_details_model.dart';
+import 'package:qr_buddy/app/data/models/order_details_model.dart' as orderModel; // Add alias
 import 'package:qr_buddy/app/data/models/ticket.dart';
 import 'package:qr_buddy/app/data/repo/ticket_details_repo.dart';
 import 'package:qr_buddy/app/modules/e_ticket/controllers/ticket_controller.dart';
@@ -23,7 +23,7 @@ class TicketDetailScreen extends StatefulWidget {
 
 class _TicketDetailScreenState extends State<TicketDetailScreen> {
   late OrderDetailRepository _repository;
-  OrderDetailResponse? _orderDetailResponse;
+  orderModel.OrderDetailResponse? _orderDetailResponse; // Use alias
   bool _isLoading = true;
   bool _showInitialButtons = true;
   final TicketController ticketController = Get.find<TicketController>();
@@ -37,6 +37,9 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
 
   Future<void> _fetchOrderDetails() async {
     try {
+      setState(() {
+        _isLoading = true; // Show loading indicator during refresh
+      });
       final hcoId = await TokenStorage().getHcoId() ?? '';
       final userId = await TokenStorage().getUserId() ?? '';
       final orderId = widget.ticket.uuid;
@@ -75,6 +78,8 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
       setState(() {
         _showInitialButtons = action == 'Reopen';
       });
+      // Reload order details after successful update
+      _fetchOrderDetails();
     }
   }
 
@@ -103,7 +108,7 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
     }
   }
 
-  void _showActiveUserDialog(BuildContext context, ActiveUser activeUser) {
+  void _showActiveUserDialog(BuildContext context, orderModel.ActiveUser activeUser) {
     final List<Map<String, String>> tasks = [
       {
         'title': 'Integrate payment method',
@@ -247,7 +252,11 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
             ? const Center(child: CircularProgressIndicator())
             : _orderDetailResponse == null
                 ? const Center(child: Text('Failed to load order details'))
-                : _buildOrderDetailContent(context),
+                : RefreshIndicator(
+                    onRefresh: _fetchOrderDetails,
+                    color: AppColors.primaryColor,
+                    child: _buildOrderDetailContent(context),
+                  ),
       ),
     );
   }
@@ -339,7 +348,6 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
   Widget _buildPriorityRow(String priority) {
     final isNormal = priority == 'NOR';
     return Row(
-     
       children: [
         Text('Priority', style: Theme.of(context).textTheme.bodyMedium),
         const Spacer(),
@@ -370,6 +378,7 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
 
   Widget _buildActionButtons(BuildContext context) {
     final isAssigned = _orderDetailResponse?.order.requestStatus == 'ASI';
+    final orderId = _orderDetailResponse?.order.id ?? '';
 
     return Column(
       children: [
@@ -396,6 +405,7 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
                     'Complete',
                     widget.ticket.orderNumber,
                     widget.ticket.serviceLabel,
+                    orderId,
                     onSuccess: (response) {
                       _updateButtonVisibility('Complete', response);
                     },
@@ -414,6 +424,7 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
                     'Hold',
                     widget.ticket.orderNumber,
                     widget.ticket.serviceLabel,
+                    orderId,
                     onSuccess: (response) {
                       _updateButtonVisibility('Hold', response);
                     },
@@ -440,6 +451,7 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
                     'Reopen',
                     widget.ticket.orderNumber,
                     widget.ticket.serviceLabel,
+                    orderId,
                     onSuccess: (response) {
                       _updateButtonVisibility('Reopen', response);
                     },
@@ -458,6 +470,7 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
                     'Verify',
                     widget.ticket.orderNumber,
                     widget.ticket.serviceLabel,
+                    orderId,
                     onSuccess: (response) {
                       _updateButtonVisibility('Verify', response);
                     },
@@ -474,6 +487,7 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
   }
 
   Widget _buildCancelButton(BuildContext context) {
+    final orderId = _orderDetailResponse?.order.id ?? '';
     return Center(
       child: CustomButton(
         width: context.width * 0.22,
@@ -485,6 +499,7 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
             'Cancel',
             widget.ticket.orderNumber,
             widget.ticket.serviceLabel,
+            orderId,
             onSuccess: (response) {
               _updateButtonVisibility('Cancel', response);
             },
@@ -518,7 +533,7 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
     );
   }
 
-  Widget _buildActiveUserCard(BuildContext context, ActiveUser activeUser) {
+  Widget _buildActiveUserCard(BuildContext context, orderModel.ActiveUser activeUser) {
     return SafeArea(
       child: GestureDetector(
         onTap: () => _showActiveUserDialog(context, activeUser),

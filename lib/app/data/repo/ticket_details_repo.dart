@@ -24,45 +24,43 @@ class OrderDetailRepository {
       throw Exception('Failed to fetch order details: ${response.data['message']}');
     }
   }
+Future<Map<String, dynamic>> updateRequest({
+  required String userId,
+  required String hcoId,
+  required String orderId, // This should be the order.id from OrderDetailResponse
+  required String phoneUuid,
+  required String hcoKey,
+  required String requestStatus,
+  required String remarks,
+  String? timeHoldTill,
+  MultipartFile? file,
+}) async {
+  final formData = FormData.fromMap({
+    'file_count': file != null ? 1 : 0,
+    'user_id': userId,
+    'hco_id': hcoId,
+    'order_id': orderId, // Ensure this is the order.id (e.g., "101185")
+    'phone_uuid': phoneUuid,
+    'hco_key': hcoKey,
+    'request_status': requestStatus,
+    'remarks': remarks,
+    'assigned_to': '',
+    'time_hold_till': timeHoldTill ?? '',
+    if (file != null) 'file0': file,
+  });
 
-  Future<Map<String, dynamic>> updateRequest({
-    required String userId,
-    required String hcoId,
-    required String orderId,
-    required String phoneUuid,
-    required String hcoKey,
-    required String requestStatus,
-    required String remarks,
-    String? timeHoldTill,
-    MultipartFile? file,
-  }) async {
-    final formData = FormData.fromMap({
-      'user_id': userId,
-      'hco_id': hcoId,
-      'order_id': "92254",
-      'phone_uuid': phoneUuid,
-      'hco_key': hcoKey,
-      'request_status': requestStatus,
-      'remarks': remarks,
-      if (timeHoldTill != null && timeHoldTill.isNotEmpty) 'time_hold_till': timeHoldTill,
-      if (file != null) ...{
-        'file_count': 1,
-        'file0': file,
-      },
-    });
+  final response = await _apiService.post(
+    '/ticket/ticket.html?action=update_request&user_id=$userId&hco_id=$hcoId&phone_uuid=$phoneUuid&hco_key=$hcoKey',
+    data: formData,
+    options: Options(
+      contentType: 'multipart/form-data',
+    ),
+  );
 
-    final response = await _apiService.post(
-      '/ticket/ticket.html?action=update_request&user_id=$userId&hco_id=$hcoId&phone_uuid=$phoneUuid&hco_key=$hcoKey',
-      data: formData,
-      options: Options(
-        contentType: 'multipart/form-data', // Explicitly set content-type
-      ),
-    );
-
-    if (response.statusCode == 200 && response.data['status'] == 1) {
-      return response.data; // Return the response data
-    } else {
-      throw Exception(response.data['message'] ?? 'Failed to update request');
-    }
+  if (response.statusCode == 200 && response.data['status'] == 1) {
+    return response.data;
+  } else {
+    throw Exception(response.data['message'] ?? 'Failed to update request');
   }
+}
 }

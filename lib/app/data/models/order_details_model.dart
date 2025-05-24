@@ -118,6 +118,45 @@ class Order {
       createdAtDate: json['created_at_date']?.toString() ?? '',
     );
   }
+
+  Ticket toTicket() {
+    return Ticket(
+      orderNumber: requestNumber,
+      description: serviceName, // Assuming serviceName as description since notes is not available
+      block: '$blockName/$floorName'.trim(),
+      status: _mapStatus(requestStatus),
+      date: '$createdAtDate, $createdAt'.trim(),
+      department: departmentName,
+      phoneNumber: phoneNumber,
+      assignedTo: assignedToUsername.split('@').first,
+      serviceLabel: serviceName,
+      isQuickRequest: source == 'QR',
+      uuid: uuid,
+    );
+  }
+
+  static String _mapStatus(String status) {
+    switch (status) {
+      case 'NEW':
+        return 'New';
+      case 'ASI':
+        return 'Assigned';
+      case 'ACC':
+        return 'Accepted';
+      case 'COMP':
+        return 'Completed';
+      case 'VER':
+        return 'Verified';
+      case 'HOLD':
+        return 'On Hold';
+      case 'REO':
+        return 'Re-Open';
+      case 'CAN':
+        return 'Cancelled';
+      default:
+        return status;
+    }
+  }
 }
 
 class History {
@@ -277,4 +316,32 @@ class Department {
       departmentName: json['department_name']?.toString() ?? '',
     );
   }
+}
+
+class Ticket {
+  final String orderNumber;
+  final String description;
+  final String block;
+  final String status;
+  final String date;
+  final String department;
+  final String phoneNumber;
+  final String serviceLabel;
+  final String assignedTo;
+  final bool? isQuickRequest;
+  final String? uuid;
+
+  Ticket({
+    required this.orderNumber,
+    required this.description,
+    required this.block,
+    required this.status,
+    required this.date,
+    required this.department,
+    required this.phoneNumber,
+    required this.assignedTo,
+    required this.serviceLabel,
+    this.isQuickRequest = false,
+    this.uuid,
+  });
 }

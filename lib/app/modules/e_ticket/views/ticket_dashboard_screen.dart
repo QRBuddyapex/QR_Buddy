@@ -161,6 +161,8 @@ class _TicketDashboardScreenState extends State<TicketDashboardScreen> {
                                       index: index,
                                       orderNumber: ticket.orderNumber,
                                       description: ticket.description,
+                                      
+                                      
                                       block: ticket.block,
                                       status: ticket.status,
                                       date: ticket.date,

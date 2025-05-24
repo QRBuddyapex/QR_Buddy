@@ -15,6 +15,7 @@ class TicketCard extends StatefulWidget {
   final VoidCallback onTap;
   final int index;
   final String? uuid;
+  final String? orderID;
 
   const TicketCard({
     Key? key,
@@ -29,7 +30,7 @@ class TicketCard extends StatefulWidget {
     required this.serviceLabel,
     this.isQuickRequest = false,
     required this.onTap,
-    required this.index, this.uuid,
+    required this.index, this.uuid, this.orderID,
   }) : super(key: key);
 
   @override

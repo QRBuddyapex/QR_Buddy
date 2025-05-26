@@ -412,9 +412,9 @@ class TicketController extends GetxController {
 void showActionFormDialog(
   BuildContext context,
   String action,
-  String orderNumber, // Keep for display purposes
+  String orderNumber, 
   String serviceLabel,
-  String orderId, // Add orderId parameter
+  String orderId, 
   {Function(Map<String, dynamic>)? onSuccess}
 ) {
   showDialog(

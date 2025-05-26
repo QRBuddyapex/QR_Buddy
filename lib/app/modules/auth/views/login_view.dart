@@ -1,15 +1,32 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:qr_buddy/app/core/config/notifications_services.dart';
 import 'package:qr_buddy/app/core/theme/app_theme.dart';
 import 'package:qr_buddy/app/core/widgets/custom_buttom.dart';
 import 'package:qr_buddy/app/core/widgets/custom_textfield.dart';
 
 import '../controllers/login_controller.dart';
 
-class LoginView extends StatelessWidget {
-  final LoginController loginController = Get.put(LoginController());
+class LoginView extends StatefulWidget {
 
   LoginView({Key? key}) : super(key: key);
+
+  @override
+  State<LoginView> createState() => _LoginViewState();
+}
+
+class _LoginViewState extends State<LoginView> {
+  final LoginController loginController = Get.put(LoginController());
+
+  NotificationServices notificationServices = NotificationServices();
+  @override
+  void initState() {
+  
+
+    super.initState();
+    notificationServices.requestNotificationPermission();
+
+  }
 
   @override
   Widget build(BuildContext context) {

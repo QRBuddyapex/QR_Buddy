@@ -6,7 +6,9 @@ import 'package:qr_buddy/app/routes/routes.dart';
 import 'package:qr_buddy/app/routes/routes_name.dart';
 
 
-void main() {
+void main()async {
+  WidgetsFlutterBinding.ensureInitialized();
+  // await Firebase.initializeApp();
   runApp(const MyApp());
 }
 

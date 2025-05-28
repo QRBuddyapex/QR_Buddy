@@ -8,8 +8,7 @@ import 'package:qr_buddy/app/core/widgets/custom_textfield.dart';
 import '../controllers/login_controller.dart';
 
 class LoginView extends StatefulWidget {
-
-  LoginView({Key? key}) : super(key: key);
+  const LoginView({Key? key}) : super(key: key);
 
   @override
   State<LoginView> createState() => _LoginViewState();
@@ -17,15 +16,13 @@ class LoginView extends StatefulWidget {
 
 class _LoginViewState extends State<LoginView> {
   final LoginController loginController = Get.put(LoginController());
+  final NotificationServices notificationServices = NotificationServices();
 
-  NotificationServices notificationServices = NotificationServices();
   @override
   void initState() {
-  
-
     super.initState();
     notificationServices.requestNotificationPermission();
-
+    notificationServices.firebaseInit();
   }
 
   @override

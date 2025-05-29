@@ -22,7 +22,7 @@ class _LoginViewState extends State<LoginView> {
   void initState() {
     super.initState();
     notificationServices.requestNotificationPermission();
-    notificationServices.firebaseInit();
+    notificationServices.firebaseInit(context);
   }
 
   @override

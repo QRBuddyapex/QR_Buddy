@@ -85,4 +85,5 @@ class DefaultFirebaseOptions {
     storageBucket: 'qrbuddy-28972.appspot.com',
     measurementId: 'G-Z46YW31QKQ',
   );
+
 }

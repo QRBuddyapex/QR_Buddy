@@ -62,6 +62,7 @@ class NotificationServices{
   void firebaseInit(){
     FirebaseMessaging.onMessage.listen((message){
       showNotifications(message);
+      print('onMessage: ${message.data}');
 
 
       print(message.notification?.title.toString());

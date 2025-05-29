@@ -1,4 +1,4 @@
-package com.example.qr_buddy
+package com.nxtdesigns.qrbuddy
 
 import io.flutter.embedding.android.FlutterActivity
 

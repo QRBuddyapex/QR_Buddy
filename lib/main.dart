@@ -8,7 +8,6 @@ import 'package:qr_buddy/app/modules/auth/bindings/auth_binding.dart';
 import 'package:qr_buddy/app/routes/routes.dart';
 import 'package:qr_buddy/app/routes/routes_name.dart';
 
-
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
@@ -24,9 +23,11 @@ void main() async {
   print('FCM Token: $token');
 
   // Handle notifications when app is terminated
-  RemoteMessage? initialMessage = await FirebaseMessaging.instance.getInitialMessage();
+  RemoteMessage? initialMessage =
+      await FirebaseMessaging.instance.getInitialMessage();
   if (initialMessage != null) {
     print("App opened from terminated state: ${initialMessage.messageId}");
+    print("Terminated state data: ${initialMessage.data}");
   }
 
   runApp(MyApp(notificationServices: notificationServices));
@@ -36,6 +37,7 @@ void main() async {
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   await Firebase.initializeApp();
   print("Handling a background message: ${message.messageId}");
+  print("Background message data: ${message.data}");
 
   // Show notification in background
   final notificationServices = NotificationServices();
@@ -45,7 +47,8 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
 class MyApp extends StatelessWidget {
   final NotificationServices notificationServices;
 
-  const MyApp({Key? key, required this.notificationServices}) : super(key: key);
+  const MyApp({Key? key, required this.notificationServices})
+      : super(key: key);
 
   @override
   Widget build(BuildContext context) {

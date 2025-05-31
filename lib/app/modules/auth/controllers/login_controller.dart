@@ -6,7 +6,6 @@ import 'package:qr_buddy/app/core/utils/snackbar.dart';
 import 'package:qr_buddy/app/data/repo/auth_repo.dart';
 import 'package:qr_buddy/app/routes/routes.dart';
 
-
 class LoginController extends GetxController {
   var email = ''.obs;
   var password = ''.obs;
@@ -31,7 +30,10 @@ class LoginController extends GetxController {
 
       if (response["status"] == 1) {
         CustomSnackbar.success("Login successful!");
-      
+
+        // Play the ringer tone on successful login
+        await _notificationServices.playLoginRinger();
+
         final userId = response["user"]["id"].toString();
         await _saveFcmToken(userId);
         Get.offAllNamed(RoutesName.ticketDashboardView);
@@ -63,7 +65,6 @@ class LoginController extends GetxController {
           'fcm_token': fcmToken,
         },
       );
-      // https://qrbuddyapi.in/v3/api/login.html?action=save_fcm_token&user_id=2055&fcm_token=eydjbkjbfdjabs
 
       // Log the response
       print('FCM Token Save Response: ${response.data}');

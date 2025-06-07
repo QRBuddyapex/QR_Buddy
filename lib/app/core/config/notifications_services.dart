@@ -118,6 +118,8 @@ class NotificationServices {
 
     try {
       // Use message.data since PHP sends a data message
+      print('Showing notification with data: ${message}');
+      print('Notification data: ${message.data}');
       final title = message.data['fcm-title'] ?? 'QR Buddy';
       final body = message.data['body'] ?? 'New message';
       final payload = message.data['url'] ?? '';

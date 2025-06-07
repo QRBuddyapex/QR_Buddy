@@ -62,6 +62,9 @@ class LoginController extends GetxController {
         queryParameters: {
           'action': 'save_fcm_token',
           'user_id': userId,
+          // 'fcm_token': fcmToken,
+        },
+        data: {
           'fcm_token': fcmToken,
         },
       );

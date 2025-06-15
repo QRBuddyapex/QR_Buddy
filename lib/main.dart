@@ -16,6 +16,8 @@ void main() async {
   // Initialize NotificationServices
   final notificationServices = NotificationServices();
   await notificationServices.requestNotificationPermission();
+  // Initialize local notifications before any sound is played
+  await notificationServices.initLocalNotification(null);
   notificationServices.firebaseInit(null); // We'll pass context later
 
   // Print device token
@@ -28,6 +30,18 @@ void main() async {
   if (initialMessage != null) {
     print("App opened from terminated state: ${initialMessage.messageId}");
     print("Terminated state data: ${initialMessage.data}");
+    // Show in-app notification for terminated state
+    // Ensure we haven't already processed this message
+    if (!NotificationServices.hasProcessedMessage(initialMessage.messageId)) {
+      NotificationServices.addProcessedMessage(initialMessage.messageId);
+      await notificationServices.showInAppNotificationWithSound(
+        title: initialMessage.data['fcm-title'] ?? 'QR Buddy',
+        body: initialMessage.data['body'] ?? 'New message',
+        location: initialMessage.data['location'] ??
+            'Block A1, Ground Floor, Room G1-504 (Near Canteen)',
+        task: initialMessage.data['task'] ?? 'Change Bedsheet',
+      );
+    }
   }
 
   runApp(MyApp(notificationServices: notificationServices));
@@ -41,6 +55,7 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
 
   // Show notification in background
   final notificationServices = NotificationServices();
+  await notificationServices.initLocalNotification(null); // Ensure initialization
   await notificationServices.showNotifications(message);
 }
 

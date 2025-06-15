@@ -50,10 +50,20 @@ dependencies:
   firebase_core: ^3.13.1
   flutter_local_notifications: ^19.2.1
   change_app_package_name: ^1.5.0
+  overlay_support: ^2.1.0
+  audioplayers: ^6.4.0
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
+  flutter_launcher_icons: "^0.14.3"
+
+
+flutter_launcher_icons:
+  android: "ic_launcher"
+  ios: true
+  image_path: "assets/images/qr_buddy_logo.png"
+  min_sdk_android: 21
 
   # The "flutter_lints" package below contains a set of recommended lints to
   # encourage good coding practices. The lint set provided by the package is

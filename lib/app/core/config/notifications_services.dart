@@ -1,11 +1,31 @@
+import 'dart:typed_data';
+
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:get/get.dart';
+import 'package:qr_buddy/app/core/theme/app_theme.dart';
 
 class NotificationServices {
   FirebaseMessaging messaging = FirebaseMessaging.instance;
   final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
       FlutterLocalNotificationsPlugin();
+
+  // List to track processed message IDs to avoid duplicates
+  static final List<String> _processedMessageIds = [];
+
+  // Public method to check if a message has been processed
+  static bool hasProcessedMessage(String? messageId) {
+    if (messageId == null) return false;
+    return _processedMessageIds.contains(messageId);
+  }
+
+  // Public method to add a message ID to the processed list
+  static void addProcessedMessage(String? messageId) {
+    if (messageId != null && !_processedMessageIds.contains(messageId)) {
+      _processedMessageIds.add(messageId);
+    }
+  }
 
   // Request notification permissions
   Future<void> requestNotificationPermission() async {
@@ -59,41 +79,64 @@ class NotificationServices {
   }
 
   // Initialize Firebase messaging
-  void firebaseInit(BuildContext? context) {
-    // Initialize local notifications
-    initLocalNotification(context);
+  Future<void> firebaseInit(BuildContext? context) async {
+    // Initialize local notifications first
+    await initLocalNotification(context);
 
     // Handle foreground messages
-    FirebaseMessaging.onMessage.listen((message) {
+    FirebaseMessaging.onMessage.listen((message) async {
       print('Foreground message received: ${message.messageId}');
       print('onMessage data: ${message.data}');
       print('onMessage notification: ${message.notification}');
       print('Data Title: ${message.data['fcm-title']}');
       print('Data Body: ${message.data['body']}');
       print('Data URL: ${message.data['url']}');
-      showNotifications(message);
+
+      // Only show in-app notification for foreground messages
+      if (!hasProcessedMessage(message.messageId)) {
+        addProcessedMessage(message.messageId);
+        await showInAppNotificationWithSound(
+          title: message.data['fcm-title'] ?? 'QR Buddy',
+          body: message.data['body'] ?? 'New message',
+          location: message.data['location'] ??
+              'Block A1, Ground Floor, Room G1-504 (Near Canteen)',
+          task: message.data['task'] ?? 'Change Bedsheet',
+        );
+      }
     });
 
     // Handle background messages (when app is opened from background)
     FirebaseMessaging.onMessageOpenedApp.listen((message) {
       print('App opened from background: ${message.messageId}');
       print('Data on open: ${message.data}');
+      if (!hasProcessedMessage(message.messageId)) {
+        addProcessedMessage(message.messageId);
+        showInAppNotificationWithSound(
+          title: message.data['fcm-title'] ?? 'QR Buddy',
+          body: message.data['body'] ?? 'New message',
+          location: message.data['location'] ??
+              'Block A1, Ground Floor, Room G1-504 (Near Canteen)',
+          task: message.data['task'] ?? 'Change Bedsheet',
+        );
+      }
     });
 
     print('Firebase messaging initialized');
   }
 
-  // Show notifications for FCM messages
+  // Show notifications for background messages only
   Future<void> showNotifications(RemoteMessage message) async {
-    const androidNotificationChannel = AndroidNotificationChannel(
+    var androidNotificationChannel = AndroidNotificationChannel(
       'default_channel',
       'qr_buddy',
       description: 'QR Buddy notifications',
       importance: Importance.max,
       playSound: true,
+      sound: RawResourceAndroidNotificationSound('notification_sound'),
+      enableVibration: true,
+      vibrationPattern: Int64List.fromList([0, 500, 200, 500]),
     );
 
-    // Create the channel on Android
     await flutterLocalNotificationsPlugin
         .resolvePlatformSpecificImplementation<
             AndroidFlutterLocalNotificationsPlugin>()
@@ -102,29 +145,34 @@ class NotificationServices {
       print('Failed to create notification channel: $e');
     });
 
-    const androidNotificationDetails = AndroidNotificationDetails(
+   var androidNotificationDetails = AndroidNotificationDetails(
       'default_channel',
       'qr_buddy',
       channelDescription: 'QR Buddy notifications',
       importance: Importance.max,
       priority: Priority.high,
+      playSound: true,
+      sound: RawResourceAndroidNotificationSound('notification_sound'),
+      enableVibration: true,
+      vibrationPattern: Int64List.fromList([0, 500, 200, 500]),
       ticker: 'ticker',
     );
-    const iosDetails = DarwinNotificationDetails();
-    const notificationDetails = NotificationDetails(
+    const iosDetails = DarwinNotificationDetails(
+      sound: 'notification_sound.caf',
+      presentSound: true,
+      presentAlert: true,
+      presentBadge: true,
+    );
+    var notificationDetails = NotificationDetails(
       android: androidNotificationDetails,
       iOS: iosDetails,
     );
 
     try {
-      // Use message.data since PHP sends a data message
-      print('Showing notification with data: ${message}');
-      print('Notification data: ${message.data}');
+      print('Showing system notification with data: ${message.data}');
       final title = message.data['fcm-title'] ?? 'QR Buddy';
       final body = message.data['body'] ?? 'New message';
       final payload = message.data['url'] ?? '';
-
-      print('Showing notification with title: $title, body: $body, payload: $payload');
 
       await flutterLocalNotificationsPlugin.show(
         message.hashCode,
@@ -133,68 +181,273 @@ class NotificationServices {
         notificationDetails,
         payload: payload,
       );
-
-      print('Notification shown successfully');
+      print('System notification shown successfully');
     } catch (e) {
-      print('Failed to show notification: $e');
+      print('Failed to show system notification: $e');
     }
   }
 
-  // Play a ringer tone on successful login
-  Future<void> playLoginRinger() async {
-    const androidNotificationChannel = AndroidNotificationChannel(
-      'login_ringer_channel',
-      'Login Ringer',
-      description: 'Channel for login ringer tone',
+  // Show in-app notification with sound and vibration (no system notification)
+  Future<void> showInAppNotificationWithSound({
+    required String title,
+    required String body,
+    required String location,
+    required String task,
+  }) async {
+    // Define the Android notification channel for in-app notifications
+    var androidNotificationChannel = AndroidNotificationChannel(
+      'in_app_notification_channel',
+      'In-App Notification',
+      description: 'Channel for in-app notification sound and vibration',
       importance: Importance.max,
       playSound: true,
-      sound: RawResourceAndroidNotificationSound('ringer'), // Custom sound file (ringer.mp3)
+      sound: const RawResourceAndroidNotificationSound('notification_sound'),
+      enableVibration: true,
+      vibrationPattern: Int64List.fromList([0, 500, 200, 500]),
     );
 
-    // Create the channel on Android
+    // Create the notification channel for Android
+    try {
+      await flutterLocalNotificationsPlugin
+          .resolvePlatformSpecificImplementation<
+              AndroidFlutterLocalNotificationsPlugin>()
+          ?.createNotificationChannel(androidNotificationChannel);
+      print('In-app notification channel created successfully');
+    } catch (e) {
+      print('Failed to create in-app notification channel: $e');
+      return;
+    }
+
+    // Define Android notification details for sound and vibration
+    var androidNotificationDetails = AndroidNotificationDetails(
+      'in_app_notification_channel',
+      'In-App Notification',
+      channelDescription: 'Channel for in-app notification sound and vibration',
+      importance: Importance.max,
+      priority: Priority.high,
+      playSound: true,
+      sound: const RawResourceAndroidNotificationSound('notification_sound'),
+      enableVibration: true,
+      vibrationPattern: Int64List.fromList([0, 500, 200, 500]),
+      showWhen: false,
+      channelShowBadge: false,
+      onlyAlertOnce: true,
+      visibility: NotificationVisibility.secret,
+    );
+
+    // Define iOS notification details for sound and vibration
+    const iosNotificationDetails = DarwinNotificationDetails(
+      sound: 'notification_sound.caf',
+      presentAlert: false,
+      presentBadge: false,
+      presentSound: true,
+    );
+
+   var notificationDetails = NotificationDetails(
+      android: androidNotificationDetails,
+      iOS: iosNotificationDetails,
+    );
+
+    // Play the notification sound and trigger vibration
+    try {
+      print('Attempting to play in-app notification sound with vibration...');
+      await flutterLocalNotificationsPlugin.show(
+        1,
+        null,
+        null,
+        notificationDetails,
+        payload: 'in_app_notification_sound',
+      );
+      print('In-app notification sound and vibration triggered successfully');
+    } catch (e) {
+      print('Failed to play in-app notification sound or trigger vibration: $e');
+      return;
+    }
+
+    // Show the custom in-app dialog
+    Get.dialog(
+      Material(
+        color: Colors.transparent,
+        child: Center(
+          child: Container(
+            margin: const EdgeInsets.symmetric(horizontal: 20),
+            padding: const EdgeInsets.symmetric(vertical: 30, horizontal: 20),
+            decoration: BoxDecoration(
+              color: AppColors.primaryColor,
+              borderRadius: BorderRadius.circular(16),
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Icon(Icons.notifications_active,
+                    size: 64, color: Colors.white),
+                const SizedBox(height: 16),
+                Text(
+                  'New request assigned',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                    fontFamily: 'Poppins',
+                  ),
+                ),
+                const SizedBox(height: 20),
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: AppColors.cardBackgroundColor,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Row(
+                        children: [
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const Text("Block-Floor",
+                                    style: TextStyle(
+                                        fontSize: 12, color: Colors.grey)),
+                                Text(
+                                    location.isNotEmpty
+                                        ? location.split(',')[0].trim()
+                                        : 'Unknown',
+                                    style: const TextStyle(
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.bold,
+                                    )),
+                              ],
+                            ),
+                          ),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const Text("Room-Bed",
+                                    style: TextStyle(
+                                        fontSize: 12, color: Colors.grey)),
+                                Text(
+                                    location.isNotEmpty && location.contains(',')
+                                        ? location.split(',')[1].trim()
+                                        : 'Unknown',
+                                    style: const TextStyle(
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.bold,
+                                    )),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                      const Divider(height: 20, thickness: 1),
+                      Center(
+                        child: Text(task.isNotEmpty ? task : 'Unknown',
+                            style: const TextStyle(
+                                fontSize: 16, fontWeight: FontWeight.w600)),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 20),
+                ElevatedButton.icon(
+                  onPressed: () {
+                    print("Accept and Start pressed");
+                    Get.back();
+                  },
+                  icon: const Icon(Icons.arrow_forward, color: Colors.white),
+                  label: const Text("Accept and Start",
+                      style: TextStyle(color: Colors.white)),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.white.withOpacity(0.2),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(30),
+                    ),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 24, vertical: 12),
+                    textStyle: const TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                ),
+                const SizedBox(height: 8),
+                TextButton(
+                  onPressed: () {
+                    print("Dismiss pressed");
+                    Get.back();
+                  },
+                  child: const Text("Dismiss",
+                      style: TextStyle(color: Colors.white)),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+      barrierDismissible: false,
+    );
+  }
+
+  // Play login sound with vibration using notification_sound.mp3
+  Future<void> playLoginRinger() async {
+    var androidNotificationChannel = AndroidNotificationChannel(
+      'login_notification_channel',
+      'Login Notification',
+      description: 'Channel for login notification sound and vibration',
+      importance: Importance.max,
+      playSound: true,
+      sound: RawResourceAndroidNotificationSound('notification_sound'),
+      enableVibration: true,
+      vibrationPattern: Int64List.fromList([0, 500, 200, 500]),
+    );
+
     await flutterLocalNotificationsPlugin
         .resolvePlatformSpecificImplementation<
             AndroidFlutterLocalNotificationsPlugin>()
         ?.createNotificationChannel(androidNotificationChannel)
         .catchError((e) {
-      print('Failed to create login ringer channel: $e');
+      print('Failed to create login notification channel: $e');
     });
 
-    const androidNotificationDetails = AndroidNotificationDetails(
-      'login_ringer_channel',
-      'Login Ringer',
-      channelDescription: 'Channel for login ringer tone',
+    var androidNotificationDetails = AndroidNotificationDetails(
+      'login_notification_channel',
+      'Login Notification',
+      channelDescription: 'Channel for login notification sound and vibration',
       importance: Importance.max,
       priority: Priority.high,
       playSound: true,
-      sound: RawResourceAndroidNotificationSound('ringer'), // Custom sound file (ringer.mp3)
-      enableVibration: false, // Disable vibration for ringer
-      showWhen: false, // Hide timestamp
+      sound: const RawResourceAndroidNotificationSound('notification_sound'),
+      enableVibration: true,
+      vibrationPattern: Int64List.fromList([0, 500, 200, 500]),
+      showWhen: false,
+      channelShowBadge: false,
+      onlyAlertOnce: true,
+      visibility: NotificationVisibility.secret,
     );
 
     const iosNotificationDetails = DarwinNotificationDetails(
-      sound: 'ringer.caf', // Custom sound file (ringer.caf)
-      presentAlert: false, // Don't show the notification banner
-      presentBadge: false, // Don't update the app badge
+      sound: 'notification_sound.caf',
+      presentAlert: false,
+      presentBadge: false,
+      presentSound: true,
     );
 
-    const notificationDetails = NotificationDetails(
+    var notificationDetails = NotificationDetails(
       android: androidNotificationDetails,
       iOS: iosNotificationDetails,
     );
 
     try {
+      print('Attempting to play login notification sound with vibration...');
       await flutterLocalNotificationsPlugin.show(
-        0, // Notification ID (unique for login ringer)
-        'Login Successful',
-        'Welcome to QR Buddy!',
+        0,
+        null,
+        null,
         notificationDetails,
-        payload: 'login_ringer', // Optional payload to identify this notification
+        payload: 'login_notification_sound',
       );
-
-      print('Login ringer played successfully');
+      print('Login notification sound and vibration triggered successfully');
     } catch (e) {
-      print('Failed to play login ringer: $e');
+      print('Failed to play login notification sound or trigger vibration: $e');
     }
   }
 

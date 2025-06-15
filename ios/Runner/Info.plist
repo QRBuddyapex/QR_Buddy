@@ -4,6 +4,11 @@
 <dict>
 	<key>CFBundleIdentifier</key>
 	<string>com.nxtdesigns.qrbuddy</string>
+	<key>UIBackgroundModes</key>
+<array>
+    <string>fetch</string>
+    <string>remote-notification</string>
+</array>
 	<key>CFBundleDisplayName</key>
 	<string>Qr Buddy</string>
 	<key>CFBundleExecutable</key>

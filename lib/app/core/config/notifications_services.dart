@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:firebase_messaging/firebase_messaging.dart';
@@ -5,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:get/get.dart';
 import 'package:qr_buddy/app/core/theme/app_theme.dart';
+import 'package:vibration/vibration.dart';
 
 class NotificationServices {
   FirebaseMessaging messaging = FirebaseMessaging.instance;
@@ -67,8 +69,19 @@ class NotificationServices {
       onDidReceiveNotificationResponse: (response) {
         print('Notification tapped: ${response.payload}');
         if (response.payload != null && response.payload!.isNotEmpty) {
-          print('Opening URL: ${response.payload}');
-          // Add navigation logic here if needed
+          print('Handling payload: ${response.payload}');
+          final payloadData = response.payload!.split('|');
+          if (payloadData[0] == 'in_app_notification') {
+            Get.to(() => FullScreenNotification(
+                  title: payloadData.length > 1 ? payloadData[1] : 'QR Buddy',
+                  body: payloadData.length > 2 ? payloadData[2] : 'New message',
+                  location: payloadData.length > 3
+                      ? payloadData[3]
+                      : 'Block A1, Ground Floor, Room G1-504 (Near Canteen)',
+                  task:
+                      payloadData.length > 4 ? payloadData[4] : 'Change Bedsheet',
+                ));
+          }
         }
       },
     ).catchError((e) {
@@ -80,10 +93,8 @@ class NotificationServices {
 
   // Initialize Firebase messaging
   Future<void> firebaseInit(BuildContext? context) async {
-    // Initialize local notifications first
     await initLocalNotification(context);
 
-    // Handle foreground messages
     FirebaseMessaging.onMessage.listen((message) async {
       print('Foreground message received: ${message.messageId}');
       print('onMessage data: ${message.data}');
@@ -92,7 +103,6 @@ class NotificationServices {
       print('Data Body: ${message.data['body']}');
       print('Data URL: ${message.data['url']}');
 
-      // Only show in-app notification for foreground messages
       if (!hasProcessedMessage(message.messageId)) {
         addProcessedMessage(message.messageId);
         await showInAppNotificationWithSound(
@@ -105,288 +115,122 @@ class NotificationServices {
       }
     });
 
-    // Handle background messages (when app is opened from background)
     FirebaseMessaging.onMessageOpenedApp.listen((message) {
       print('App opened from background: ${message.messageId}');
       print('Data on open: ${message.data}');
       if (!hasProcessedMessage(message.messageId)) {
         addProcessedMessage(message.messageId);
-        showInAppNotificationWithSound(
-          title: message.data['fcm-title'] ?? 'QR Buddy',
-          body: message.data['body'] ?? 'New message',
-          location: message.data['location'] ??
-              'Block A1, Ground Floor, Room G1-504 (Near Canteen)',
-          task: message.data['task'] ?? 'Change Bedsheet',
-        );
+        Get.to(() => FullScreenNotification(
+              title: message.data['fcm-title'] ?? 'QR Buddy',
+              body: message.data['body'] ?? 'New message',
+              location: message.data['location'] ??
+                  'Block A1, Ground Floor, Room G1-504 (Near Canteen)',
+              task: message.data['task'] ?? 'Change Bedsheet',
+            ));
       }
     });
 
+    RemoteMessage? initialMessage =
+        await FirebaseMessaging.instance.getInitialMessage();
+    if (initialMessage != null && !hasProcessedMessage(initialMessage.messageId)) {
+      print('App opened from terminated state: ${initialMessage.messageId}');
+      addProcessedMessage(initialMessage.messageId);
+      await showInAppNotificationWithSound(
+        title: initialMessage.data['fcm-title'] ?? 'QR Buddy',
+        body: initialMessage.data['body'] ?? 'New message',
+        location: initialMessage.data['location'] ??
+            'Block A1, Ground Floor, Room G1-504 (Near Canteen)',
+        task: initialMessage.data['task'] ?? 'Change Bedsheet',
+      );
+    }
+
     print('Firebase messaging initialized');
   }
+Future<void> showInAppNotificationWithSound({
+  required String title,
+  required String body,
+  required String location,
+  required String task,
+}) async {
+  var androidNotificationChannel = AndroidNotificationChannel(
+    'in_app_notification_channel',
+    'In-App Notification',
+    description: 'Channel for in-app notification sound and vibration',
+    importance: Importance.max,
+    playSound: true,
+    sound: const RawResourceAndroidNotificationSound('notification_sound'),
+    enableVibration: true,
+    vibrationPattern: Int64List.fromList([0, 1500, 500, 1500, 500, 1500]),
+  );
 
-  // Show notifications for background messages only
-  Future<void> showNotifications(RemoteMessage message) async {
-    var androidNotificationChannel = AndroidNotificationChannel(
-      'default_channel',
-      'qr_buddy',
-      description: 'QR Buddy notifications',
-      importance: Importance.max,
-      playSound: true,
-      sound: RawResourceAndroidNotificationSound('notification_sound'),
-      enableVibration: true,
-      vibrationPattern: Int64List.fromList([0, 500, 200, 500]),
-    );
-
+  try {
     await flutterLocalNotificationsPlugin
         .resolvePlatformSpecificImplementation<
             AndroidFlutterLocalNotificationsPlugin>()
-        ?.createNotificationChannel(androidNotificationChannel)
-        .catchError((e) {
-      print('Failed to create notification channel: $e');
-    });
-
-   var androidNotificationDetails = AndroidNotificationDetails(
-      'default_channel',
-      'qr_buddy',
-      channelDescription: 'QR Buddy notifications',
-      importance: Importance.max,
-      priority: Priority.high,
-      playSound: true,
-      sound: RawResourceAndroidNotificationSound('notification_sound'),
-      enableVibration: true,
-      vibrationPattern: Int64List.fromList([0, 500, 200, 500]),
-      ticker: 'ticker',
-    );
-    const iosDetails = DarwinNotificationDetails(
-      sound: 'notification_sound.caf',
-      presentSound: true,
-      presentAlert: true,
-      presentBadge: true,
-    );
-    var notificationDetails = NotificationDetails(
-      android: androidNotificationDetails,
-      iOS: iosDetails,
-    );
-
-    try {
-      print('Showing system notification with data: ${message.data}');
-      final title = message.data['fcm-title'] ?? 'QR Buddy';
-      final body = message.data['body'] ?? 'New message';
-      final payload = message.data['url'] ?? '';
-
-      await flutterLocalNotificationsPlugin.show(
-        message.hashCode,
-        title,
-        body,
-        notificationDetails,
-        payload: payload,
-      );
-      print('System notification shown successfully');
-    } catch (e) {
-      print('Failed to show system notification: $e');
-    }
+        ?.createNotificationChannel(androidNotificationChannel);
+    print('In-app notification channel created successfully');
+  } catch (e) {
+    print('Failed to create in-app notification channel: $e');
+    return;
   }
 
-  // Show in-app notification with sound and vibration (no system notification)
-  Future<void> showInAppNotificationWithSound({
-    required String title,
-    required String body,
-    required String location,
-    required String task,
-  }) async {
-    // Define the Android notification channel for in-app notifications
-    var androidNotificationChannel = AndroidNotificationChannel(
-      'in_app_notification_channel',
-      'In-App Notification',
-      description: 'Channel for in-app notification sound and vibration',
-      importance: Importance.max,
-      playSound: true,
-      sound: const RawResourceAndroidNotificationSound('notification_sound'),
-      enableVibration: true,
-      vibrationPattern: Int64List.fromList([0, 500, 200, 500]),
-    );
+  var androidNotificationDetails = AndroidNotificationDetails(
+    'in_app_notification_channel',
+    'In-App Notification',
+    channelDescription: 'Channel for in-app notification sound and vibration',
+    importance: Importance.max,
+    priority: Priority.high,
+    playSound: true,
+    sound: const RawResourceAndroidNotificationSound('notification_sound'),
+    enableVibration: true,
+    vibrationPattern: Int64List.fromList([0, 1500, 500, 1500, 500, 1500]),
+    showWhen: false,
+    channelShowBadge: false,
+    onlyAlertOnce: true,
+    visibility: NotificationVisibility.public,
+    fullScreenIntent: true,
+  );
 
-    // Create the notification channel for Android
-    try {
-      await flutterLocalNotificationsPlugin
-          .resolvePlatformSpecificImplementation<
-              AndroidFlutterLocalNotificationsPlugin>()
-          ?.createNotificationChannel(androidNotificationChannel);
-      print('In-app notification channel created successfully');
-    } catch (e) {
-      print('Failed to create in-app notification channel: $e');
-      return;
+  const iosNotificationDetails = DarwinNotificationDetails(
+    sound: 'notification_sound.caf',
+    presentAlert: false,
+    presentBadge: false,
+    presentSound: true,
+  );
+
+  var notificationDetails = NotificationDetails(
+    android: androidNotificationDetails,
+    iOS: iosNotificationDetails,
+  );
+
+  try {
+    print('Attempting to play in-app notification sound with vibration...');
+    await flutterLocalNotificationsPlugin.show(
+      1,
+      'Ticket Assigned: $title', // Updated title to include "Ticket Assigned"
+      body,
+      notificationDetails,
+      payload: 'in_app_notification|$title|$body|$location|$task',
+    );
+    print('In-app notification sound and vibration triggered successfully');
+
+    // Fallback vibration for Android
+    if (Platform.isAndroid && await Vibration.hasVibrator() == true) {
+      print('Triggering fallback vibration');
+      Vibration.vibrate(pattern: [0, 1500, 500, 1500, 500, 1500], intensities: [0, 255, 0, 255, 0, 255]);
     }
-
-    // Define Android notification details for sound and vibration
-    var androidNotificationDetails = AndroidNotificationDetails(
-      'in_app_notification_channel',
-      'In-App Notification',
-      channelDescription: 'Channel for in-app notification sound and vibration',
-      importance: Importance.max,
-      priority: Priority.high,
-      playSound: true,
-      sound: const RawResourceAndroidNotificationSound('notification_sound'),
-      enableVibration: true,
-      vibrationPattern: Int64List.fromList([0, 500, 200, 500]),
-      showWhen: false,
-      channelShowBadge: false,
-      onlyAlertOnce: true,
-      visibility: NotificationVisibility.secret,
-    );
-
-    // Define iOS notification details for sound and vibration
-    const iosNotificationDetails = DarwinNotificationDetails(
-      sound: 'notification_sound.caf',
-      presentAlert: false,
-      presentBadge: false,
-      presentSound: true,
-    );
-
-   var notificationDetails = NotificationDetails(
-      android: androidNotificationDetails,
-      iOS: iosNotificationDetails,
-    );
-
-    // Play the notification sound and trigger vibration
-    try {
-      print('Attempting to play in-app notification sound with vibration...');
-      await flutterLocalNotificationsPlugin.show(
-        1,
-        null,
-        null,
-        notificationDetails,
-        payload: 'in_app_notification_sound',
-      );
-      print('In-app notification sound and vibration triggered successfully');
-    } catch (e) {
-      print('Failed to play in-app notification sound or trigger vibration: $e');
-      return;
-    }
-
-    // Show the custom in-app dialog
-    Get.dialog(
-      Material(
-        color: Colors.transparent,
-        child: Center(
-          child: Container(
-            margin: const EdgeInsets.symmetric(horizontal: 20),
-            padding: const EdgeInsets.symmetric(vertical: 30, horizontal: 20),
-            decoration: BoxDecoration(
-              color: AppColors.primaryColor,
-              borderRadius: BorderRadius.circular(16),
-            ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const Icon(Icons.notifications_active,
-                    size: 64, color: Colors.white),
-                const SizedBox(height: 16),
-                Text(
-                  'New request assigned',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                    fontFamily: 'Poppins',
-                  ),
-                ),
-                const SizedBox(height: 20),
-                Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: AppColors.cardBackgroundColor,
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      Row(
-                        children: [
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                const Text("Block-Floor",
-                                    style: TextStyle(
-                                        fontSize: 12, color: Colors.grey)),
-                                Text(
-                                    location.isNotEmpty
-                                        ? location.split(',')[0].trim()
-                                        : 'Unknown',
-                                    style: const TextStyle(
-                                      fontSize: 14,
-                                      fontWeight: FontWeight.bold,
-                                    )),
-                              ],
-                            ),
-                          ),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                const Text("Room-Bed",
-                                    style: TextStyle(
-                                        fontSize: 12, color: Colors.grey)),
-                                Text(
-                                    location.isNotEmpty && location.contains(',')
-                                        ? location.split(',')[1].trim()
-                                        : 'Unknown',
-                                    style: const TextStyle(
-                                      fontSize: 14,
-                                      fontWeight: FontWeight.bold,
-                                    )),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                      const Divider(height: 20, thickness: 1),
-                      Center(
-                        child: Text(task.isNotEmpty ? task : 'Unknown',
-                            style: const TextStyle(
-                                fontSize: 16, fontWeight: FontWeight.w600)),
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 20),
-                ElevatedButton.icon(
-                  onPressed: () {
-                    print("Accept and Start pressed");
-                    Get.back();
-                  },
-                  icon: const Icon(Icons.arrow_forward, color: Colors.white),
-                  label: const Text("Accept and Start",
-                      style: TextStyle(color: Colors.white)),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.white.withOpacity(0.2),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(30),
-                    ),
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 24, vertical: 12),
-                    textStyle: const TextStyle(fontWeight: FontWeight.bold),
-                  ),
-                ),
-                const SizedBox(height: 8),
-                TextButton(
-                  onPressed: () {
-                    print("Dismiss pressed");
-                    Get.back();
-                  },
-                  child: const Text("Dismiss",
-                      style: TextStyle(color: Colors.white)),
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
-      barrierDismissible: false,
-    );
+  } catch (e) {
+    print('Failed to play in-app notification sound or trigger vibration: $e');
   }
 
+  // Show full-screen notification
+  Get.to(() => FullScreenNotification(
+        title: 'Ticket Assigned: $title', // Updated title
+        body: body,
+        location: location,
+        task: task,
+      ));
+}
   // Play login sound with vibration using notification_sound.mp3
   Future<void> playLoginRinger() async {
     var androidNotificationChannel = AndroidNotificationChannel(
@@ -397,7 +241,7 @@ class NotificationServices {
       playSound: true,
       sound: RawResourceAndroidNotificationSound('notification_sound'),
       enableVibration: true,
-      vibrationPattern: Int64List.fromList([0, 500, 200, 500]),
+      vibrationPattern: Int64List.fromList([0, 1500, 500, 1500, 500, 1500]),
     );
 
     await flutterLocalNotificationsPlugin
@@ -417,7 +261,7 @@ class NotificationServices {
       playSound: true,
       sound: const RawResourceAndroidNotificationSound('notification_sound'),
       enableVibration: true,
-      vibrationPattern: Int64List.fromList([0, 500, 200, 500]),
+      vibrationPattern: Int64List.fromList([0, 1500, 500, 1500, 500, 1500]),
       showWhen: false,
       channelShowBadge: false,
       onlyAlertOnce: true,
@@ -446,6 +290,12 @@ class NotificationServices {
         payload: 'login_notification_sound',
       );
       print('Login notification sound and vibration triggered successfully');
+
+      // Fallback vibration for Android
+      if (Platform.isAndroid && await Vibration.hasVibrator() == true) {
+        print('Triggering fallback vibration for login');
+        Vibration.vibrate(pattern: [0, 1500, 500, 1500, 500, 1500], intensities: [0, 255, 0, 255, 0, 255]);
+      }
     } catch (e) {
       print('Failed to play login notification sound or trigger vibration: $e');
     }
@@ -463,5 +313,148 @@ class NotificationServices {
     messaging.onTokenRefresh.listen((token) {
       print('Token refreshed: $token');
     });
+  }
+}
+class FullScreenNotification extends StatelessWidget {
+  final String title;
+  final String body;
+  final String location;
+  final String task;
+
+  const FullScreenNotification({
+    Key? key,
+    required this.title,
+    required this.body,
+    required this.location,
+    required this.task,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: AppColors.primaryColor,
+      body: SafeArea(
+        child: Center(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 40),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Icon(Icons.notifications_active,
+                    size: 80, color: Colors.white),
+                const SizedBox(height: 24),
+                Text(
+                  title, // Use the updated title with "Ticket Assigned"
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
+                    fontFamily: 'Poppins',
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 10),
+                Text(
+                  'New request assigned',
+                  style: TextStyle(
+                    color: Colors.white70,
+                    fontSize: 18,
+                    fontFamily: 'Poppins',
+                  ),
+                ),
+                const SizedBox(height: 30),
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: AppColors.cardBackgroundColor,
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Row(
+                        children: [
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const Text("Block-Floor",
+                                    style: TextStyle(
+                                        fontSize: 14, color: Colors.grey)),
+                                Text(
+                                    location.isNotEmpty
+                                        ? location.split(',')[0].trim()
+                                        : 'Unknown',
+                                    style: const TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.bold,
+                                    )),
+                              ],
+                            ),
+                          ),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const Text("Room-Bed",
+                                    style: TextStyle(
+                                        fontSize: 14, color: Colors.grey)),
+                                Text(
+                                    location.isNotEmpty && location.contains(',')
+                                        ? location.split(',')[1].trim()
+                                        : 'Unknown',
+                                    style: const TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.bold,
+                                    )),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                      const Divider(height: 24, thickness: 1),
+                      Center(
+                        child: Text(task.isNotEmpty ? task : 'Unknown',
+                            style: const TextStyle(
+                                fontSize: 18, fontWeight: FontWeight.w600)),
+                      ),
+                    ],
+                  ),
+                ),
+                const Spacer(),
+                ElevatedButton.icon(
+                  onPressed: () {
+                    print("Accept and Start pressed");
+                    Get.back(); // Close the notification screen
+                  },
+                  icon: const Icon(Icons.arrow_forward, color: Colors.white),
+                  label: const Text("Accept and Start",
+                      style: TextStyle(color: Colors.white)),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.white.withOpacity(0.2),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(30),
+                    ),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 32, vertical: 16),
+                    textStyle: const TextStyle(
+                        fontSize: 18, fontWeight: FontWeight.bold),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                TextButton(
+                  onPressed: () {
+                    print("Dismiss pressed");
+                    Get.back();
+                  },
+                  child: const Text("Dismiss",
+                      style: TextStyle(color: Colors.white, fontSize: 16)),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
   }
 }

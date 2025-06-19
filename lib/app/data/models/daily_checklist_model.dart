@@ -647,7 +647,7 @@ class FeedbackSource {
       mode: json['mode']?.toString() ?? '',
       category: (json['category'] as Map<String, dynamic>?)?.map(
             (key, value) => MapEntry(
-                key, value is double ? (value as double).toInt() : value as int? ?? 0),
+                key, value is double ? (value).toInt() : value as int? ?? 0),
           ) ??
           {},
       total: (json['total'] is double

@@ -42,7 +42,7 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
         ElevatedButton(
           onPressed: onStartShiftPressed,
           style: Theme.of(context).elevatedButtonTheme.style?.copyWith(
-                padding: MaterialStateProperty.all(const EdgeInsets.symmetric(horizontal: 16, vertical: 8)),
+                padding: WidgetStateProperty.all(const EdgeInsets.symmetric(horizontal: 16, vertical: 8)),
               ) ??
               ElevatedButton.styleFrom(
                 backgroundColor: AppColors.primaryColor,

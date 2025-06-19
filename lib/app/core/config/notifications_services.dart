@@ -1,3 +1,4 @@
+
 import 'dart:io';
 import 'dart:typed_data';
 
@@ -5,6 +6,7 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:get/get.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:qr_buddy/app/core/theme/app_theme.dart';
 import 'package:vibration/vibration.dart';
 
@@ -18,7 +20,10 @@ class NotificationServices {
 
   // Public method to check if a message has been processed
   static bool hasProcessedMessage(String? messageId) {
-    if (messageId == null) return false;
+    if (messageId == null) {
+      print("Warning: Message ID is null, skipping to avoid duplicates");
+      return true;
+    }
     return _processedMessageIds.contains(messageId);
   }
 
@@ -26,6 +31,7 @@ class NotificationServices {
   static void addProcessedMessage(String? messageId) {
     if (messageId != null && !_processedMessageIds.contains(messageId)) {
       _processedMessageIds.add(messageId);
+      print("Added message ID to processed list: $messageId");
     }
   }
 
@@ -40,6 +46,10 @@ class NotificationServices {
       badge: true,
       sound: true,
     );
+
+    if (Platform.isAndroid && await Permission.notification.isDenied) {
+      await Permission.notification.request();
+    }
 
     if (settings.authorizationStatus == AuthorizationStatus.authorized) {
       print('User granted permission');
@@ -64,31 +74,35 @@ class NotificationServices {
       iOS: iosInitialization,
     );
 
-    await flutterLocalNotificationsPlugin.initialize(
-      initializationSettings,
-      onDidReceiveNotificationResponse: (response) {
-        print('Notification tapped: ${response.payload}');
-        if (response.payload != null && response.payload!.isNotEmpty) {
-          print('Handling payload: ${response.payload}');
-          final payloadData = response.payload!.split('|');
-          if (payloadData[0] == 'in_app_notification') {
-            Get.to(() => FullScreenNotification(
-                  title: payloadData.length > 1 ? payloadData[1] : 'QR Buddy',
-                  body: payloadData.length > 2 ? payloadData[2] : 'New message',
-                  location: payloadData.length > 3
-                      ? payloadData[3]
-                      : 'Block A1, Ground Floor, Room G1-504 (Near Canteen)',
-                  task:
-                      payloadData.length > 4 ? payloadData[4] : 'Change Bedsheet',
-                ));
+    try {
+      await flutterLocalNotificationsPlugin.initialize(
+        initializationSettings,
+        onDidReceiveNotificationResponse: (response) {
+          print('Notification tapped: ${response.payload}');
+          if (response.payload != null && response.payload!.isNotEmpty) {
+            print('Handling payload: ${response.payload}');
+            final payloadData = response.payload!.split('|');
+            if (payloadData[0] == 'in_app_notification') {
+              try {
+                Get.to(() => FullScreenNotification(
+                      title: payloadData.length > 1 ? payloadData[1] : 'QR Buddy',
+                      body: payloadData.length > 2 ? payloadData[2] : 'New message',
+                      location: payloadData.length > 3
+                          ? payloadData[3]
+                          : 'Block A1, Ground Floor, Room G1-504 (Near Canteen)',
+                      task: payloadData.length > 4 ? payloadData[4] : 'Change Bedsheet',
+                    ));
+              } catch (e) {
+                print('Failed to navigate to FullScreenNotification: $e');
+              }
+            }
           }
-        }
-      },
-    ).catchError((e) {
+        },
+      );
+      print('Local notifications initialized successfully');
+    } catch (e) {
       print('Failed to initialize local notifications: $e');
-    });
-
-    print('Local notifications initialized');
+    }
   }
 
   // Initialize Firebase messaging
@@ -99,19 +113,22 @@ class NotificationServices {
       print('Foreground message received: ${message.messageId}');
       print('onMessage data: ${message.data}');
       print('onMessage notification: ${message.notification}');
-      print('Data Title: ${message.data['fcm-title']}');
-      print('Data Body: ${message.data['body']}');
-      print('Data URL: ${message.data['url']}');
 
       if (!hasProcessedMessage(message.messageId)) {
         addProcessedMessage(message.messageId);
-        await showInAppNotificationWithSound(
-          title: message.data['fcm-title'] ?? 'QR Buddy',
-          body: message.data['body'] ?? 'New message',
-          location: message.data['location'] ??
-              'Block A1, Ground Floor, Room G1-504 (Near Canteen)',
-          task: message.data['task'] ?? 'Change Bedsheet',
-        );
+        try {
+          await showInAppNotificationWithSound(
+            title: message.data['fcm-title'] ?? 'QR Buddy',
+            body: message.data['body'] ?? 'New message',
+            location: message.data['location'] ??
+                'Block A1, Ground Floor, Room G1-504 (Near Canteen)',
+            task: message.data['task'] ?? 'Change Bedsheet',
+          );
+        } catch (e) {
+          print('Failed to process foreground notification: $e');
+        }
+      } else {
+        print('Foreground notification already processed: ${message.messageId}');
       }
     });
 
@@ -120,13 +137,17 @@ class NotificationServices {
       print('Data on open: ${message.data}');
       if (!hasProcessedMessage(message.messageId)) {
         addProcessedMessage(message.messageId);
-        Get.to(() => FullScreenNotification(
-              title: message.data['fcm-title'] ?? 'QR Buddy',
-              body: message.data['body'] ?? 'New message',
-              location: message.data['location'] ??
-                  'Block A1, Ground Floor, Room G1-504 (Near Canteen)',
-              task: message.data['task'] ?? 'Change Bedsheet',
-            ));
+        try {
+          Get.to(() => FullScreenNotification(
+                title: message.data['fcm-title'] ?? 'QR Buddy',
+                body: message.data['body'] ?? 'New message',
+                location: message.data['location'] ??
+                    'Block A1, Ground Floor, Room G1-504 (Near Canteen)',
+                task: message.data['task'] ?? 'Change Bedsheet',
+              ));
+        } catch (e) {
+          print('Failed to navigate to FullScreenNotification: $e');
+        }
       }
     });
 
@@ -135,102 +156,118 @@ class NotificationServices {
     if (initialMessage != null && !hasProcessedMessage(initialMessage.messageId)) {
       print('App opened from terminated state: ${initialMessage.messageId}');
       addProcessedMessage(initialMessage.messageId);
-      await showInAppNotificationWithSound(
-        title: initialMessage.data['fcm-title'] ?? 'QR Buddy',
-        body: initialMessage.data['body'] ?? 'New message',
-        location: initialMessage.data['location'] ??
-            'Block A1, Ground Floor, Room G1-504 (Near Canteen)',
-        task: initialMessage.data['task'] ?? 'Change Bedsheet',
-      );
+      try {
+        await showInAppNotificationWithSound(
+          title: initialMessage.data['fcm-title'] ?? 'QR Buddy',
+          body: initialMessage.data['body'] ?? 'New message',
+          location: initialMessage.data['location'] ??
+              'Block A1, Ground Floor, Room G1-504 (Near Canteen)',
+          task: initialMessage.data['task'] ?? 'Change Bedsheet',
+        );
+      } catch (e) {
+        print('Failed to process initial message: $e');
+      }
     }
 
     print('Firebase messaging initialized');
   }
-Future<void> showInAppNotificationWithSound({
-  required String title,
-  required String body,
-  required String location,
-  required String task,
-}) async {
-  var androidNotificationChannel = AndroidNotificationChannel(
-    'in_app_notification_channel',
-    'In-App Notification',
-    description: 'Channel for in-app notification sound and vibration',
-    importance: Importance.max,
-    playSound: true,
-    sound: const RawResourceAndroidNotificationSound('notification_sound'),
-    enableVibration: true,
-    vibrationPattern: Int64List.fromList([0, 1500, 500, 1500, 500, 1500]),
-  );
 
-  try {
-    await flutterLocalNotificationsPlugin
-        .resolvePlatformSpecificImplementation<
-            AndroidFlutterLocalNotificationsPlugin>()
-        ?.createNotificationChannel(androidNotificationChannel);
-    print('In-app notification channel created successfully');
-  } catch (e) {
-    print('Failed to create in-app notification channel: $e');
-    return;
-  }
-
-  var androidNotificationDetails = AndroidNotificationDetails(
-    'in_app_notification_channel',
-    'In-App Notification',
-    channelDescription: 'Channel for in-app notification sound and vibration',
-    importance: Importance.max,
-    priority: Priority.high,
-    playSound: true,
-    sound: const RawResourceAndroidNotificationSound('notification_sound'),
-    enableVibration: true,
-    vibrationPattern: Int64List.fromList([0, 1500, 500, 1500, 500, 1500]),
-    showWhen: false,
-    channelShowBadge: false,
-    onlyAlertOnce: true,
-    visibility: NotificationVisibility.public,
-    fullScreenIntent: true,
-  );
-
-  const iosNotificationDetails = DarwinNotificationDetails(
-    sound: 'notification_sound.caf',
-    presentAlert: false,
-    presentBadge: false,
-    presentSound: true,
-  );
-
-  var notificationDetails = NotificationDetails(
-    android: androidNotificationDetails,
-    iOS: iosNotificationDetails,
-  );
-
-  try {
-    print('Attempting to play in-app notification sound with vibration...');
-    await flutterLocalNotificationsPlugin.show(
-      1,
-      'Ticket Assigned: $title', // Updated title to include "Ticket Assigned"
-      body,
-      notificationDetails,
-      payload: 'in_app_notification|$title|$body|$location|$task',
+  Future<void> showInAppNotificationWithSound({
+    required String title,
+    required String body,
+    required String location,
+    required String task,
+  }) async {
+    var androidNotificationChannel = AndroidNotificationChannel(
+      'in_app_notification_channel',
+      'In-App Notification',
+      description: 'Channel for in-app notification sound and vibration',
+      importance: Importance.max,
+      playSound: true,
+      sound: const RawResourceAndroidNotificationSound('notification_sound'),
+      enableVibration: true,
+      vibrationPattern: Int64List.fromList([0, 1500, 500, 1500, 500, 1500]),
     );
-    print('In-app notification sound and vibration triggered successfully');
+
+    try {
+      await flutterLocalNotificationsPlugin
+          .resolvePlatformSpecificImplementation<
+              AndroidFlutterLocalNotificationsPlugin>()
+          ?.createNotificationChannel(androidNotificationChannel);
+      print('In-app notification channel created successfully');
+    } catch (e) {
+      print('Failed to create in-app notification channel: $e');
+      return;
+    }
+
+    var androidNotificationDetails = AndroidNotificationDetails(
+      'in_app_notification_channel',
+      'In-App Notification',
+      channelDescription: 'Channel for in-app notification sound and vibration',
+      importance: Importance.max,
+      priority: Priority.high,
+      playSound: true,
+      sound: const RawResourceAndroidNotificationSound('notification_sound'),
+      enableVibration: true,
+      vibrationPattern: Int64List.fromList([0, 1500, 500, 1500, 500, 1500]),
+      showWhen: false,
+      channelShowBadge: false,
+      onlyAlertOnce: true,
+      visibility: NotificationVisibility.public,
+      fullScreenIntent: true,
+    );
+
+    const iosNotificationDetails = DarwinNotificationDetails(
+      sound: 'notification_sound.caf',
+      presentAlert: false,
+      presentBadge: false,
+      presentSound: true,
+    );
+
+    var notificationDetails = NotificationDetails(
+      android: androidNotificationDetails,
+      iOS: iosNotificationDetails,
+    );
+
+    try {
+      print('Showing notification with title: $title, body: $body');
+      await flutterLocalNotificationsPlugin.show(
+        1,
+        'Ticket Assigned: $title',
+        body,
+        notificationDetails,
+        payload: 'in_app_notification|$title|$body|$location|$task',
+      );
+      print('Notification shown successfully');
+    } catch (e) {
+      print('Failed to show notification: $e');
+    }
+
+    // Show full-screen notification
+    try {
+      print('Navigating to FullScreenNotification');
+      Get.to(() => FullScreenNotification(
+            title: 'Ticket Assigned: $title',
+            body: body,
+            location: location,
+            task: task,
+          ));
+      print('Navigation successful');
+    } catch (e) {
+      print('Failed to navigate to FullScreenNotification: $e');
+    }
 
     // Fallback vibration for Android
     if (Platform.isAndroid && await Vibration.hasVibrator() == true) {
       print('Triggering fallback vibration');
-      Vibration.vibrate(pattern: [0, 1500, 500, 1500, 500, 1500], intensities: [0, 255, 0, 255, 0, 255]);
+      try {
+        Vibration.vibrate(pattern: [0, 1500, 500, 1500, 500, 1500], intensities: [0, 255, 0, 255, 0, 255]);
+      } catch (e) {
+        print('Failed to trigger vibration: $e');
+      }
     }
-  } catch (e) {
-    print('Failed to play in-app notification sound or trigger vibration: $e');
   }
 
-  // Show full-screen notification
-  Get.to(() => FullScreenNotification(
-        title: 'Ticket Assigned: $title', // Updated title
-        body: body,
-        location: location,
-        task: task,
-      ));
-}
   // Play login sound with vibration using notification_sound.mp3
   Future<void> playLoginRinger() async {
     var androidNotificationChannel = AndroidNotificationChannel(
@@ -244,13 +281,15 @@ Future<void> showInAppNotificationWithSound({
       vibrationPattern: Int64List.fromList([0, 1500, 500, 1500, 500, 1500]),
     );
 
-    await flutterLocalNotificationsPlugin
-        .resolvePlatformSpecificImplementation<
-            AndroidFlutterLocalNotificationsPlugin>()
-        ?.createNotificationChannel(androidNotificationChannel)
-        .catchError((e) {
+    try {
+      await flutterLocalNotificationsPlugin
+          .resolvePlatformSpecificImplementation<
+              AndroidFlutterLocalNotificationsPlugin>()
+          ?.createNotificationChannel(androidNotificationChannel);
+      print('Login notification channel created successfully');
+    } catch (e) {
       print('Failed to create login notification channel: $e');
-    });
+    }
 
     var androidNotificationDetails = AndroidNotificationDetails(
       'login_notification_channel',
@@ -290,22 +329,31 @@ Future<void> showInAppNotificationWithSound({
         payload: 'login_notification_sound',
       );
       print('Login notification sound and vibration triggered successfully');
-
-      // Fallback vibration for Android
-      if (Platform.isAndroid && await Vibration.hasVibrator() == true) {
-        print('Triggering fallback vibration for login');
-        Vibration.vibrate(pattern: [0, 1500, 500, 1500, 500, 1500], intensities: [0, 255, 0, 255, 0, 255]);
-      }
     } catch (e) {
       print('Failed to play login notification sound or trigger vibration: $e');
+    }
+
+    // Fallback vibration for Android
+    if (Platform.isAndroid && await Vibration.hasVibrator() == true) {
+      print('Triggering fallback vibration for login');
+      try {
+        Vibration.vibrate(pattern: [0, 1500, 500, 1500, 500, 1500], intensities: [0, 255, 0, 255, 0, 255]);
+      } catch (e) {
+        print('Failed to trigger vibration: $e');
+      }
     }
   }
 
   // Get device token
   Future<String> getDeviceToken() async {
-    String? token = await messaging.getToken();
-    print('FCM Token: $token');
-    return token ?? '';
+    try {
+      String? token = await messaging.getToken();
+      print('FCM Token: $token');
+      return token ?? '';
+    } catch (e) {
+      print('Failed to get FCM token: $e');
+      return '';
+    }
   }
 
   // Handle token refresh
@@ -315,6 +363,7 @@ Future<void> showInAppNotificationWithSound({
     });
   }
 }
+
 class FullScreenNotification extends StatelessWidget {
   final String title;
   final String body;

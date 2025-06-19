@@ -51,10 +51,6 @@ class LoginController extends GetxController {
     try {
       // Get FCM token
       final fcmToken = await _notificationServices.getDeviceToken();
-      if (fcmToken == null) {
-        print('Failed to retrieve FCM token');
-        return;
-      }
 
       // Make API request to save FCM token
       final response = await _apiService.post(

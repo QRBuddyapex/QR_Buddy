@@ -1,4 +1,3 @@
-
 import 'dart:io';
 import 'dart:typed_data';
 
@@ -90,7 +89,7 @@ class NotificationServices {
                       location: payloadData.length > 3
                           ? payloadData[3]
                           : 'Block A1, Ground Floor, Room G1-504 (Near Canteen)',
-                      task: payloadData.length > 4 ? payloadData[4] : 'Change Bedsheet',
+                      task: payloadData.length > 4 ? payloadData[4] : 'View Details',
                     ));
               } catch (e) {
                 print('Failed to navigate to FullScreenNotification: $e');
@@ -110,19 +109,31 @@ class NotificationServices {
     await initLocalNotification(context);
 
     FirebaseMessaging.onMessage.listen((message) async {
-      print('Foreground message received: ${message.messageId}');
-      print('onMessage data: ${message.data}');
-      print('onMessage notification: ${message.notification}');
+      print('Foreground message received: ${message.toString()}');
+      print('Foreground message ID: ${message.messageId}');
+      print('onMessage data: ${message.data.toString()}');
+      print('onMessage notification message: ${message.notification?.title}, ${message.notification?.body}');
+      print('onMessage data structure: ${message.data}');
 
       if (!hasProcessedMessage(message.messageId)) {
         addProcessedMessage(message.messageId);
         try {
+          final notification = message.data['message'] as Map<String, dynamic>? ?? {};
+          final data = notification['data'] as Map<String, dynamic>? ?? message.data;
+          print('Processed notification data: $data');
+          final title = data['title'] as String? ?? 'QR Buddy';
+          final body = data['body'] as String? ?? 'New message';
+          final url = data['url'] as String? ?? '';
+
+          if (title.isEmpty || body.isEmpty) {
+            print('Warning: Empty title or body received from backend');
+          }
+
           await showInAppNotificationWithSound(
-            title: message.data['fcm-title'] ?? 'QR Buddy',
-            body: message.data['body'] ?? 'New message',
-            location: message.data['location'] ??
-                'Block A1, Ground Floor, Room G1-504 (Near Canteen)',
-            task: message.data['task'] ?? 'Change Bedsheet',
+            title: title,
+            body: body,
+            location: url.isNotEmpty ? url : 'Block A1, Ground Floor, Room G1-504 (Near Canteen)',
+            task: 'View Details',
           );
         } catch (e) {
           print('Failed to process foreground notification: $e');
@@ -134,16 +145,21 @@ class NotificationServices {
 
     FirebaseMessaging.onMessageOpenedApp.listen((message) {
       print('App opened from background: ${message.messageId}');
-      print('Data on open: ${message.data}');
+      print('Data on open: ${message.data.toString()}');
       if (!hasProcessedMessage(message.messageId)) {
         addProcessedMessage(message.messageId);
         try {
+          final notification = message.data['message'] as Map<String, dynamic>? ?? {};
+          final data = notification['data'] as Map<String, dynamic>? ?? message.data;
+          final title = data['title'] as String? ?? 'QR Buddy';
+          final body = data['body'] as String? ?? 'New message';
+          final url = data['url'] as String? ?? '';
+
           Get.to(() => FullScreenNotification(
-                title: message.data['fcm-title'] ?? 'QR Buddy',
-                body: message.data['body'] ?? 'New message',
-                location: message.data['location'] ??
-                    'Block A1, Ground Floor, Room G1-504 (Near Canteen)',
-                task: message.data['task'] ?? 'Change Bedsheet',
+                title: title,
+                body: body,
+                location: url.isNotEmpty ? url : 'Block A1, Ground Floor, Room G1-504 (Near Canteen)',
+                task: 'View Details',
               ));
         } catch (e) {
           print('Failed to navigate to FullScreenNotification: $e');
@@ -157,12 +173,17 @@ class NotificationServices {
       print('App opened from terminated state: ${initialMessage.messageId}');
       addProcessedMessage(initialMessage.messageId);
       try {
+        final notification = initialMessage.data['message'] as Map<String, dynamic>? ?? {};
+        final data = notification['data'] as Map<String, dynamic>? ?? initialMessage.data;
+        final title = data['title'] as String? ?? 'QR Buddy';
+        final body = data['body'] as String? ?? 'New message';
+        final url = data['url'] as String? ?? '';
+
         await showInAppNotificationWithSound(
-          title: initialMessage.data['fcm-title'] ?? 'QR Buddy',
-          body: initialMessage.data['body'] ?? 'New message',
-          location: initialMessage.data['location'] ??
-              'Block A1, Ground Floor, Room G1-504 (Near Canteen)',
-          task: initialMessage.data['task'] ?? 'Change Bedsheet',
+          title: title,
+          body: body,
+          location: url.isNotEmpty ? url : 'Block A1, Ground Floor, Room G1-504 (Near Canteen)',
+          task: 'View Details',
         );
       } catch (e) {
         print('Failed to process initial message: $e');
@@ -243,18 +264,22 @@ class NotificationServices {
       print('Failed to show notification: $e');
     }
 
-    // Show full-screen notification
-    try {
-      print('Navigating to FullScreenNotification');
-      Get.to(() => FullScreenNotification(
-            title: 'Ticket Assigned: $title',
-            body: body,
-            location: location,
-            task: task,
-          ));
-      print('Navigation successful');
-    } catch (e) {
-      print('Failed to navigate to FullScreenNotification: $e');
+    // Avoid contextless navigation in background
+    if (Get.context != null) {
+      try {
+        print('Navigating to FullScreenNotification');
+        Get.to(() => FullScreenNotification(
+              title: 'Ticket Assigned: $title',
+              body: body,
+              location: location,
+              task: task,
+            ));
+        print('Navigation successful');
+      } catch (e) {
+        print('Failed to navigate to FullScreenNotification: $e');
+      }
+    } else {
+      print('Context not available, skipping navigation');
     }
 
     // Fallback vibration for Android

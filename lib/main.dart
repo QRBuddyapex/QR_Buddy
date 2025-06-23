@@ -30,7 +30,8 @@ void main() async {
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   await Firebase.initializeApp();
   print("Handling a background message: ${message.messageId}");
-  print("Background message data: ${message.data}");
+  print("Background message data: ${message.data.toString()}");
+  print("Background message data structure: ${message.data}");
 
   // Initialize NotificationServices
   final notificationServices = NotificationServices();
@@ -39,12 +40,22 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   // Show full-screen notification for background/terminated state
   if (!NotificationServices.hasProcessedMessage(message.messageId)) {
     NotificationServices.addProcessedMessage(message.messageId);
+    final notification = message.data['message'] as Map<String, dynamic>? ?? {};
+    final data = notification['data'] as Map<String, dynamic>? ?? message.data;
+    print('Processed background notification data: $data');
+    final title = data['title'] as String? ?? 'QR Buddy';
+    final body = data['body'] as String? ?? 'New message';
+    final url = data['url'] as String? ?? '';
+
+    if (title.isEmpty || body.isEmpty) {
+      print('Warning: Empty title or body received from backend in background');
+    }
+
     await notificationServices.showInAppNotificationWithSound(
-      title: message.data['fcm-title'] ?? 'QR Buddy',
-      body: message.data['body'] ?? 'New message',
-      location: message.data['location'] ??
-          'Block A1, Ground Floor, Room G1-504 (Near Canteen)',
-      task: message.data['task'] ?? 'Change Bedsheet',
+      title: title,
+      body: body,
+      location: url.isNotEmpty ? url : 'Block A1, Ground Floor, Room G1-504 (Near Canteen)',
+      task: 'View Details',
     );
   }
 }

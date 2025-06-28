@@ -1,14 +1,40 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:qr_buddy/app/core/config/token_storage.dart';
 import 'package:qr_buddy/app/core/theme/app_theme.dart';
 import 'package:qr_buddy/app/routes/routes.dart';
 
 
-class CustomDrawer extends StatelessWidget {
+class CustomDrawer extends StatefulWidget {
   const CustomDrawer({Key? key}) : super(key: key);
 
   @override
+  State<CustomDrawer> createState() => _CustomDrawerState();
+}
+
+class _CustomDrawerState extends State<CustomDrawer> {
+  String? userName = 'User';
+  Future getUserName()async{
+
+    final tokenStorage = TokenStorage();
+       userName = await tokenStorage.getUserName();
+      return userName;
+
+  }
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    getUserName().then((value) {
+      setState(() {
+        userName = value;
+      });
+    }); 
+  }
+
+  @override
   Widget build(BuildContext context) {
+    
     return Drawer(
       child: Container(
         color: AppColors.backgroundColor,
@@ -24,9 +50,10 @@ class CustomDrawer extends StatelessWidget {
                 children: [
                   Image.asset('assets/images/qr_buddy_logo.a2372aa9.png', height: 100),
                   const SizedBox(height: 10),
-                  const Text(
-                    'em@demo.com',
-                    style: TextStyle(
+                  Text(
+                    textAlign: TextAlign.center,
+                    userName ?? 'User',
+                    style: const TextStyle(
                       color: AppColors.textColor,
                       fontSize: 14,
                     ),

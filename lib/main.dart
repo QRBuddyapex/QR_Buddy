@@ -1,29 +1,56 @@
+import 'dart:io' show exit; // Import for exiting the app
+
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:permission_handler/permission_handler.dart'; // Import permission_handler
 import 'package:qr_buddy/app/core/config/notifications_services.dart';
+import 'package:qr_buddy/app/core/config/token_storage.dart';
 import 'package:qr_buddy/app/core/theme/app_theme.dart';
 import 'package:qr_buddy/app/modules/auth/bindings/auth_binding.dart';
 import 'package:qr_buddy/app/routes/routes.dart';
 import 'package:qr_buddy/app/routes/routes_name.dart';
 
-void main() async {
+Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
   FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
 
-  // Initialize NotificationServices
+
   final notificationServices = NotificationServices();
   await notificationServices.requestNotificationPermission();
   await notificationServices.initLocalNotification(null);
   notificationServices.firebaseInit(null);
 
-  // Print device token
+ 
   final token = await notificationServices.getDeviceToken();
   print('FCM Token: $token');
 
-  runApp(MyApp(notificationServices: notificationServices));
+
+  final tokenStorage = TokenStorage();
+  final authToken = await tokenStorage.getToken();
+
+
+   final permissionStatus = await Permission.location.status;
+    if (!permissionStatus.isGranted) {
+      final requestStatus = await Permission.location.request();
+      if (!requestStatus.isGranted) {
+      
+        exit(0);
+      }
+    }
+
+  // Determine initial route based on token and user ID
+  final userId = await tokenStorage.getUserId();
+  final initialRoute = (authToken != null && userId != null)
+      ? RoutesName.ticketDashboardView
+      : RoutesName.loginScreen;
+
+  runApp(MyApp(
+    notificationServices: notificationServices,
+    initialRoute: initialRoute,
+  ));
 }
 
 @pragma('vm:entry-point')
@@ -62,13 +89,17 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
 
 class MyApp extends StatelessWidget {
   final NotificationServices notificationServices;
+  final String initialRoute;
 
-  const MyApp({Key? key, required this.notificationServices})
-      : super(key: key);
+  const MyApp({
+    Key? key,
+    required this.notificationServices,
+    required this.initialRoute,
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    // Pass context to firebaseInit after the app is built
+ 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       notificationServices.firebaseInit(context);
     });
@@ -77,7 +108,7 @@ class MyApp extends StatelessWidget {
       title: 'QR Buddy',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.theme,
-      initialRoute: RoutesName.loginScreen,
+      initialRoute: initialRoute,
       getPages: AppRoutes.appRoutes(),
       initialBinding: AuthBinding(),
     );

@@ -11,6 +11,8 @@
 </array>
 	<key>CFBundleDisplayName</key>
 	<string>Qr Buddy</string>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>We need your location to provide location-based services.</string>
 	<key>CFBundleExecutable</key>
 	<string>$(EXECUTABLE_NAME)</string>
 	<key>CFBundleIdentifier</key>

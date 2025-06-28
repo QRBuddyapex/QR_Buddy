@@ -25,9 +25,11 @@ class AuthRepository {
           throw Exception("Invalid user data in response");
         }
         await _tokenStorage.saveAuthData(
-          token: data["token"],
+          token: user["token"],
           userId: user["id"].toString(),
-          hcoId: user["hco_id"].toString(),
+          hcoId: user["hco_id"].toString(), 
+          userName: user["username"].toString(),
+          userType: user["user_type"]?.toString() ?? "unknown",
         );
         return data;
       } else {
@@ -42,15 +44,4 @@ class AuthRepository {
     await _tokenStorage.clearToken();
   }
 
-  Future<String?> getToken() async {
-    return await _tokenStorage.getToken();
-  }
-
-  Future<String?> getUserId() async {
-    return await _tokenStorage.getUserId();
-  }
-
-  Future<String?> getHcoId() async {
-    return await _tokenStorage.getHcoId();
-  }
 }

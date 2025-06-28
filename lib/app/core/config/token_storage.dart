@@ -5,16 +5,22 @@ class TokenStorage {
   static const String _tokenKey = 'auth_token';
   static const String _userIdKey = 'user_id';
   static const String _hcoIdKey = 'hco_id';
+  static const String _userNameKey = 'user_name';
+  static const String _userTypeKey = 'user_type';
 
   Future<void> saveAuthData({
     required String token,
     required String userId,
     required String hcoId,
+    required String userName,
+    required String userType,
   }) async {
     await Future.wait([
       _storage.write(key: _tokenKey, value: token),
       _storage.write(key: _userIdKey, value: userId),
       _storage.write(key: _hcoIdKey, value: hcoId),
+      _storage.write(key: _userNameKey, value: userName),
+      _storage.write(key: _userTypeKey, value: userType)
     ]);
   }
 
@@ -29,12 +35,20 @@ class TokenStorage {
   Future<String?> getHcoId() async {
     return await _storage.read(key: _hcoIdKey);
   }
+   Future<String?> getUserName() async {
+    return await _storage.read(key: _userNameKey);
+  }
+   Future<String?> getUserType() async {
+    return await _storage.read(key: _userTypeKey);
+  }
 
   Future<void> clearToken() async {
     await Future.wait([
       _storage.delete(key: _tokenKey),
       _storage.delete(key: _userIdKey),
       _storage.delete(key: _hcoIdKey),
+      _storage.delete(key: _userNameKey),
+      _storage.delete(key: _userTypeKey),
     ]);
   }
 }

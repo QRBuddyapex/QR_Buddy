@@ -1,10 +1,12 @@
 import 'package:get/get.dart';
 import 'package:qr_buddy/app/core/config/api_config.dart';
 import 'package:qr_buddy/app/core/config/notifications_services.dart';
+import 'package:qr_buddy/app/core/config/token_storage.dart';
 import 'package:qr_buddy/app/core/services/api_service.dart';
 import 'package:qr_buddy/app/core/utils/snackbar.dart';
 import 'package:qr_buddy/app/data/repo/auth_repo.dart';
 import 'package:qr_buddy/app/routes/routes.dart';
+
 
 class LoginController extends GetxController {
   var email = ''.obs;
@@ -12,6 +14,7 @@ class LoginController extends GetxController {
   final AuthRepository _authRepository = AuthRepository();
   final NotificationServices _notificationServices = NotificationServices();
   final ApiService _apiService = ApiService();
+  final TokenStorage _tokenStorage = TokenStorage(); // Add TokenStorage instance
   var isLogin = false.obs;
   var isLoading = false.obs;
 
@@ -31,6 +34,8 @@ class LoginController extends GetxController {
       if (response["status"] == 1) {
         CustomSnackbar.success("Login successful!");
 
+        // Save auth data
+    
         // Play the ringer tone on successful login
         await _notificationServices.playLoginRinger();
 
@@ -58,7 +63,6 @@ class LoginController extends GetxController {
         queryParameters: {
           'action': 'save_fcm_token',
           'user_id': userId,
-          // 'fcm_token': fcmToken,
         },
         data: {
           'fcm_token': fcmToken,

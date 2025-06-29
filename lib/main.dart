@@ -1,10 +1,12 @@
-import 'dart:io' show exit; // Import for exiting the app
+import 'dart:developer';
+import 'dart:io';
 
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:permission_handler/permission_handler.dart'; // Import permission_handler
+import 'package:in_app_update/in_app_update.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:qr_buddy/app/core/config/notifications_services.dart';
 import 'package:qr_buddy/app/core/config/token_storage.dart';
 import 'package:qr_buddy/app/core/theme/app_theme.dart';
@@ -17,13 +19,12 @@ Future<void> main() async {
   await Firebase.initializeApp();
   FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
 
-
+  // Initialize NotificationServices
   final notificationServices = NotificationServices();
   await notificationServices.requestNotificationPermission();
   await notificationServices.initLocalNotification(null);
   notificationServices.firebaseInit(null);
 
- 
   final token = await notificationServices.getDeviceToken();
   print('FCM Token: $token');
 
@@ -32,16 +33,20 @@ Future<void> main() async {
   final authToken = await tokenStorage.getToken();
 
 
-   final permissionStatus = await Permission.location.status;
-    if (!permissionStatus.isGranted) {
-      final requestStatus = await Permission.location.request();
-      if (!requestStatus.isGranted) {
-      
-        exit(0);
-      }
+  final permissionStatus = await Permission.location.status;
+  if (!permissionStatus.isGranted) {
+    final requestStatus = await Permission.location.request();
+    if (!requestStatus.isGranted) {
+  
+      exit(0);
     }
+  }
 
-  // Determine initial route based on token and user ID
+
+  if (Platform.isAndroid) {
+    await _checkForUpdate();
+  }
+
   final userId = await tokenStorage.getUserId();
   final initialRoute = (authToken != null && userId != null)
       ? RoutesName.ticketDashboardView
@@ -51,6 +56,28 @@ Future<void> main() async {
     notificationServices: notificationServices,
     initialRoute: initialRoute,
   ));
+}
+
+Future<void> _checkForUpdate() async {
+  log('checking for update');
+  await InAppUpdate.checkForUpdate().then((info) async {
+    if (info.updateAvailability == UpdateAvailability.updateAvailable) {
+      log('update available');
+      await _update();
+    }
+  }).catchError((error) {
+    log('Error checking for update: $error');
+  });
+}
+
+Future<void> _update() async {
+  log('performing update');
+  await InAppUpdate.startFlexibleUpdate();
+  InAppUpdate.completeFlexibleUpdate().then((value) {
+    log('update completed');
+  }).catchError((error) {
+    log('Error completing update: $error');
+  });
 }
 
 @pragma('vm:entry-point')
@@ -99,7 +126,7 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
- 
+    // Pass context to firebaseInit after the app is built
     WidgetsBinding.instance.addPostFrameCallback((_) {
       notificationServices.firebaseInit(context);
     });

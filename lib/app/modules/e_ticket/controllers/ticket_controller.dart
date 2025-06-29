@@ -422,7 +422,7 @@ void showActionFormDialog(
     builder: (BuildContext context) {
       return AlertDialog(
         backgroundColor: AppColors.cardBackgroundColor,
-        title: Row(
+        title: Column(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text(
@@ -520,17 +520,7 @@ void showActionFormDialog(
                               child: Column(
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
-                                  ListTile(
-                                    leading: const Icon(Icons.photo_library, color: AppColors.hintTextColor),
-                                    title: Text(
-                                      'Pick from Gallery',
-                                      style: Theme.of(context).textTheme.bodyMedium,
-                                    ),
-                                    onTap: () {
-                                      pickImage(ImageSource.gallery);
-                                      Navigator.of(context).pop();
-                                    },
-                                  ),
+                                  
                                   ListTile(
                                     leading: const Icon(Icons.camera_alt, color: AppColors.hintTextColor),
                                     title: Text(

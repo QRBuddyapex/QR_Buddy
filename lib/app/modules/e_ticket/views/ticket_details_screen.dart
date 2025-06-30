@@ -5,7 +5,7 @@ import 'package:qr_buddy/app/core/config/token_storage.dart';
 import 'package:qr_buddy/app/core/services/api_service.dart';
 import 'package:qr_buddy/app/core/theme/app_theme.dart';
 import 'package:qr_buddy/app/core/widgets/custom_buttom.dart';
-import 'package:qr_buddy/app/data/models/order_details_model.dart' as orderModel; // Add alias
+import 'package:qr_buddy/app/data/models/order_details_model.dart' as orderModel;
 import 'package:qr_buddy/app/data/models/ticket.dart';
 import 'package:qr_buddy/app/data/repo/ticket_details_repo.dart';
 import 'package:qr_buddy/app/modules/e_ticket/controllers/ticket_controller.dart';
@@ -23,7 +23,7 @@ class TicketDetailScreen extends StatefulWidget {
 
 class _TicketDetailScreenState extends State<TicketDetailScreen> {
   late OrderDetailRepository _repository;
-  orderModel.OrderDetailResponse? _orderDetailResponse; // Use alias
+  orderModel.OrderDetailResponse? _orderDetailResponse;
   bool _isLoading = true;
   bool _showInitialButtons = true;
   final TicketController ticketController = Get.find<TicketController>();
@@ -38,7 +38,7 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
   Future<void> _fetchOrderDetails() async {
     try {
       setState(() {
-        _isLoading = true; // Show loading indicator during refresh
+        _isLoading = true;
       });
       final hcoId = await TokenStorage().getHcoId() ?? '';
       final userId = await TokenStorage().getUserId() ?? '';
@@ -57,7 +57,7 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
       setState(() {
         _orderDetailResponse = response;
         _isLoading = false;
-        _showInitialButtons = !['COMP', 'HOLD', 'CAN', 'ACC'].contains(response.order.requestStatus);
+        _showInitialButtons = response.order.requestStatus != 'CAN';
       });
     } catch (e) {
       setState(() {
@@ -76,9 +76,8 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
   void _updateButtonVisibility(String action, Map<String, dynamic> response) {
     if (response['status'] == 1 || response['status'] == '1') {
       setState(() {
-        _showInitialButtons = action == 'Reopen';
+        _showInitialButtons = action != 'Cancel';
       });
-      // Reload order details after successful update
       _fetchOrderDetails();
     }
   }
@@ -178,7 +177,7 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
                         subtitle: Row(
                           children: [
                             Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                              padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                               decoration: BoxDecoration(
                                 color: Colors.blue.withOpacity(0.1),
                                 borderRadius: BorderRadius.circular(8),
@@ -198,15 +197,37 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
                 SizedBox(
                   width: double.infinity,
                   child: ElevatedButton(
-                    onPressed: () {
-                      Navigator.of(context).pop();
-                      Get.snackbar(
-                        'Success',
-                        'Task assigned successfully',
-                        snackPosition: SnackPosition.BOTTOM,
-                        backgroundColor: Colors.green.withOpacity(0.8),
-                        colorText: Colors.white,
-                      );
+                    onPressed: () async {
+                      try {
+                        final userId = await TokenStorage().getUserId() ?? '';
+                        final hcoId = await TokenStorage().getHcoId() ?? '';
+                        final orderId = _orderDetailResponse?.order.id ?? '';
+                        final response = await _repository.assignTaskTo(
+                          userId: userId,
+                          hcoId: hcoId,
+                          orderId: orderId,
+                          assignedTo: activeUser.id,
+                          phoneUuid: '5678b6baf95911ef8b460200d429951a',
+                          hcoKey: '0',
+                        );
+                        Navigator.of(context).pop();
+                        Get.snackbar(
+                          'Success',
+                          'Task assigned successfully to ${activeUser.username}',
+                          snackPosition: SnackPosition.BOTTOM,
+                          backgroundColor: Colors.green.withOpacity(0.8),
+                          colorText: Colors.white,
+                        );
+                        _fetchOrderDetails(); // Refresh to update assigned user
+                      } catch (e) {
+                        Get.snackbar(
+                          'Error',
+                          'Failed to assign task: $e',
+                          snackPosition: SnackPosition.BOTTOM,
+                          backgroundColor: Colors.red.withOpacity(0.8),
+                          colorText: Colors.white,
+                        );
+                      }
                     },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppColors.primaryColor,
@@ -263,8 +284,6 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
 
   Widget _buildOrderDetailContent(BuildContext context) {
     final order = _orderDetailResponse!.order;
-    final activeUser = _orderDetailResponse!.activeUsers.isNotEmpty ? _orderDetailResponse!.activeUsers[0] : null;
-
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16.0),
       child: Card(
@@ -298,9 +317,7 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
               const SizedBox(height: 20),
               Text('Assign task to', style: Theme.of(context).textTheme.headlineSmall),
               const SizedBox(height: 10),
-              _buildTransferToField(context),
-              const SizedBox(height: 10),
-              if (activeUser != null) _buildActiveUserCard(context, activeUser),
+              _buildAvailableUsersList(context),
               const SizedBox(height: 20),
               Text('History', style: Theme.of(context).textTheme.headlineSmall),
               const SizedBox(height: 10),
@@ -378,6 +395,7 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
 
   Widget _buildActionButtons(BuildContext context) {
     final isAssigned = _orderDetailResponse?.order.requestStatus == 'ASI';
+    final isAccepted = _orderDetailResponse?.order.requestStatus == 'ACC';
     final orderId = _orderDetailResponse?.order.id ?? '';
 
     return Column(
@@ -386,7 +404,7 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
-              if (isAssigned)
+              if (isAssigned && !isAccepted)
                 CustomButton(
                   width: context.width * 0.22,
                   onPressed: () {
@@ -511,25 +529,16 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
     );
   }
 
-  Widget _buildTransferToField(BuildContext context) {
-    return TextField(
-      decoration: InputDecoration(
-        labelText: 'Transfer to',
-        suffixIcon: const Icon(Icons.search, color: AppColors.hintTextColor),
-        labelStyle: Theme.of(context).textTheme.bodySmall,
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(10),
-          borderSide: BorderSide(color: AppColors.borderColor),
-        ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(10),
-          borderSide: BorderSide(color: AppColors.borderColor),
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(10),
-          borderSide: BorderSide(color: AppColors.primaryColor),
-        ),
-      ),
+  Widget _buildAvailableUsersList(BuildContext context) {
+    final activeUsers = _orderDetailResponse?.activeUsers ?? [];
+    if (activeUsers.isEmpty) {
+      return const Text(
+        'No available users',
+        style: TextStyle(color: AppColors.hintTextColor),
+      );
+    }
+    return Column(
+      children: activeUsers.map((activeUser) => _buildActiveUserCard(context, activeUser)).toList(),
     );
   }
 
@@ -577,7 +586,6 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
   }
 
   Widget _buildHistoryList(BuildContext context) {
-    // Map of history type to icon and color
     final Map<String, ({IconData icon, Color color})> historyIconMap = {
       'ESC': (icon: Icons.flag, color: AppColors.escalationIconColor),
       'ASI': (icon: Icons.person_add, color: AppColors.assignmentIconColor),
@@ -595,7 +603,6 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
       itemCount: _orderDetailResponse!.history.length,
       itemBuilder: (context, index) {
         final history = _orderDetailResponse!.history[index];
-        // Get icon and color for the history type, fallback to generic icon if type is unknown
         final iconData = historyIconMap[history.type] ??
             (icon: Icons.info, color: AppColors.hintTextColor);
 

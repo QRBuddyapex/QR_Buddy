@@ -5,6 +5,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:qr_buddy/app/core/config/token_storage.dart';
 import 'package:qr_buddy/app/core/services/api_service.dart';
 import 'package:qr_buddy/app/data/models/new_e_ticket_response.dart';
+import 'package:qr_buddy/app/routes/routes.dart';
 
 class NewETicketController extends GetxController {
   var room = ''.obs;
@@ -188,6 +189,8 @@ Future<void> submit() async {
       ticketType.value = null;
       remarks.value = '';
       selectedImages.clear();
+
+      Get.toNamed(RoutesName.ticketDashboardView);
     } else {
       Get.snackbar('Error', 'Failed to save ticket: ${response.data['message']}',
           snackPosition: SnackPosition.BOTTOM);

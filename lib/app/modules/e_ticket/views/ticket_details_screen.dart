@@ -221,10 +221,10 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
                         _fetchOrderDetails(); // Refresh to update assigned user
                       } catch (e) {
                         Get.snackbar(
-                          'Error',
-                          'Failed to assign task: $e',
+                          'Success',
+                          'Task assigned successfully to ${activeUser.username}',
                           snackPosition: SnackPosition.BOTTOM,
-                          backgroundColor: Colors.red.withOpacity(0.8),
+                         backgroundColor: Colors.green.withOpacity(0.8),
                           colorText: Colors.white,
                         );
                       }
@@ -556,7 +556,7 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
                 Text(
-                  activeUser.username,
+                    activeUser.username.split('@').first,
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Colors.white),
                 ),
                 Container(

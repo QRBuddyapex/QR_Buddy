@@ -81,162 +81,227 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
       _fetchOrderDetails();
     }
   }
-
-  Future<void> _launchPhone(String phoneNumber) async {
-    final Uri url = Uri.parse('tel:$phoneNumber');
-    try {
-      if (await canLaunchUrl(url)) {
-        await launchUrl(url);
-      } else {
-        Get.snackbar(
-          'Error',
-          'Could not launch dialer. Please check permissions or try again.',
-          snackPosition: SnackPosition.BOTTOM,
-          backgroundColor: Colors.red.withOpacity(0.8),
-          colorText: Colors.white,
-        );
-      }
-    } catch (e) {
+Future<void> _launchPhone(String phoneNumber) async {
+  final Uri url = Uri.parse('tel:$phoneNumber');
+  try {
+    if (await canLaunchUrl(url)) {
+      await launchUrl(url);
+    } else {
       Get.snackbar(
         'Error',
-        'Failed to open dialer: $e',
+        'Could not launch dialer. Please check permissions or try again.',
         snackPosition: SnackPosition.BOTTOM,
         backgroundColor: Colors.red.withOpacity(0.8),
         colorText: Colors.white,
       );
     }
+  } catch (e) {
+    Get.snackbar(
+      'Error',
+      'Failed to open dialer: $e',
+      snackPosition: SnackPosition.BOTTOM,
+      backgroundColor: Colors.red.withOpacity(0.8),
+      colorText: Colors.white,
+    );
   }
 
-  void _showActiveUserDialog(BuildContext context, orderModel.ActiveUser activeUser) {
-    final List<Map<String, String>> tasks = [
-      {
-        'title': 'Integrate payment method',
-        'priority': 'High',
-        'dueDate': 'Due Date',
-      },
-      {
-        'title': 'Implement cart functionality',
-        'priority': 'High',
-        'dueDate': 'Due Date',
-      },
-    ];
+  }
+  
+void _showActiveUserDialog(BuildContext context, orderModel.ActiveUser activeUser) {
+  final List<Map<String, String>> tasks = [
+    {
+      'title': 'Integrate payment method',
+      'priority': 'High',
+      'dueDate': 'Due Date',
+    },
+    {
+      'title': 'Implement cart functionality',
+      'priority': 'High',
+      'dueDate': 'Due Date',
+    },
+  ];
 
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          backgroundColor: AppColors.cardBackgroundColor,
-          title: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+  showDialog(
+    context: context,
+    builder: (BuildContext context) {
+      // Check if user is available
+      bool isUserAvailable = activeUser.shiftStatus != 'END';
+
+      return AlertDialog(
+        backgroundColor: AppColors.cardBackgroundColor,
+        title: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              activeUser.username,
+              style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                    color: AppColors.textColor,
+                    fontWeight: FontWeight.bold,
+                  ),
+            ),
+            IconButton(
+              icon: const Icon(Icons.close, color: AppColors.hintTextColor),
+              onPressed: () => Navigator.of(context).pop(),
+            ),
+          ],
+        ),
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                activeUser.username,
-                style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                      color: AppColors.textColor,
-                      fontWeight: FontWeight.bold,
-                    ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    'Active Tasks: ${activeUser.activeTasks}',
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Colors.green),
+                  ),
+                  Text(
+                    activeUser.shiftStatus == 'END' ? 'Not Available' : 'Available',
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                          color: activeUser.shiftStatus == 'END' ? Colors.red : Colors.green,
+                          fontWeight: FontWeight.bold,
+                        ),
+                  ),
+                ],
               ),
-              IconButton(
-                icon: const Icon(Icons.close, color: AppColors.hintTextColor),
-                onPressed: () => Navigator.of(context).pop(),
-              ),
-            ],
-          ),
-          content: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
+              const SizedBox(height: 20),
+             
+                     
+              const SizedBox(height: 20),
+              if (isUserAvailable) ...[
                 Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: [
-                    Text(
-                      'Active Tasks: ${activeUser.activeTasks}',
-                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Colors.green),
-                    ),
-                    Text(
-                      activeUser.shiftStatus == 'END' ? 'Not Available' : 'Available',
-                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                            color: activeUser.shiftStatus == 'END' ? Colors.red : Colors.green,
-                            fontWeight: FontWeight.bold,
+                    SizedBox(
+                      width: 100,
+                      child: ElevatedButton(
+                        onPressed: () async {
+                          try {
+                            final userId = await TokenStorage().getUserId() ?? '';
+                            final hcoId = await TokenStorage().getHcoId() ?? '';
+                            final orderId = _orderDetailResponse?.order.id ?? '';
+                            final response = await _repository.assignTaskTo(
+                              userId: userId,
+                              hcoId: hcoId,
+                              orderId: orderId,
+                              assignedTo: activeUser.id,
+                              phoneUuid: '5678b6baf95911ef8b460200d429951a',
+                              hcoKey: '0',
+                            );
+                            Navigator.of(context).pop();
+                            Get.snackbar(
+                              'Success',
+                              'Task assigned successfully to ${activeUser.username}',
+                              snackPosition: SnackPosition.BOTTOM,
+                              backgroundColor: Colors.green.withOpacity(0.8),
+                              colorText: Colors.white,
+                            );
+                            _fetchOrderDetails(); // Refresh to update assigned user
+                          } catch (e) {
+                            Get.snackbar(
+                                'Success',
+                              'Task assigned successfully to ${activeUser.username}',
+                              snackPosition: SnackPosition.BOTTOM,
+                              backgroundColor: Colors.green.withOpacity(0.8),
+                              colorText: Colors.white,
+                            );
+                          }
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppColors.primaryColor,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(20),
                           ),
+                        ),
+                        child: Text(
+                          'Assign Task',
+                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold,
+                              ),
+                        ),
+                      ),
+                    ),
+                    SizedBox(
+                      width: 100,
+                      child: ElevatedButton(
+                        onPressed: () => _launchPhone(activeUser.phoneNumber ?? ''),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.red,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                        ),
+                        child: Text(
+                          'Call ${activeUser.username.split('@').first}',
+                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold,
+                              ),
+                        ),
+                      ),
                     ),
                   ],
                 ),
-                const SizedBox(height: 20),
-                Text(
-                  'Tasks',
-                  style: Theme.of(context).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold),
-                ),
-                const SizedBox(height: 10),
-                ...tasks.map((task) => Card(
-                      elevation: 2,
-                      margin: const EdgeInsets.symmetric(vertical: 5),
-                      child: ListTile(
-                        title: Text(task['title']!),
-                        subtitle: Row(
-                          children: [
-                            Container(
-                              padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                              decoration: BoxDecoration(
-                                color: Colors.blue.withOpacity(0.1),
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                              child: Text(
-                                task['priority']!,
-                                style: Theme.of(context).textTheme.bodySmall?.copyWith(color: Colors.blue),
-                              ),
-                            ),
-                            const SizedBox(width: 10),
-                            Text(task['dueDate']!),
-                          ],
-                        ),
-                      ),
-                    )),
-                const SizedBox(height: 20),
+              ] else ...[
                 SizedBox(
                   width: double.infinity,
                   child: ElevatedButton(
-                    onPressed: () async {
-                      try {
-                        final userId = await TokenStorage().getUserId() ?? '';
-                        final hcoId = await TokenStorage().getHcoId() ?? '';
-                        final orderId = _orderDetailResponse?.order.id ?? '';
-                        final response = await _repository.assignTaskTo(
-                          userId: userId,
-                          hcoId: hcoId,
-                          orderId: orderId,
-                          assignedTo: activeUser.id,
-                          phoneUuid: '5678b6baf95911ef8b460200d429951a',
-                          hcoKey: '0',
-                        );
-                        Navigator.of(context).pop();
-                        Get.snackbar(
-                          'Success',
-                          'Task assigned successfully to ${activeUser.username}',
-                          snackPosition: SnackPosition.BOTTOM,
-                          backgroundColor: Colors.green.withOpacity(0.8),
-                          colorText: Colors.white,
-                        );
-                        _fetchOrderDetails(); // Refresh to update assigned user
-                      } catch (e) {
-                        Get.snackbar(
-                          'Success',
-                          'Task assigned successfully to ${activeUser.username}',
-                          snackPosition: SnackPosition.BOTTOM,
-                         backgroundColor: Colors.green.withOpacity(0.8),
-                          colorText: Colors.white,
-                        );
-                      }
+                    onPressed: () {
+                      Navigator.of(context).pop();
+                      showDialog(
+                        context: context,
+                        builder: (BuildContext context) {
+                          return AlertDialog(
+                            backgroundColor: AppColors.cardBackgroundColor,
+                            title: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(Icons.close, color: Colors.red, size: 40),
+                              ],
+                            ),
+                            content: Text(
+                              "Can't assign task to this user",
+                              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                    color: Colors.red,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                              textAlign: TextAlign.center,
+                            ),
+                            actions: [
+                              Center(
+                                child: ElevatedButton(
+                                  onPressed: () => Navigator.of(context).pop(),
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: AppColors.primaryColor,
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(20),
+                                    ),
+                                  ),
+                                  child: Text(
+                                    'OK',
+                                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                          color: Colors.white,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          );
+                        },
+                      );
                     },
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.primaryColor,
+                      backgroundColor: AppColors.primaryColor.withOpacity(0.5),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(20),
                       ),
                     ),
                     child: Text(
-                      'Assign Task',
+                      'Assign Task (Unavailable)',
                       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                             color: Colors.white,
                             fontWeight: FontWeight.bold,
@@ -245,13 +310,13 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
                   ),
                 ),
               ],
-            ),
+            ],
           ),
-        );
-      },
-    );
-  }
-
+        ),
+      );
+    },
+  );
+}
   @override
   Widget build(BuildContext context) {
     return Theme(

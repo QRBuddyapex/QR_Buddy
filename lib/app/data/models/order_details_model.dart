@@ -212,6 +212,7 @@ class ActiveUser {
   final String userType;
   final String shiftStatus;
   final String activeTasks;
+  final String? phoneNumber;
 
   ActiveUser({
     required this.id,
@@ -222,6 +223,7 @@ class ActiveUser {
     required this.userType,
     required this.shiftStatus,
     required this.activeTasks,
+    required this.phoneNumber
   });
 
   factory ActiveUser.fromJson(Map<String, dynamic> json) {
@@ -234,6 +236,7 @@ class ActiveUser {
       userType: json['user_type']?.toString() ?? '',
       shiftStatus: json['shift_status']?.toString() ?? '',
       activeTasks: json['active_tasks']?.toString() ?? '',
+      phoneNumber: json['phone_number']?.toString() ?? '',
     );
   }
 }

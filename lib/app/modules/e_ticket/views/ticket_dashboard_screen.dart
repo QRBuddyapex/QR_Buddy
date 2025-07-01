@@ -36,7 +36,6 @@ class _TicketDashboardScreenState extends State<TicketDashboardScreen> {
               onPressed: () => Scaffold.of(context).openDrawer(),
             ),
           ),
-          onStartShiftPressed: () {},
           onQrPressed: () {},
           onBrightnessPressed: () {},
           onLocationPressed: () {
@@ -49,7 +48,7 @@ class _TicketDashboardScreenState extends State<TicketDashboardScreen> {
           color: AppColors.primaryColor,
           backgroundColor: AppColors.backgroundColor,
           onRefresh: () async {
-            await controller.fetchTickets(); 
+            await controller.fetchTickets();
           },
           child: SingleChildScrollView(
             physics: const AlwaysScrollableScrollPhysics(),
@@ -161,8 +160,6 @@ class _TicketDashboardScreenState extends State<TicketDashboardScreen> {
                                       index: index,
                                       orderNumber: ticket.orderNumber,
                                       description: ticket.description,
-                                      
-                                      
                                       block: ticket.block,
                                       status: ticket.status,
                                       date: ticket.date,

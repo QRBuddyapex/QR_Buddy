@@ -3,11 +3,11 @@ import 'package:get/get.dart';
 import 'package:qr_buddy/app/core/config/token_storage.dart';
 import 'package:qr_buddy/app/core/theme/app_theme.dart';
 import 'package:qr_buddy/app/data/repo/auth_repo.dart';
+import 'package:qr_buddy/app/modules/e_ticket/controllers/shift_controller.dart'; // Import the new controller
 import 'package:qr_buddy/app/routes/routes.dart';
 
 class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
   final String title;
-  final VoidCallback? onStartShiftPressed;
   final VoidCallback? onQrPressed;
   final VoidCallback? onBrightnessPressed;
   final VoidCallback? onLocationPressed;
@@ -17,7 +17,6 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
   const CustomAppBar({
     Key? key,
     required this.title,
-    this.onStartShiftPressed,
     this.onQrPressed,
     this.onBrightnessPressed,
     this.onLocationPressed,
@@ -29,19 +28,19 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
   Widget build(BuildContext context) {
     final TokenStorage tokenStorage = TokenStorage();
     final AuthRepository authRepository = AuthRepository();
+    final ShiftController shiftController = Get.put(ShiftController());
 
     void showProfileDialog() async {
       final String? userName = await tokenStorage.getUserName() ?? 'User';
       final String? userType = await tokenStorage.getUserType() ?? 'User';
 
-  
       final RenderBox? appBarRenderBox = context.findRenderObject() as RenderBox?;
       final Offset? appBarPosition = appBarRenderBox?.localToGlobal(Offset.zero);
       final Size? appBarSize = appBarRenderBox?.size;
 
-      const double iconButtonWidth = 48.0; 
+      const double iconButtonWidth = 48.0;
       const double dialogWidth = 200.0;
-      final double rightOffset = 16.0; 
+      final double rightOffset = 16.0;
       final double topOffset = appBarPosition?.dy != null
           ? appBarPosition!.dy + (appBarSize?.height ?? kToolbarHeight)
           : kToolbarHeight;
@@ -62,7 +61,7 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
                     width: dialogWidth,
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
-                      color: AppColors.cardBackgroundColor, 
+                      color: AppColors.cardBackgroundColor,
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: Column(
@@ -99,7 +98,7 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
                             Get.offAllNamed(RoutesName.loginScreen);
                           },
                           style: AppTheme.theme.elevatedButtonTheme.style?.copyWith(
-                            backgroundColor: WidgetStateProperty.all(AppColors.dangerButtonColor), 
+                            backgroundColor: WidgetStateProperty.all(AppColors.dangerButtonColor),
                             shape: WidgetStateProperty.all(
                               RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(8),
@@ -142,43 +141,60 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
               color: AppColors.textColor,
             ),
       ),
-      actions:[
-        ElevatedButton(
-          onPressed: onStartShiftPressed,
-          style: AppTheme.theme.elevatedButtonTheme.style?.copyWith(
-                padding: WidgetStateProperty.all(const EdgeInsets.symmetric(horizontal: 16, vertical: 8)),
-              ) ??
-              ElevatedButton.styleFrom(
-                backgroundColor: AppColors.primaryColor,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(30),
+      actions: [
+        Obx(() {
+          return Row(
+            children: [
+              if (shiftController.shiftStatus.value == 'START')
+                IconButton(
+                  icon: const Icon(Icons.pause_circle_outline, color: Colors.yellow, size: 30),
+                  onPressed: () => shiftController.updateShiftStatus('BREAK'),
                 ),
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              if (shiftController.shiftStatus.value == 'START' || shiftController.shiftStatus.value == 'BREAK')
+                IconButton(
+                  icon: const Icon(Icons.stop_circle, color: Colors.red, size: 30),
+                  onPressed: () => shiftController.updateShiftStatus('END'),
+                ),
+              if (shiftController.shiftStatus.value == 'END' || shiftController.shiftStatus.value == 'BREAK')
+                ElevatedButton(
+                  onPressed: () => shiftController.updateShiftStatus('START'),
+                  style: AppTheme.theme.elevatedButtonTheme.style?.copyWith(
+                        padding: WidgetStateProperty.all(const EdgeInsets.symmetric(horizontal: 16, vertical: 8)),
+                      ) ??
+                      ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.primaryColor,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(30),
+                        ),
+                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                      ),
+                  child: const Text(
+                    'Start Shift',
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: Colors.white,
+                    ),
+                  ),
+                ),
+              IconButton(
+                icon: const Icon(Icons.qr_code, color: AppColors.hintTextColor),
+                onPressed: onQrPressed,
               ),
-          child: const Text(
-            'Start Shift',
-            style: TextStyle(
-              fontSize: 14,
-              color: Colors.white,
-            ),
-          ),
-        ),
-        IconButton(
-          icon: const Icon(Icons.qr_code, color: AppColors.hintTextColor),
-          onPressed: onQrPressed,
-        ),
-        IconButton(
-          icon: const Icon(Icons.brightness_6, color: AppColors.hintTextColor),
-          onPressed: onBrightnessPressed,
-        ),
-        IconButton(
-          icon: const Icon(Icons.location_on, color: AppColors.hintTextColor),
-          onPressed: onLocationPressed,
-        ),
-        IconButton(
-          icon: const Icon(Icons.person, color: AppColors.hintTextColor),
-          onPressed: showProfileDialog,
-        ),
+              IconButton(
+                icon: const Icon(Icons.brightness_6, color: AppColors.hintTextColor),
+                onPressed: onBrightnessPressed,
+              ),
+              IconButton(
+                icon: const Icon(Icons.location_on, color: AppColors.hintTextColor),
+                onPressed: onLocationPressed,
+              ),
+              IconButton(
+                icon: const Icon(Icons.person, color: AppColors.hintTextColor),
+                onPressed: showProfileDialog,
+              ),
+            ],
+          );
+        }),
       ],
     );
   }

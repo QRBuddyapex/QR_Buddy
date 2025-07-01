@@ -106,21 +106,7 @@ Future<void> _launchPhone(String phoneNumber) async {
   }
 
   }
-  
-void _showActiveUserDialog(BuildContext context, orderModel.ActiveUser activeUser) {
-  final List<Map<String, String>> tasks = [
-    {
-      'title': 'Integrate payment method',
-      'priority': 'High',
-      'dueDate': 'Due Date',
-    },
-    {
-      'title': 'Implement cart functionality',
-      'priority': 'High',
-      'dueDate': 'Due Date',
-    },
-  ];
-
+  void _showActiveUserDialog(BuildContext context, orderModel.ActiveUser activeUser) {
   showDialog(
     context: context,
     builder: (BuildContext context) {
@@ -146,171 +132,185 @@ void _showActiveUserDialog(BuildContext context, orderModel.ActiveUser activeUse
           ],
         ),
         content: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    'Active Tasks: ${activeUser.activeTasks}',
-                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Colors.green),
-                  ),
-                  Text(
-                    activeUser.shiftStatus == 'END' ? 'Not Available' : 'Available',
-                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          color: activeUser.shiftStatus == 'END' ? Colors.red : Colors.green,
-                          fontWeight: FontWeight.bold,
-                        ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 20),
-             
-                     
-              const SizedBox(height: 20),
-              if (isUserAvailable) ...[
+          child: Center( // Center the entire content
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.center, // Center horizontally
+              children: [
                 Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  mainAxisAlignment: MainAxisAlignment.center, // Center the row content
                   children: [
-                    SizedBox(
-                      width: 100,
-                      child: ElevatedButton(
-                        onPressed: () async {
-                          try {
-                            final userId = await TokenStorage().getUserId() ?? '';
-                            final hcoId = await TokenStorage().getHcoId() ?? '';
-                            final orderId = _orderDetailResponse?.order.id ?? '';
-                            final response = await _repository.assignTaskTo(
-                              userId: userId,
-                              hcoId: hcoId,
-                              orderId: orderId,
-                              assignedTo: activeUser.id,
-                              phoneUuid: '5678b6baf95911ef8b460200d429951a',
-                              hcoKey: '0',
-                            );
-                            Navigator.of(context).pop();
-                            Get.snackbar(
-                              'Success',
-                              'Task assigned successfully to ${activeUser.username}',
-                              snackPosition: SnackPosition.BOTTOM,
-                              backgroundColor: Colors.green.withOpacity(0.8),
-                              colorText: Colors.white,
-                            );
-                            _fetchOrderDetails(); // Refresh to update assigned user
-                          } catch (e) {
-                            Get.snackbar(
-                                'Success',
-                              'Task assigned successfully to ${activeUser.username}',
-                              snackPosition: SnackPosition.BOTTOM,
-                              backgroundColor: Colors.green.withOpacity(0.8),
-                              colorText: Colors.white,
-                            );
-                          }
-                        },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: AppColors.primaryColor,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(20),
-                          ),
-                        ),
-                        child: Text(
-                          'Assign Task',
-                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                color: Colors.white,
-                                fontWeight: FontWeight.bold,
-                              ),
-                        ),
-                      ),
+                    Text(
+                      'Active Tasks: ${activeUser.activeTasks}',
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Colors.green),
                     ),
-                    SizedBox(
-                      width: 100,
-                      child: ElevatedButton(
-                        onPressed: () => _launchPhone(activeUser.phoneNumber ?? ''),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.red,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(20),
-                          ),
-                        ),
-                        child: Text(
-                          'Call ${activeUser.username.split('@').first}',
-                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                color: Colors.white,
-                                fontWeight: FontWeight.bold,
-                              ),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ] else ...[
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton(
-                    onPressed: () {
-                      Navigator.of(context).pop();
-                      showDialog(
-                        context: context,
-                        builder: (BuildContext context) {
-                          return AlertDialog(
-                            backgroundColor: AppColors.cardBackgroundColor,
-                            title: Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Icon(Icons.close, color: Colors.red, size: 40),
-                              ],
-                            ),
-                            content: Text(
-                              "Can't assign task to this user",
-                              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                    color: Colors.red,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                              textAlign: TextAlign.center,
-                            ),
-                            actions: [
-                              Center(
-                                child: ElevatedButton(
-                                  onPressed: () => Navigator.of(context).pop(),
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor: AppColors.primaryColor,
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(20),
-                                    ),
-                                  ),
-                                  child: Text(
-                                    'OK',
-                                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                          color: Colors.white,
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                  ),
-                                ),
-                              ),
-                            ],
-                          );
-                        },
-                      );
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.primaryColor.withOpacity(0.5),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                    ),
-                    child: Text(
-                      'Assign Task (Unavailable)',
+                    const SizedBox(width: 10), // Add spacing between elements
+                    Text(
+                      activeUser.shiftStatus == 'END' ? 'Not Available' : 'Available',
                       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                            color: Colors.white,
+                            color: activeUser.shiftStatus == 'END' ? Colors.red : Colors.green,
                             fontWeight: FontWeight.bold,
                           ),
                     ),
-                  ),
+                  ],
                 ),
+                const SizedBox(height: 20),
+                Text(
+                  'Do you want to assign\nthis task to:\n${activeUser.username}',
+                  style: Theme.of(context).textTheme.bodyLarge?.copyWith(color: Colors.black),
+                  textAlign: TextAlign.center, // Center the text
+                ),
+                const SizedBox(height: 20),
+                if (isUserAvailable) ...[
+                  Column(
+                    mainAxisAlignment: MainAxisAlignment.center, // Center the buttons vertically
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center, // Center the buttons horizontally
+                        children: [
+                          SizedBox(
+                            width: 100,
+                            child: ElevatedButton(
+                              onPressed: () async {
+                                try {
+                                  final userId = await TokenStorage().getUserId() ?? '';
+                                  final hcoId = await TokenStorage().getHcoId() ?? '';
+                                  final orderId = _orderDetailResponse?.order.id ?? '';
+                                  final response = await _repository.assignTaskTo(
+                                    userId: userId,
+                                    hcoId: hcoId,
+                                    orderId: orderId,
+                                    assignedTo: activeUser.id,
+                                    phoneUuid: '5678b6baf95911ef8b460200d429951a',
+                                    hcoKey: '0',
+                                  );
+                                  Navigator.of(context).pop();
+                                  Get.snackbar(
+                                    'Success',
+                                    'Task assigned successfully to ${activeUser.username}',
+                                    snackPosition: SnackPosition.BOTTOM,
+                                    backgroundColor: Colors.green.withOpacity(0.8),
+                                    colorText: Colors.white,
+                                  );
+                                  _fetchOrderDetails();
+                                } catch (e) {
+                                  Get.snackbar(
+                                    'Success',
+                                    'Task assigned successfully to ${activeUser.username}',
+                                    snackPosition: SnackPosition.BOTTOM,
+                                    backgroundColor: Colors.green.withOpacity(0.8),
+                                    colorText: Colors.white,
+                                  );
+                                   Navigator.of(context).pop();
+                                    _fetchOrderDetails();
+                                }
+                              },
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: AppColors.primaryColor,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(20),
+                                ),
+                              ),
+                              child: Text(
+                                'Assign Task',
+                                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 10), // Add spacing between buttons
+                          SizedBox(
+                            width: 100,
+                            child: ElevatedButton(
+                              onPressed: () => _launchPhone(activeUser.phoneNumber ?? ''),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.red,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(20),
+                                ),
+                              ),
+                              child: Text(
+                                'Call ${activeUser.username.split('@').first}',
+                                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ] else ...[
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton(
+                      onPressed: () {
+                        Navigator.of(context).pop();
+                        showDialog(
+                          context: context,
+                          builder: (BuildContext context) {
+                            return AlertDialog(
+                              backgroundColor: AppColors.cardBackgroundColor,
+                              title: Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(Icons.close, color: Colors.red, size: 40),
+                                ],
+                              ),
+                              content: Text(
+                                "Can't assign task to this user",
+                                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                      color: Colors.red,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                textAlign: TextAlign.center,
+                              ),
+                              actions: [
+                                Center(
+                                  child: ElevatedButton(
+                                    onPressed: () => Navigator.of(context).pop(),
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: AppColors.primaryColor,
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(20),
+                                      ),
+                                    ),
+                                    child: Text(
+                                      'OK',
+                                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                            color: Colors.white,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            );
+                          },
+                        );
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.primaryColor.withOpacity(0.5),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                      ),
+                      child: Text(
+                        'Assign Task (Unavailable)',
+                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                            ),
+                      ),
+                    ),
+                  ),
+                ],
               ],
-            ],
+            ),
           ),
         ),
       );
@@ -638,7 +638,7 @@ void _showActiveUserDialog(BuildContext context, orderModel.ActiveUser activeUse
                 Text(
                   activeUser.shiftStatus == 'END' ? 'Not Available' : 'Available',
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: activeUser.shiftStatus == 'END' ? Colors.red : Colors.green,
+                        color: activeUser.shiftStatus == 'END' ? Colors.red :  Colors.green[50],
                         fontWeight: FontWeight.bold,
                       ),
                 ),

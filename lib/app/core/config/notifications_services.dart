@@ -8,6 +8,8 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:get/get.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:qr_buddy/app/core/theme/app_theme.dart';
+import 'package:qr_buddy/app/modules/e_ticket/controllers/ticket_controller.dart';
+import 'package:qr_buddy/app/routes/routes.dart';
 import 'package:vibration/vibration.dart';
 
 class NotificationServices {
@@ -389,7 +391,6 @@ class NotificationServices {
     });
   }
 }
-
 class FullScreenNotification extends StatelessWidget {
   final String title;
   final String body;
@@ -419,8 +420,8 @@ class FullScreenNotification extends StatelessWidget {
                     size: 80, color: Colors.white),
                 const SizedBox(height: 24),
                 Text(
-                  title, // Use the updated title with "Ticket Assigned"
-                  style: TextStyle(
+                  title,
+                  style: const TextStyle(
                     color: Colors.white,
                     fontSize: 24,
                     fontWeight: FontWeight.bold,
@@ -498,9 +499,29 @@ class FullScreenNotification extends StatelessWidget {
                 ),
                 const Spacer(),
                 ElevatedButton.icon(
-                  onPressed: () {
+                  onPressed: () async {
                     print("Accept and Start pressed");
-                    Get.back(); // Close the notification screen
+                    try {
+                  
+                      final ticketController = Get.find<TicketController>();
+                     
+                      await ticketController.updateRequest(
+                        action: 'Accept',
+                        orderId: '98970',
+                      );
+                    
+                      Get.offAllNamed(RoutesName.ticketDashboardView);
+                      await ticketController.fetchTickets();
+                    } catch (e) {
+                      print('Failed to accept request: $e');
+                      Get.snackbar(
+                        'Error',
+                        'Failed to accept request: $e',
+                        snackPosition: SnackPosition.BOTTOM,
+                        backgroundColor: Colors.red.withOpacity(0.8),
+                        colorText: Colors.white,
+                      );
+                    }
                   },
                   icon: const Icon(Icons.arrow_forward, color: Colors.white),
                   label: const Text("Accept and Start",

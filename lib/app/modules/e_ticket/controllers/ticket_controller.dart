@@ -24,7 +24,7 @@ class TicketController extends GetxController {
   var tasks = <Map<String, dynamic>>[].obs;
   var checklists = <Map<String, dynamic>>[].obs;
 
-  var todayStatus = 50.0.obs;
+  var todayStatus = 0.0.obs;
   var flags = 90.obs;
   var comments = 17.obs;
   var missed = 20.obs;
@@ -65,6 +65,7 @@ class TicketController extends GetxController {
     super.onClose();
   }
 
+
   Future<void> fetchTickets() async {
     try {
       final response = await _ticketRepository.fetchTickets(
@@ -73,6 +74,24 @@ class TicketController extends GetxController {
       );
       tickets.assignAll(response.orders.map((order) => order.toTicket()).toList());
       links.assignAll(response.links);
+
+   
+      int assignedTickets = links.firstWhere(
+        (link) => link.type == 'ASI',
+        orElse: () => Link(type: 'ASI', title: 'Assigned', count: 0),
+      ).count;
+      int completedTickets = links.firstWhere(
+        (link) => link.type == 'COMP',
+        orElse: () => Link(type: 'COMP', title: 'Completed', count: 0),
+      ).count;
+
+    
+
+      if (assignedTickets > 0) {
+        todayStatus.value = ((completedTickets * 100) / assignedTickets).clamp(0, 100).toDouble();
+      } else {
+        todayStatus.value = 0.0;
+      }
       updateTicketList();
     } catch (e) {
       Get.snackbar('Error', 'Failed to fetch tickets: $e');

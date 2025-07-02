@@ -194,6 +194,8 @@ Future<void> _launchPhone(String phoneNumber) async {
                                   );
                                   _fetchOrderDetails();
                                 } catch (e) {
+                                    Navigator.of(context).pop();
+                                  
                                   Get.snackbar(
                                     'Success',
                                     'Task assigned successfully to ${activeUser.username}',
@@ -201,8 +203,8 @@ Future<void> _launchPhone(String phoneNumber) async {
                                     backgroundColor: Colors.green.withOpacity(0.8),
                                     colorText: Colors.white,
                                   );
-                                   Navigator.of(context).pop();
                                     _fetchOrderDetails();
+                                 
                                 }
                               },
                               style: ElevatedButton.styleFrom(

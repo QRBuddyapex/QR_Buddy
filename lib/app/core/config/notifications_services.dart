@@ -1,4 +1,3 @@
-
 import 'dart:io';
 import 'dart:typed_data';
 
@@ -86,6 +85,8 @@ class NotificationServices {
             final payloadData = response.payload!.split('|');
             if (payloadData[0] == 'in_app_notification') {
               try {
+                final ticketId = payloadData.length > 5 ? payloadData[5] : null;
+                print('Extracted ticketId from payload: $ticketId');
                 Get.to(() => FullScreenNotification(
                       title: payloadData.length > 1 ? payloadData[1] : 'QR Buddy',
                       body: payloadData.length > 2 ? payloadData[2] : 'New message',
@@ -93,6 +94,7 @@ class NotificationServices {
                           ? payloadData[3]
                           : 'Block A1, Ground Floor, Room G1-504 (Near Canteen)',
                       task: payloadData.length > 4 ? payloadData[4] : 'View Details',
+                      ticketId: ticketId,
                     ));
               } catch (e) {
                 print('Failed to navigate to FullScreenNotification: $e');
@@ -127,6 +129,8 @@ class NotificationServices {
           final title = data['title'] as String? ?? 'QR Buddy';
           final body = data['body'] as String? ?? 'New message';
           final url = data['url'] as String? ?? '';
+          final ticketId = data['ticket_id'] as String?; // Extract ticket_id as per log
+          print('Extracted ticketId: $ticketId');
 
           if (title.isEmpty || body.isEmpty) {
             print('Warning: Empty title or body received from backend');
@@ -137,6 +141,7 @@ class NotificationServices {
             body: body,
             location: url.isNotEmpty ? url : 'Block A1, Ground Floor, Room G1-504 (Near Canteen)',
             task: 'View Details',
+            ticketId: ticketId,
           );
         } catch (e) {
           print('Failed to process foreground notification: $e');
@@ -157,12 +162,15 @@ class NotificationServices {
           final title = data['title'] as String? ?? 'QR Buddy';
           final body = data['body'] as String? ?? 'New message';
           final url = data['url'] as String? ?? '';
+          final ticketId = data['ticket_id'] as String?; // Extract ticket_id as per log
+          print('Extracted ticketId on open: $ticketId');
 
           Get.to(() => FullScreenNotification(
                 title: title,
                 body: body,
                 location: url.isNotEmpty ? url : 'Block A1, Ground Floor, Room G1-504 (Near Canteen)',
                 task: 'View Details',
+                ticketId: ticketId,
               ));
         } catch (e) {
           print('Failed to navigate to FullScreenNotification: $e');
@@ -181,12 +189,15 @@ class NotificationServices {
         final title = data['title'] as String? ?? 'QR Buddy';
         final body = data['body'] as String? ?? 'New message';
         final url = data['url'] as String? ?? '';
+        final ticketId = data['ticket_id'] as String?; // Extract ticket_id as per log
+        print('Extracted ticketId from initial: $ticketId');
 
         await showInAppNotificationWithSound(
           title: title,
           body: body,
           location: url.isNotEmpty ? url : 'Block A1, Ground Floor, Room G1-504 (Near Canteen)',
           task: 'View Details',
+          ticketId: ticketId,
         );
       } catch (e) {
         print('Failed to process initial message: $e');
@@ -201,6 +212,7 @@ class NotificationServices {
     required String body,
     required String location,
     required String task,
+    String? ticketId,
   }) async {
     var androidNotificationChannel = AndroidNotificationChannel(
       'in_app_notification_channel',
@@ -254,15 +266,15 @@ class NotificationServices {
     );
 
     try {
-      print('Showing notification with title: $title, body: $body');
+      print('Showing notification with title: $title, body: $body, ticketId: $ticketId');
       await flutterLocalNotificationsPlugin.show(
         1,
         'Ticket Assigned: $title',
         body,
         notificationDetails,
-        payload: 'in_app_notification|$title|$body|$location|$task',
+        payload: 'in_app_notification|$title|$body|$location|$task${ticketId != null ? '|$ticketId' : ''}',
       );
-      print('Notification shown successfully');
+      print('Notification shown successfully with payload: in_app_notification|$title|$body|$location|$task${ticketId != null ? '|$ticketId' : ''}');
     } catch (e) {
       print('Failed to show notification: $e');
     }
@@ -270,12 +282,13 @@ class NotificationServices {
     // Avoid contextless navigation in background
     if (Get.context != null) {
       try {
-        print('Navigating to FullScreenNotification');
+        print('Navigating to FullScreenNotification with ticketId: $ticketId');
         Get.to(() => FullScreenNotification(
               title: 'Ticket Assigned: $title',
               body: body,
               location: location,
               task: task,
+              ticketId: ticketId,
             ));
         print('Navigation successful');
       } catch (e) {
@@ -391,11 +404,13 @@ class NotificationServices {
     });
   }
 }
+
 class FullScreenNotification extends StatelessWidget {
   final String title;
   final String body;
   final String location;
   final String task;
+  final String? ticketId;
 
   const FullScreenNotification({
     Key? key,
@@ -403,10 +418,12 @@ class FullScreenNotification extends StatelessWidget {
     required this.body,
     required this.location,
     required this.task,
+    this.ticketId,
   }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
+    print('FullScreenNotification built with ticketId: $ticketId');
     return Scaffold(
       backgroundColor: AppColors.primaryColor,
       body: SafeArea(
@@ -500,16 +517,16 @@ class FullScreenNotification extends StatelessWidget {
                 const Spacer(),
                 ElevatedButton.icon(
                   onPressed: () async {
-                    print("Accept and Start pressed");
+                    print("Accept and Start pressed with ticketId: $ticketId");
                     try {
-                  
+                      if (ticketId == null) {
+                        throw Exception('Ticket ID is missing from notification');
+                      }
                       final ticketController = Get.find<TicketController>();
-                     
                       await ticketController.updateRequest(
                         action: 'Accept',
-                        orderId: '98970',
+                        orderId: ticketId!,
                       );
-                    
                       Get.offAllNamed(RoutesName.ticketDashboardView);
                       await ticketController.fetchTickets();
                     } catch (e) {

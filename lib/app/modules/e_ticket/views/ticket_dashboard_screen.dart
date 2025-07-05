@@ -1,3 +1,4 @@
+// app/modules/e_ticket/components/ticket_dashboard_screen.dart
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:qr_buddy/app/core/theme/app_theme.dart';
@@ -177,7 +178,7 @@ class _TicketDashboardScreenState extends State<TicketDashboardScreen> {
                             )),
                       ],
                     );
-                  }
+                  } 
                   return const SizedBox.shrink();
                 }),
               ],
@@ -192,4 +193,6 @@ class _TicketDashboardScreenState extends State<TicketDashboardScreen> {
       ),
     );
   }
+
+ 
 }

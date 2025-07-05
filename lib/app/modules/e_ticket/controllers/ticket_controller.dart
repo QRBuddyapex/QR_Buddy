@@ -28,11 +28,18 @@ class TicketController extends GetxController {
   var flags = 90.obs;
   var comments = 17.obs;
   var missed = 20.obs;
-  var reviewPending = 6.obs;
+  RxDouble reviewPending = 0.0.obs; // Tracks number of pending reviews
   var schedules = 4.obs;
   var openIssues = 1.obs;
   var tasksCount = 0.obs;
   var documents = 0.obs;
+  RxDouble averageRating = 0.0.obs; // New variable for average rating
+
+  // Private field
+  var _orders = <Order>[].obs;
+
+  // Public getter for _orders
+  List<Order> get orders => _orders;
 
   late final TicketRepository _ticketRepository;
   late final OrderDetailRepository _orderDetailRepository;
@@ -65,7 +72,6 @@ class TicketController extends GetxController {
     super.onClose();
   }
 
-
   Future<void> fetchTickets() async {
     try {
       final response = await _ticketRepository.fetchTickets(
@@ -74,8 +80,21 @@ class TicketController extends GetxController {
       );
       tickets.assignAll(response.orders.map((order) => order.toTicket()).toList());
       links.assignAll(response.links);
+      _orders.assignAll(response.orders);
 
-   
+      // Update reviewPending based on completed tickets with ratings
+      final completedOrders = _orders.where((order) => order.requestStatus == 'COMP').toList();
+      final validRatings = completedOrders.where((order) => order.rating != '-1' && double.tryParse(order.rating) != null).toList();
+      reviewPending.value = (completedOrders.length - validRatings.length).toDouble();
+
+      // Update average rating
+      if (validRatings.isNotEmpty) {
+        final ratings = validRatings.map((order) => double.parse(order.rating)).toList();
+        averageRating.value = ratings.reduce((a, b) => a + b) / ratings.length;
+      } else {
+        averageRating.value = 0.0;
+      }
+
       int assignedTickets = links.firstWhere(
         (link) => link.type == 'ASI',
         orElse: () => Link(type: 'ASI', title: 'Assigned', count: 0),
@@ -84,8 +103,6 @@ class TicketController extends GetxController {
         (link) => link.type == 'COMP',
         orElse: () => Link(type: 'COMP', title: 'Completed', count: 0),
       ).count;
-
-    
 
       if (assignedTickets > 0) {
         todayStatus.value = ((completedTickets * 100) / assignedTickets).clamp(0, 100).toDouble();
@@ -337,7 +354,6 @@ class TicketController extends GetxController {
       final remarks = remarksController.text;
       final timeHoldTill = action == 'Hold' ? holdDateTimeController.text : '';
 
-      // Map action to request_status
       final requestStatus = {
         'Accept': 'ACC',
         'Complete': 'COMP',
@@ -428,64 +444,92 @@ class TicketController extends GetxController {
       },
     );
   }
-void showActionFormDialog(
-  BuildContext context,
-  String action,
-  String orderNumber, 
-  String serviceLabel,
-  String orderId, 
-  {Function(Map<String, dynamic>)? onSuccess}
-) {
-  showDialog(
-    context: context,
-    builder: (BuildContext context) {
-      return AlertDialog(
-        backgroundColor: AppColors.cardBackgroundColor,
-        title: Column(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text(
-              orderNumber,
-              style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                    color: AppColors.textColor,
-                    fontWeight: FontWeight.bold,
-                  ),
-            ),
-            Text(
-              serviceLabel,
-              style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                    color: AppColors.textColor,
-                    fontWeight: FontWeight.bold,
-                  ),
-            ),
-            IconButton(
-              icon: const Icon(Icons.close, color: AppColors.hintTextColor),
-              onPressed: () {
-                clearDialogFields();
-                Navigator.of(context).pop();
-              },
-            ),
-          ],
-        ),
-        content: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
+
+  void showActionFormDialog(
+    BuildContext context,
+    String action,
+    String orderNumber,
+    String serviceLabel,
+    String orderId,
+    {Function(Map<String, dynamic>)? onSuccess}
+  ) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          backgroundColor: AppColors.cardBackgroundColor,
+          title: Column(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              if (action == 'Hold') ...[
+              Text(
+                orderNumber,
+                style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                      color: AppColors.textColor,
+                      fontWeight: FontWeight.bold,
+                    ),
+              ),
+              Text(
+                serviceLabel,
+                style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                      color: AppColors.textColor,
+                      fontWeight: FontWeight.bold,
+                    ),
+              ),
+              IconButton(
+                icon: const Icon(Icons.close, color: AppColors.hintTextColor),
+                onPressed: () {
+                  clearDialogFields();
+                  Navigator.of(context).pop();
+                },
+              ),
+            ],
+          ),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                if (action == 'Hold') ...[
+                  Text(
+                    'For how long do you want to hold this request?',
+                    style: Theme.of(context).textTheme.bodyMedium,
+                  ),
+                  const SizedBox(height: 10),
+                  TextField(
+                    controller: holdDateTimeController,
+                    readOnly: true,
+                    onTap: () => pickDateTime(context),
+                    decoration: InputDecoration(
+                      hintText: 'dd-mm-yyyy --:--',
+                      hintStyle: TextStyle(color: AppColors.hintTextColor),
+                      suffixIcon: const Icon(Icons.calendar_today, color: AppColors.hintTextColor),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(10),
+                        borderSide: BorderSide(color: AppColors.borderColor),
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(10),
+                        borderSide: BorderSide(color: AppColors.borderColor),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(10),
+                        borderSide: BorderSide(color: AppColors.primaryColor),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                ],
                 Text(
-                  'For how long do you want to hold this request?',
+                  'Comment on your contribution to the request process',
                   style: Theme.of(context).textTheme.bodyMedium,
                 ),
                 const SizedBox(height: 10),
                 TextField(
-                  controller: holdDateTimeController,
-                  readOnly: true,
-                  onTap: () => pickDateTime(context),
+                  controller: remarksController,
+                  maxLines: 5,
                   decoration: InputDecoration(
-                    hintText: 'dd-mm-yyyy --:--',
+                    hintText: 'Enter remarks',
                     hintStyle: TextStyle(color: AppColors.hintTextColor),
-                    suffixIcon: const Icon(Icons.calendar_today, color: AppColors.hintTextColor),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(10),
                       borderSide: BorderSide(color: AppColors.borderColor),
@@ -500,137 +544,136 @@ void showActionFormDialog(
                     ),
                   ),
                 ),
-                const SizedBox(height: 10),
-              ],
-              Text(
-                'Comment on your contribution to the request process',
-                style: Theme.of(context).textTheme.bodyMedium,
-              ),
-              const SizedBox(height: 10),
-              TextField(
-                controller: remarksController,
-                maxLines: 5,
-                decoration: InputDecoration(
-                  hintText: 'Enter remarks',
-                  hintStyle: TextStyle(color: AppColors.hintTextColor),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(10),
-                    borderSide: BorderSide(color: AppColors.borderColor),
-                  ),
-                  enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(10),
-                    borderSide: BorderSide(color: AppColors.borderColor),
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(10),
-                    borderSide: BorderSide(color: AppColors.primaryColor),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 20),
-              Obx(() => Center(
-                    child: GestureDetector(
-                      onTap: () {
-                        showModalBottomSheet(
-                          context: context,
-                          backgroundColor: AppColors.cardBackgroundColor,
-                          builder: (BuildContext context) {
-                            return SafeArea(
-                              child: Column(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  
-                                  ListTile(
-                                    leading: const Icon(Icons.camera_alt, color: AppColors.hintTextColor),
-                                    title: Text(
-                                      'Take a Photo',
-                                      style: Theme.of(context).textTheme.bodyMedium,
-                                    ),
-                                    onTap: () {
-                                      pickImage(ImageSource.camera);
-                                      Navigator.of(context).pop();
-                                    },
-                                  ),
-                                  if (selectedImage.value != null)
+                const SizedBox(height: 20),
+                Obx(() => Center(
+                      child: GestureDetector(
+                        onTap: () {
+                          showModalBottomSheet(
+                            context: context,
+                            backgroundColor: AppColors.cardBackgroundColor,
+                            builder: (BuildContext context) {
+                              return SafeArea(
+                                child: Column(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
                                     ListTile(
-                                      leading: const Icon(Icons.delete, color: AppColors.dangerButtonColor),
+                                      leading: const Icon(Icons.camera_alt, color: AppColors.hintTextColor),
                                       title: Text(
-                                        'Remove Image',
-                                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                              color: AppColors.dangerButtonColor,
-                                            ),
+                                        'Take a Photo',
+                                        style: Theme.of(context).textTheme.bodyMedium,
                                       ),
                                       onTap: () {
-                                        clearImage();
+                                        pickImage(ImageSource.camera);
                                         Navigator.of(context).pop();
                                       },
                                     ),
-                                ],
-                              ),
-                            );
-                          },
-                        );
-                      },
-                      child: Container(
-                        padding: const EdgeInsets.all(20),
-                        decoration: BoxDecoration(
-                          color: AppColors.primaryColor.withOpacity(0.1),
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        child: selectedImage.value == null
-                            ? const Icon(
-                                Icons.camera_alt,
-                                color: AppColors.primaryColor,
-                                size: 40,
-                              )
-                            : ClipRRect(
-                                borderRadius: BorderRadius.circular(10),
-                                child: Image.file(
-                                  selectedImage.value!,
-                                  width: 100,
-                                  height: 100,
-                                  fit: BoxFit.cover,
+                                    if (selectedImage.value != null)
+                                      ListTile(
+                                        leading: const Icon(Icons.delete, color: AppColors.dangerButtonColor),
+                                        title: Text(
+                                          'Remove Image',
+                                          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                                color: AppColors.dangerButtonColor,
+                                              ),
+                                        ),
+                                        onTap: () {
+                                          clearImage();
+                                          Navigator.of(context).pop();
+                                        },
+                                      ),
+                                  ],
                                 ),
-                              ),
+                              );
+                            },
+                          );
+                        },
+                        child: Container(
+                          padding: const EdgeInsets.all(20),
+                          decoration: BoxDecoration(
+                            color: AppColors.primaryColor.withOpacity(0.1),
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: selectedImage.value == null
+                              ? const Icon(
+                                  Icons.camera_alt,
+                                  color: AppColors.primaryColor,
+                                  size: 40,
+                                )
+                              : ClipRRect(
+                                  borderRadius: BorderRadius.circular(10),
+                                  child: Image.file(
+                                    selectedImage.value!,
+                                    width: 100,
+                                    height: 100,
+                                    fit: BoxFit.cover,
+                                  ),
+                                ),
+                        ),
                       ),
-                    ),
-                  )),
-            ],
-          ),
-        ),
-        actions: [
-          SizedBox(
-            width: double.infinity,
-            child: ElevatedButton(
-              onPressed: () async {
-                try {
-                  final response = await updateRequest(action: action, orderId: orderId); // Use orderId
-                  Navigator.of(context).pop();
-                  clearDialogFields();
-                  await fetchTickets();
-                  onSuccess?.call(response);
-                } catch (e) {
-                  // Error handling is already done in updateRequest
-                }
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.primaryColor,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(20),
-                ),
-              ),
-              child: Text(
-                'Submit',
-                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold,
-                    ),
-              ),
+                    )),
+              ],
             ),
           ),
-        ],
-      );
-    },
-  );
-}
+          actions: [
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                onPressed: () async {
+                  try {
+                    final response = await updateRequest(action: action, orderId: orderId);
+                    Navigator.of(context).pop();
+                    clearDialogFields();
+                    await fetchTickets();
+                    onSuccess?.call(response);
+                  } catch (e) {
+                    // Error handling is already done in updateRequest
+                  }
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.primaryColor,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                ),
+                child: Text(
+                  'Submit',
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                      ),
+                ),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  double getAverageRatingForCompleted() {
+    final completedOrders = tickets
+        .where((ticket) => ticket.status == 'Completed')
+        .map((ticket) => _orders.firstWhere((order) => order.uuid == ticket.uuid))
+        .where((order) => order.rating != '-1' && double.tryParse(order.rating) != null)
+        .toList();
+
+    if (completedOrders.isEmpty) return 0.0;
+
+    final validRatings = completedOrders
+        .map((order) => double.parse(order.rating))
+        .toList();
+    // Debug log to verify ratings
+    print('Valid Ratings: $validRatings');
+    return validRatings.isNotEmpty
+        ? (validRatings.reduce((a, b) => a + b) / validRatings.length)
+        : 0.0;
+  }
+
+  int getRatedCompletedCount() {
+    return tickets
+        .where((ticket) => ticket.status == 'Completed')
+        .map((ticket) => _orders.firstWhere((order) => order.uuid == ticket.uuid))
+        .where((order) => order.rating != '-1' && double.tryParse(order.rating) != null)
+        .length;
+  }
 }

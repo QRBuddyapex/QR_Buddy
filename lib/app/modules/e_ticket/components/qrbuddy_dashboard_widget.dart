@@ -58,8 +58,8 @@ class _qrbuddyDashboardWidgetState extends State<qrbuddyDashboardWidget>
   String getRatingName(double avgRating) {
     if (avgRating == 5.0) return 'Champions';
     if (avgRating >= 4.5 && avgRating < 5.0) return 'SuperHero';
-    if (avgRating >= 4.0 && avgRating <  4.5) return 'Hero';
-    if (avgRating >= 3.0 &&  avgRating < 4.0) return 'General';
+    if (avgRating >= 4.0 && avgRating < 4.5) return 'Hero';
+    if (avgRating >= 3.0 && avgRating < 4.0) return 'General';
     if (avgRating >= 1.0 && avgRating < 3.0) return 'Beginner';
     return 'Poor';
   }
@@ -91,11 +91,14 @@ class _qrbuddyDashboardWidgetState extends State<qrbuddyDashboardWidget>
             // Expandable Content Section
             Obx(() {
               if (controller.selectedInfoCard.value == 'Rating') {
-                final double avgRating = controller.getAverageRatingForCompleted();
+                final double avgRating =
+                    controller.getAverageRatingForCompleted();
                 final int fullStars = avgRating.floor();
                 final bool hasHalfStar = avgRating - fullStars >= 0.5;
-                final double totalPendingReviews = controller.reviewPending.value;
-                final String status = getRatingName(controller.averageRating.value); // Get status based on average rating
+                final double totalPendingReviews =
+                    controller.reviewPending.value;
+                final String status = getRatingName(controller
+                    .averageRating.value); // Get status based on average rating
 
                 return Container(
                   padding: const EdgeInsets.all(16.0),
@@ -127,11 +130,14 @@ class _qrbuddyDashboardWidgetState extends State<qrbuddyDashboardWidget>
                       Row(
                         children: List.generate(5, (index) {
                           if (index < fullStars) {
-                            return const Icon(Icons.star, color: Colors.orange, size: 24);
+                            return const Icon(Icons.star,
+                                color: Colors.orange, size: 24);
                           } else if (index == fullStars && hasHalfStar) {
-                            return const Icon(Icons.star_half, color: Colors.orange, size: 24);
+                            return const Icon(Icons.star_half,
+                                color: Colors.orange, size: 24);
                           } else {
-                            return const Icon(Icons.star_border, color: Colors.orange, size: 24);
+                            return const Icon(Icons.star_border,
+                                color: Colors.orange, size: 24);
                           }
                         }),
                       ),
@@ -145,7 +151,9 @@ class _qrbuddyDashboardWidgetState extends State<qrbuddyDashboardWidget>
                       Text(
                         'Status: $status', // Display the current status
                         style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                              color: _getStatusColor(controller.averageRating.value * 20), // Map rating to percentage-like color
+                              color: _getStatusColor(controller
+                                      .averageRating.value *
+                                  20), // Map rating to percentage-like color
                               fontWeight: FontWeight.bold,
                             ),
                       ),
@@ -154,11 +162,14 @@ class _qrbuddyDashboardWidgetState extends State<qrbuddyDashboardWidget>
                       // 📊 Rating Details
                       Text(
                         'Details:',
-                        style: Theme.of(context).textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.bold),
+                        style: Theme.of(context)
+                            .textTheme
+                            .bodyLarge
+                            ?.copyWith(fontWeight: FontWeight.bold),
                       ),
                       const SizedBox(height: 8),
-                      const Text('5 - Champions'),
-                      const Text('4.9 - 4.5  → Super Hero'),
+                      const Text('5 - Champion'),
+                      const Text('4.5 - 4.9  → Super Hero'),
                       const Text('4 - 4.5   → Hero'),
                       const Text('3 - 4     → General'),
                       const Text('1 - 3     → Beginner'),
@@ -275,7 +286,8 @@ class _qrbuddyDashboardWidgetState extends State<qrbuddyDashboardWidget>
             ),
             _infoCard(
               "Rating",
-              controller.averageRating.value.toStringAsFixed(1), // Show average rating
+              controller.averageRating.value
+                  .toStringAsFixed(1), // Show average rating
               Icons.star,
               size,
               textTheme,

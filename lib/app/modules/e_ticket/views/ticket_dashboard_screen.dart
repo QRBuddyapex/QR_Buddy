@@ -268,11 +268,6 @@ class _TicketDashboardScreenState extends State<TicketDashboardScreen> {
             ),
           ),
         ),
-        floatingActionButton: FloatingActionButton(
-          onPressed: () {},
-          backgroundColor: AppColors.primaryColor,
-          child: const Icon(Icons.add),
-        ),
       ),
     );
   }

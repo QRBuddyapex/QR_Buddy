@@ -11,6 +11,8 @@ import 'package:qr_buddy/app/data/models/e_tickets.dart';
 import 'package:qr_buddy/app/data/models/ticket.dart';
 import 'package:qr_buddy/app/data/repo/e_ticket_repo.dart';
 import 'package:qr_buddy/app/data/repo/ticket_details_repo.dart';
+import 'package:qr_buddy/app/data/repo/daily_checklist_repo.dart';
+import 'package:qr_buddy/app/data/models/daily_checklist_model.dart';
 import 'package:qr_buddy/app/routes/routes.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -43,10 +45,14 @@ class TicketController extends GetxController {
 
   late final TicketRepository _ticketRepository;
   late final OrderDetailRepository _orderDetailRepository;
+  late final DailyChecklistRepository _dailyChecklistRepository;
 
   final remarksController = TextEditingController();
   final holdDateTimeController = TextEditingController();
   var selectedImage = Rxn<File>();
+
+  var checklistLogRoundData = <String, Map<String, List<dynamic>>>{}.obs;
+  var checklistLogRooms = <String, dynamic>{}.obs;
 
   @override
   void onInit() {
@@ -56,6 +62,10 @@ class TicketController extends GetxController {
       TokenStorage(),
     );
     _orderDetailRepository = OrderDetailRepository(
+      ApiService(),
+      TokenStorage(),
+    );
+    _dailyChecklistRepository = DailyChecklistRepository(
       ApiService(),
       TokenStorage(),
     );
@@ -78,34 +88,47 @@ class TicketController extends GetxController {
         hcoId: await TokenStorage().getHcoId() ?? '',
         requestStatus: _mapFilterToRequestStatus(selectedFilter.value),
       );
-      tickets.assignAll(response.orders.map((order) => order.toTicket()).toList());
+      tickets
+          .assignAll(response.orders.map((order) => order.toTicket()).toList());
       links.assignAll(response.links);
       _orders.assignAll(response.orders);
 
       // Update reviewPending based on completed tickets with ratings
-      final completedOrders = _orders.where((order) => order.requestStatus == 'COMP').toList();
-      final validRatings = completedOrders.where((order) => order.rating != '-1' && double.tryParse(order.rating) != null).toList();
-      reviewPending.value = (completedOrders.length - validRatings.length).toDouble();
+      final completedOrders =
+          _orders.where((order) => order.requestStatus == 'COMP').toList();
+      final validRatings = completedOrders
+          .where((order) =>
+              order.rating != '-1' && double.tryParse(order.rating) != null)
+          .toList();
+      reviewPending.value =
+          (completedOrders.length - validRatings.length).toDouble();
 
       // Update average rating
       if (validRatings.isNotEmpty) {
-        final ratings = validRatings.map((order) => double.parse(order.rating)).toList();
+        final ratings =
+            validRatings.map((order) => double.parse(order.rating)).toList();
         averageRating.value = ratings.reduce((a, b) => a + b) / ratings.length;
       } else {
         averageRating.value = 0.0;
       }
 
-      int assignedTickets = links.firstWhere(
-        (link) => link.type == 'ASI',
-        orElse: () => Link(type: 'ASI', title: 'Assigned', count: 0),
-      ).count;
-      int completedTickets = links.firstWhere(
-        (link) => link.type == 'COMP',
-        orElse: () => Link(type: 'COMP', title: 'Completed', count: 0),
-      ).count;
+      int assignedTickets = links
+          .firstWhere(
+            (link) => link.type == 'ASI',
+            orElse: () => Link(type: 'ASI', title: 'Assigned', count: 0),
+          )
+          .count;
+      int completedTickets = links
+          .firstWhere(
+            (link) => link.type == 'COMP',
+            orElse: () => Link(type: 'COMP', title: 'Completed', count: 0),
+          )
+          .count;
 
       if (assignedTickets > 0) {
-        todayStatus.value = ((completedTickets * 100) / assignedTickets).clamp(0, 100).toDouble();
+        todayStatus.value = ((completedTickets * 100) / assignedTickets)
+            .clamp(0, 100)
+            .toDouble();
       } else {
         todayStatus.value = 0.0;
       }
@@ -213,7 +236,8 @@ class TicketController extends GetxController {
   }
 
   void updateTasksCount() {
-    int totalTasks = tasks.fold(0, (sum, group) => sum + (group['tasks'] as List).length);
+    int totalTasks =
+        tasks.fold(0, (sum, group) => sum + (group['tasks'] as List).length);
     tasksCount.value = totalTasks;
   }
 
@@ -262,28 +286,36 @@ class TicketController extends GetxController {
   void updateTicketList() {
     switch (selectedFilter.value) {
       case 'New':
-        filteredTickets.assignAll(tickets.where((ticket) => ticket.status == 'New').toList());
+        filteredTickets.assignAll(
+            tickets.where((ticket) => ticket.status == 'New').toList());
         break;
       case 'Assigned':
-        filteredTickets.assignAll(tickets.where((ticket) => ticket.status == 'Assigned').toList());
+        filteredTickets.assignAll(
+            tickets.where((ticket) => ticket.status == 'Assigned').toList());
         break;
       case 'Accepted':
-        filteredTickets.assignAll(tickets.where((ticket) => ticket.status == 'Accepted').toList());
+        filteredTickets.assignAll(
+            tickets.where((ticket) => ticket.status == 'Accepted').toList());
         break;
       case 'Completed':
-        filteredTickets.assignAll(tickets.where((ticket) => ticket.status == 'Completed').toList());
+        filteredTickets.assignAll(
+            tickets.where((ticket) => ticket.status == 'Completed').toList());
         break;
       case 'Verified':
-        filteredTickets.assignAll(tickets.where((ticket) => ticket.status == 'Verified').toList());
+        filteredTickets.assignAll(
+            tickets.where((ticket) => ticket.status == 'Verified').toList());
         break;
       case 'On Hold':
-        filteredTickets.assignAll(tickets.where((ticket) => ticket.status == 'On Hold').toList());
+        filteredTickets.assignAll(
+            tickets.where((ticket) => ticket.status == 'On Hold').toList());
         break;
       case 'Re-Open':
-        filteredTickets.assignAll(tickets.where((ticket) => ticket.status == 'Re-Open').toList());
+        filteredTickets.assignAll(
+            tickets.where((ticket) => ticket.status == 'Re-Open').toList());
         break;
       case 'Cancelled':
-        filteredTickets.assignAll(tickets.where((ticket) => ticket.status == 'Cancelled').toList());
+        filteredTickets.assignAll(
+            tickets.where((ticket) => ticket.status == 'Cancelled').toList());
         break;
       case 'Total':
       case 'All':
@@ -327,7 +359,8 @@ class TicketController extends GetxController {
           pickedTime.hour,
           pickedTime.minute,
         );
-        holdDateTimeController.text = '${selectedDateTime.day.toString().padLeft(2, '0')}-'
+        holdDateTimeController.text =
+            '${selectedDateTime.day.toString().padLeft(2, '0')}-'
             '${selectedDateTime.month.toString().padLeft(2, '0')}-'
             '${selectedDateTime.year} '
             '${selectedDateTime.hour.toString().padLeft(2, '0')}:'
@@ -355,13 +388,14 @@ class TicketController extends GetxController {
       final timeHoldTill = action == 'Hold' ? holdDateTimeController.text : '';
 
       final requestStatus = {
-        'Accept': 'ACC',
-        'Complete': 'COMP',
-        'Hold': 'HOLD',
-        'Cancel': 'CAN',
-        'Reopen': 'REO',
-        'Verify': 'VER',
-      }[action] ?? 'CAN';
+            'Accept': 'ACC',
+            'Complete': 'COMP',
+            'Hold': 'HOLD',
+            'Cancel': 'CAN',
+            'Reopen': 'REO',
+            'Verify': 'VER',
+          }[action] ??
+          'CAN';
 
       dio.MultipartFile? file;
       if (selectedImage.value != null) {
@@ -404,7 +438,8 @@ class TicketController extends GetxController {
     }
   }
 
-  void showConfirmationDialog(BuildContext context, String action, Function onConfirm) {
+  void showConfirmationDialog(
+      BuildContext context, String action, Function onConfirm) {
     showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -445,14 +480,9 @@ class TicketController extends GetxController {
     );
   }
 
-  void showActionFormDialog(
-    BuildContext context,
-    String action,
-    String orderNumber,
-    String serviceLabel,
-    String orderId,
-    {Function(Map<String, dynamic>)? onSuccess}
-  ) {
+  void showActionFormDialog(BuildContext context, String action,
+      String orderNumber, String serviceLabel, String orderId,
+      {Function(Map<String, dynamic>)? onSuccess}) {
     showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -502,7 +532,8 @@ class TicketController extends GetxController {
                     decoration: InputDecoration(
                       hintText: 'dd-mm-yyyy --:--',
                       hintStyle: TextStyle(color: AppColors.hintTextColor),
-                      suffixIcon: const Icon(Icons.calendar_today, color: AppColors.hintTextColor),
+                      suffixIcon: const Icon(Icons.calendar_today,
+                          color: AppColors.hintTextColor),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(10),
                         borderSide: BorderSide(color: AppColors.borderColor),
@@ -557,10 +588,13 @@ class TicketController extends GetxController {
                                   mainAxisSize: MainAxisSize.min,
                                   children: [
                                     ListTile(
-                                      leading: const Icon(Icons.camera_alt, color: AppColors.hintTextColor),
+                                      leading: const Icon(Icons.camera_alt,
+                                          color: AppColors.hintTextColor),
                                       title: Text(
                                         'Take a Photo',
-                                        style: Theme.of(context).textTheme.bodyMedium,
+                                        style: Theme.of(context)
+                                            .textTheme
+                                            .bodyMedium,
                                       ),
                                       onTap: () {
                                         pickImage(ImageSource.camera);
@@ -569,11 +603,16 @@ class TicketController extends GetxController {
                                     ),
                                     if (selectedImage.value != null)
                                       ListTile(
-                                        leading: const Icon(Icons.delete, color: AppColors.dangerButtonColor),
+                                        leading: const Icon(Icons.delete,
+                                            color: AppColors.dangerButtonColor),
                                         title: Text(
                                           'Remove Image',
-                                          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                                color: AppColors.dangerButtonColor,
+                                          style: Theme.of(context)
+                                              .textTheme
+                                              .bodyMedium
+                                              ?.copyWith(
+                                                color:
+                                                    AppColors.dangerButtonColor,
                                               ),
                                         ),
                                         onTap: () {
@@ -620,7 +659,8 @@ class TicketController extends GetxController {
               child: ElevatedButton(
                 onPressed: () async {
                   try {
-                    final response = await updateRequest(action: action, orderId: orderId);
+                    final response =
+                        await updateRequest(action: action, orderId: orderId);
                     Navigator.of(context).pop();
                     clearDialogFields();
                     await fetchTickets();
@@ -653,15 +693,16 @@ class TicketController extends GetxController {
   double getAverageRatingForCompleted() {
     final completedOrders = tickets
         .where((ticket) => ticket.status == 'Completed')
-        .map((ticket) => _orders.firstWhere((order) => order.uuid == ticket.uuid))
-        .where((order) => order.rating != '-1' && double.tryParse(order.rating) != null)
+        .map((ticket) =>
+            _orders.firstWhere((order) => order.uuid == ticket.uuid))
+        .where((order) =>
+            order.rating != '-1' && double.tryParse(order.rating) != null)
         .toList();
 
     if (completedOrders.isEmpty) return 0.0;
 
-    final validRatings = completedOrders
-        .map((order) => double.parse(order.rating))
-        .toList();
+    final validRatings =
+        completedOrders.map((order) => double.parse(order.rating)).toList();
     // Debug log to verify ratings
     print('Valid Ratings: $validRatings');
     return validRatings.isNotEmpty
@@ -672,8 +713,34 @@ class TicketController extends GetxController {
   int getRatedCompletedCount() {
     return tickets
         .where((ticket) => ticket.status == 'Completed')
-        .map((ticket) => _orders.firstWhere((order) => order.uuid == ticket.uuid))
-        .where((order) => order.rating != '-1' && double.tryParse(order.rating) != null)
+        .map((ticket) =>
+            _orders.firstWhere((order) => order.uuid == ticket.uuid))
+        .where((order) =>
+            order.rating != '-1' && double.tryParse(order.rating) != null)
         .length;
+  }
+
+  Future<void> fetchChecklistLog() async {
+    try {
+      final hcoId = await TokenStorage().getHcoId();
+      final userId = await TokenStorage().getUserId();
+      const phoneUuid = '5678b6baf95911ef8b460200d429951a';
+      if (hcoId == null || userId == null) {
+        Get.snackbar('Error', 'HCO ID or User ID not found');
+        return;
+      }
+      final response = await _dailyChecklistRepository.fetchDailyChecklist(
+        hcoId: hcoId,
+        userId: userId,
+        phoneUuid: phoneUuid,
+      );
+      // Store roundData and rooms for the log section
+      checklistLogRoundData.value = response.roundData;
+      checklistLogRooms.value = response.rooms;
+    } catch (e) {
+      Get.snackbar('Error', 'Failed to fetch checklist log: $e');
+      checklistLogRoundData.clear();
+      checklistLogRooms.clear();
+    }
   }
 }

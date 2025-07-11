@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:qr_buddy/app/core/theme/app_theme.dart';
 import 'package:qr_buddy/app/modules/e_ticket/components/ticket_card.dart';
+import 'package:qr_buddy/app/modules/e_ticket/components/checklist_log_section.dart';
 
 import '../controllers/ticket_controller.dart';
 
@@ -73,7 +74,7 @@ class InfoCardContentWidget extends StatelessWidget {
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(15),
           side: BorderSide(
-          color: AppColors.shadowColor.withOpacity(0.1),
+            color: AppColors.shadowColor.withOpacity(0.1),
             width: 1,
           ),
         ),
@@ -148,7 +149,8 @@ class InfoCardContentWidget extends StatelessWidget {
                       Wrap(
                         spacing: size.width * 0.015,
                         runSpacing: size.height * 0.005,
-                        children: (task['assigned'] as List).map<Widget>((assignee) {
+                        children:
+                            (task['assigned'] as List).map<Widget>((assignee) {
                           return CircleAvatar(
                             radius: size.width * 0.035,
                             backgroundColor: Colors.red,
@@ -171,7 +173,8 @@ class InfoCardContentWidget extends StatelessWidget {
                 children: [
                   Icon(
                     Icons.priority_high,
-                    color: task['priority'] == 'High' ? Colors.red : Colors.blue,
+                    color:
+                        task['priority'] == 'High' ? Colors.red : Colors.blue,
                     size: size.width * 0.05,
                   ),
                   SizedBox(width: size.width * 0.02),
@@ -188,13 +191,17 @@ class InfoCardContentWidget extends StatelessWidget {
                       vertical: size.height * 0.005,
                     ),
                     decoration: BoxDecoration(
-                      color: task['priority'] == 'High' ? Colors.red[50] : Colors.blue[50],
+                      color: task['priority'] == 'High'
+                          ? Colors.red[50]
+                          : Colors.blue[50],
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: Text(
                       task['priority'],
                       style: textTheme.bodySmall?.copyWith(
-                        color: task['priority'] == 'High' ? Colors.red : Colors.blue,
+                        color: task['priority'] == 'High'
+                            ? Colors.red
+                            : Colors.blue,
                         fontSize: size.width * 0.035,
                       ),
                     ),
@@ -388,37 +395,6 @@ class InfoCardContentWidget extends StatelessWidget {
     );
   }
 
-  Widget _buildAddButton({
-    required BuildContext context,
-    required String label,
-    required Size size,
-  }) {
-    return Padding(
-      padding: EdgeInsets.symmetric(
-        horizontal: size.width * 0.04,
-        vertical: size.height * 0.01,
-      ),
-      child: Align(
-        alignment: Alignment.centerRight,
-        child: TextButton.icon(
-          onPressed: () {},
-          icon: Icon(
-            Icons.add,
-            color: Colors.green,
-            size: size.width * 0.06,
-          ),
-          label: Text(
-            label,
-            style: TextStyle(
-              color: Colors.green,
-              fontSize: size.width * 0.04,
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     final TicketController controller = Get.find<TicketController>();
@@ -471,45 +447,40 @@ class InfoCardContentWidget extends StatelessWidget {
                     textTheme: textTheme,
                   );
                 }).toList(),
-                _buildAddButton(
-                  context: context,
-                  label: 'Add Task',
-                  size: size,
-                ),
               ],
             );
           }).toList(),
         );
       } else if (controller.selectedInfoCard.value == 'Checklists') {
-        return Column(
-          children: controller.checklists.map((group) {
-            return Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _buildGroupHeader(
-                  context: context,
-                  groupName: group['group'],
-                  onRefresh: () => controller.fetchChecklists(),
-                  size: size,
-                  textTheme: textTheme,
-                ),
-                ...group['checklists'].asMap().entries.map((entry) {
-                  return _buildChecklistCard(
-                    context: context,
-                    checklist: entry.value,
-                    index: entry.key + 1,
-                    size: size,
-                    textTheme: textTheme,
-                  );
-                }).toList(),
-                _buildAddButton(
-                  context: context,
-                  label: 'Add Checklist',
-                  size: size,
-                ),
-              ],
-            );
-          }).toList(),
+        // Fetch log data if not already loaded
+        if (controller.checklistLogRoundData.isEmpty) {
+          controller.fetchChecklistLog();
+        }
+        return ChecklistLogSection(
+          roundDataRx: controller.checklistLogRoundData,
+          roomsRx: controller.checklistLogRooms,
+          parseShortDate: (str) {
+            final parts = str.trim().split(' ');
+            if (parts.length != 2) return DateTime.now();
+            final day = int.tryParse(parts[0]) ?? 1;
+            const monthMap = {
+              'Jan': 1,
+              'Feb': 2,
+              'Mar': 3,
+              'Apr': 4,
+              'May': 5,
+              'Jun': 6,
+              'Jul': 7,
+              'Aug': 8,
+              'Sep': 9,
+              'Oct': 10,
+              'Nov': 11,
+              'Dec': 12,
+            };
+            final month = monthMap[parts[1]] ?? 1;
+            return DateTime(2025, month, day);
+          },
+          formatShortDate: (str) => str,
         );
       }
       return const SizedBox.shrink();

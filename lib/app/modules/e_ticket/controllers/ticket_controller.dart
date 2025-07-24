@@ -60,7 +60,7 @@ class TicketController extends GetxController {
       TokenStorage(),
     );
     fetchTickets();
-    fetchTasks();
+    fetchFoodDeliveries();
     fetchChecklists();
     updateTasksCount();
   }
@@ -140,41 +140,15 @@ class TicketController extends GetxController {
     }
   }
 
-  void fetchTasks() {
+  void fetchFoodDeliveries() {
     tasks.clear();
     tasks.assignAll([
       {
-        'group': 'Dummy Group 1',
+        'group': 'Food Delivery Group 1',
         'tasks': [
-          {
-            'taskName': 'Integrate payment method',
-            'assigned': ['RM', 'MK', 'AS'],
-            'priority': 'High',
-            'dueDate': 'Due Date',
-            'notes': 'This is a note',
-            'lastUpdated': 'Last Updated',
-          },
-          {
-            'taskName': 'Implement cart functionality',
-            'assigned': ['RM', 'MK', 'AS'],
-            'priority': 'High',
-            'dueDate': 'Due Date',
-            'notes': 'This is important',
-            'lastUpdated': 'Last Updated',
-          },
-        ],
-      },
-      {
-        'group': 'Dummy Group 2',
-        'tasks': [
-          {
-            'taskName': 'Book a flight ticket from inc',
-            'assigned': ['AS'],
-            'priority': 'Low',
-            'dueDate': 'Due Date',
-            'notes': 'Business class',
-            'lastUpdated': '5/2/2025, 10:10:08 AM',
-          },
+          {'roomId': 'R1', 'roomName': 'Room A', 'imageUrl': 'https://via.placeholder.com/150'},
+          {'roomId': 'R2', 'roomName': 'Room B', 'imageUrl': 'https://via.placeholder.com/150'},
+          {'roomId': 'R3', 'roomName': 'Room C', 'imageUrl': 'https://via.placeholder.com/150'},
         ],
       },
     ]);
@@ -187,34 +161,21 @@ class TicketController extends GetxController {
       {
         'group': 'Checklist Group 1',
         'checklists': [
-          {
-            'checklist_name': 'Safety Inspection',
-            'location': 'Block A/GF',
-            'date_and_time': '15/04/2025, 09:00 AM',
-          },
-          {
-            'checklist_name': 'Equipment Check',
-            'location': 'Block B/1F',
-            'date_and_time': '15/04/2025, 11:00 AM',
-          },
+          {'checklist_name': 'Safety Inspection', 'location': 'Block A/GF', 'date_and_time': '15/04/2025, 09:00 AM'},
+          {'checklist_name': 'Equipment Check', 'location': 'Block B/1F', 'date_and_time': '15/04/2025, 11:00 AM'},
         ],
       },
       {
         'group': 'Checklist Group 2',
         'checklists': [
-          {
-            'checklist_name': 'Fire Drill',
-            'location': 'Block C/2F',
-            'date_and_time': '16/04/2025, 02:00 PM',
-          },
+          {'checklist_name': 'Fire Drill', 'location': 'Block C/2F', 'date_and_time': '16/04/2025, 02:00 PM'},
         ],
       },
     ]);
   }
 
   void updateTasksCount() {
-    int totalTasks = tasks.fold(0, (sum, group) => sum + (group['tasks'] as List).length);
-    tasksCount.value = totalTasks;
+    tasksCount.value = tasks.fold(0, (sum, group) => sum + (group['tasks'] as List).length);
   }
 
   void setFilter(String filter) {
@@ -662,7 +623,6 @@ class TicketController extends GetxController {
     final validRatings = completedOrders
         .map((order) => double.parse(order.rating))
         .toList();
-    // Debug log to verify ratings
     print('Valid Ratings: $validRatings');
     return validRatings.isNotEmpty
         ? (validRatings.reduce((a, b) => a + b) / validRatings.length)

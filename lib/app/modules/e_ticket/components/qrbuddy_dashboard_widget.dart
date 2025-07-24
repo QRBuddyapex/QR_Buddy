@@ -1,4 +1,3 @@
-// app/modules/e_ticket/components/qrbuddy_dashboard_widget.dart
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:qr_buddy/app/core/theme/app_theme.dart';
@@ -58,8 +57,8 @@ class _qrbuddyDashboardWidgetState extends State<qrbuddyDashboardWidget>
   String getRatingName(double avgRating) {
     if (avgRating == 5.0) return 'Champions';
     if (avgRating >= 4.5 && avgRating < 5.0) return 'SuperHero';
-    if (avgRating >= 4.0 && avgRating <  4.5) return 'Hero';
-    if (avgRating >= 3.0 &&  avgRating < 4.0) return 'General';
+    if (avgRating >= 4.0 && avgRating < 4.5) return 'Hero';
+    if (avgRating >= 3.0 && avgRating < 4.0) return 'General';
     if (avgRating >= 1.0 && avgRating < 3.0) return 'Beginner';
     return 'Poor';
   }
@@ -95,7 +94,7 @@ class _qrbuddyDashboardWidgetState extends State<qrbuddyDashboardWidget>
                 final int fullStars = avgRating.floor();
                 final bool hasHalfStar = avgRating - fullStars >= 0.5;
                 final double totalPendingReviews = controller.reviewPending.value;
-                final String status = getRatingName(controller.averageRating.value); // Get status based on average rating
+                final String status = getRatingName(controller.averageRating.value);
 
                 return Container(
                   padding: const EdgeInsets.all(16.0),
@@ -143,9 +142,9 @@ class _qrbuddyDashboardWidgetState extends State<qrbuddyDashboardWidget>
                       ),
                       const SizedBox(height: 8),
                       Text(
-                        'Status: $status', // Display the current status
+                        'Status: $status',
                         style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                              color: _getStatusColor(controller.averageRating.value * 20), // Map rating to percentage-like color
+                              color: _getStatusColor(controller.averageRating.value * 20),
                               fontWeight: FontWeight.bold,
                             ),
                       ),
@@ -249,13 +248,12 @@ class _qrbuddyDashboardWidgetState extends State<qrbuddyDashboardWidget>
           childAspectRatio: 2.2,
           children: [
             _infoCard(
-              "Daily Tasks",
+              "Food Delivery",
               controller.tasksCount.value.toString(),
-              Icons.flag_outlined,
+              Icons.local_dining,
               size,
               textTheme,
               _getLineColor(controller.tasksCount.value),
-              isDisabled: true,
             ),
             _infoCard(
               "E-Tickets",
@@ -275,7 +273,7 @@ class _qrbuddyDashboardWidgetState extends State<qrbuddyDashboardWidget>
             ),
             _infoCard(
               "Rating",
-              controller.averageRating.value.toStringAsFixed(1), // Show average rating
+              controller.averageRating.value.toStringAsFixed(1),
               Icons.star,
               size,
               textTheme,

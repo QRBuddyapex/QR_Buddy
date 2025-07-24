@@ -2,8 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:qr_buddy/app/core/theme/app_theme.dart';
 import 'package:qr_buddy/app/modules/e_ticket/components/ticket_card.dart';
-
-import '../controllers/ticket_controller.dart';
+import 'package:qr_buddy/app/modules/e_ticket/controllers/ticket_controller.dart';
 
 class InfoCardContentWidget extends StatelessWidget {
   const InfoCardContentWidget({Key? key}) : super(key: key);
@@ -56,16 +55,16 @@ class InfoCardContentWidget extends StatelessWidget {
     );
   }
 
-  Widget _buildTaskCard({
+  Widget _buildFoodDeliveryCard({
     required BuildContext context,
-    required Map<String, dynamic> task,
+    required Map<String, dynamic> delivery,
     required int index,
     required Size size,
     required TextTheme textTheme,
   }) {
     return Padding(
       padding: EdgeInsets.symmetric(
-        horizontal: size.width * 0.04,
+        horizontal: size.width * 0.004,
         vertical: size.height * 0.01,
       ),
       child: Card(
@@ -73,196 +72,71 @@ class InfoCardContentWidget extends StatelessWidget {
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(15),
           side: BorderSide(
-          color: AppColors.shadowColor.withOpacity(0.1),
+            color: AppColors.shadowColor.withOpacity(0.1),
             width: 1,
           ),
         ),
         color: Colors.white,
         child: Padding(
           padding: EdgeInsets.all(size.width * 0.04),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Row(
-                    children: [
-                      Container(
-                        padding: EdgeInsets.all(size.width * 0.015),
-                        decoration: BoxDecoration(
-                          color: AppColors.primaryColor.withOpacity(0.1),
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Text(
-                          "Task $index",
-                          style: textTheme.bodyMedium?.copyWith(
-                            color: AppColors.primaryColor,
-                            fontWeight: FontWeight.bold,
-                            fontSize: size.width * 0.04,
-                          ),
-                        ),
-                      ),
-                      SizedBox(width: size.width * 0.02),
-                      Text(
-                        task['taskName'],
-                        style: textTheme.bodyMedium?.copyWith(
-                          color: AppColors.textColor,
-                          fontWeight: FontWeight.bold,
-                          fontSize: size.width * 0.03,
-                        ),
-                      ),
-                    ],
-                  ),
-                  IconButton(
-                    icon: Icon(
-                      Icons.delete,
-                      color: Colors.redAccent,
-                      size: size.width * 0.06,
+                  Container(
+                    padding: EdgeInsets.all(size.width * 0.015),
+                    decoration: BoxDecoration(
+                      color: AppColors.primaryColor.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(8),
                     ),
-                    onPressed: () {},
-                  ),
-                ],
-              ),
-              SizedBox(height: size.height * 0.015),
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Icon(
-                    Icons.person,
-                    color: AppColors.primaryColor,
-                    size: size.width * 0.05,
+                    child: Text(
+                      "Delivery $index",
+                      style: textTheme.bodyMedium?.copyWith(
+                        color: AppColors.primaryColor,
+                        fontWeight: FontWeight.bold,
+                        fontSize: size.width * 0.04,
+                      ),
+                    ),
                   ),
                   SizedBox(width: size.width * 0.02),
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        "Assigned: ",
+                        "Room ID: ${delivery['roomId']}",
+                        style: textTheme.bodyMedium?.copyWith(
+                          color: AppColors.textColor,
+                          fontWeight: FontWeight.bold,
+                          fontSize: size.width * 0.03,
+                        ),
+                      ),
+                      Text(
+                        "Room Name: ${delivery['roomName']}",
                         style: textTheme.bodySmall?.copyWith(
                           color: AppColors.hintTextColor,
                           fontSize: size.width * 0.035,
                         ),
                       ),
-                      SizedBox(height: size.height * 0.005),
-                      Wrap(
-                        spacing: size.width * 0.015,
-                        runSpacing: size.height * 0.005,
-                        children: (task['assigned'] as List).map<Widget>((assignee) {
-                          return CircleAvatar(
-                            radius: size.width * 0.035,
-                            backgroundColor: Colors.red,
-                            child: Text(
-                              assignee,
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontSize: size.width * 0.025,
-                              ),
-                            ),
-                          );
-                        }).toList(),
-                      ),
                     ],
                   ),
                 ],
               ),
-              SizedBox(height: size.height * 0.015),
-              Row(
-                children: [
-                  Icon(
-                    Icons.priority_high,
-                    color: task['priority'] == 'High' ? Colors.red : Colors.blue,
-                    size: size.width * 0.05,
+              ElevatedButton(
+                onPressed: () {
+                  Get.snackbar('QR', 'QR code for ${delivery['roomId']} generated');
+                },
+                child: Icon(
+                  Icons.qr_code,
+                  color: Colors.white,
+                  size: size.width * 0.06,
+                ),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.primaryColor,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
                   ),
-                  SizedBox(width: size.width * 0.02),
-                  Text(
-                    "Priority: ",
-                    style: textTheme.bodySmall?.copyWith(
-                      color: AppColors.hintTextColor,
-                      fontSize: size.width * 0.035,
-                    ),
-                  ),
-                  Container(
-                    padding: EdgeInsets.symmetric(
-                      horizontal: size.width * 0.02,
-                      vertical: size.height * 0.005,
-                    ),
-                    decoration: BoxDecoration(
-                      color: task['priority'] == 'High' ? Colors.red[50] : Colors.blue[50],
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Text(
-                      task['priority'],
-                      style: textTheme.bodySmall?.copyWith(
-                        color: task['priority'] == 'High' ? Colors.red : Colors.blue,
-                        fontSize: size.width * 0.035,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              SizedBox(height: size.height * 0.015),
-              Row(
-                children: [
-                  Icon(
-                    Icons.calendar_today,
-                    color: AppColors.primaryColor,
-                    size: size.width * 0.05,
-                  ),
-                  SizedBox(width: size.width * 0.02),
-                  Expanded(
-                    child: Text(
-                      "Due Date: ${task['dueDate']}",
-                      style: textTheme.bodySmall?.copyWith(
-                        color: AppColors.hintTextColor,
-                        fontSize: size.width * 0.035,
-                      ),
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ),
-                ],
-              ),
-              SizedBox(height: size.height * 0.015),
-              Row(
-                children: [
-                  Icon(
-                    Icons.note,
-                    color: AppColors.primaryColor,
-                    size: size.width * 0.05,
-                  ),
-                  SizedBox(width: size.width * 0.02),
-                  Expanded(
-                    child: Text(
-                      "Notes: ${task['notes']}",
-                      style: textTheme.bodySmall?.copyWith(
-                        color: AppColors.hintTextColor,
-                        fontSize: size.width * 0.035,
-                      ),
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ),
-                ],
-              ),
-              SizedBox(height: size.height * 0.015),
-              Row(
-                children: [
-                  Icon(
-                    Icons.update,
-                    color: AppColors.primaryColor,
-                    size: size.width * 0.05,
-                  ),
-                  SizedBox(width: size.width * 0.02),
-                  Expanded(
-                    child: Text(
-                      "Last Updated: ${task['lastUpdated']}",
-                      style: textTheme.bodySmall?.copyWith(
-                        color: AppColors.hintTextColor,
-                        fontSize: size.width * 0.035,
-                      ),
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ),
-                ],
+                ),
               ),
             ],
           ),
@@ -421,9 +295,9 @@ class InfoCardContentWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final TicketController controller = Get.find<TicketController>();
     final size = MediaQuery.of(context).size;
     final textTheme = Theme.of(context).textTheme;
+    final controller = Get.find<TicketController>();
 
     return Obx(() {
       if (controller.selectedInfoCard.value == '') {
@@ -449,36 +323,32 @@ class InfoCardContentWidget extends StatelessWidget {
             );
           },
         );
-      } else if (controller.selectedInfoCard.value == 'Daily Tasks') {
+      } else if (controller.selectedInfoCard.value == 'Food Delivery') {
         return Column(
-          children: controller.tasks.map((group) {
-            return Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _buildGroupHeader(
-                  context: context,
-                  groupName: group['group'],
-                  onRefresh: () => controller.fetchTasks(),
-                  size: size,
-                  textTheme: textTheme,
-                ),
-                ...group['tasks'].asMap().entries.map((entry) {
-                  return _buildTaskCard(
-                    context: context,
-                    task: entry.value,
-                    index: entry.key + 1,
-                    size: size,
-                    textTheme: textTheme,
-                  );
-                }).toList(),
-                _buildAddButton(
-                  context: context,
-                  label: 'Add Task',
-                  size: size,
-                ),
-              ],
-            );
-          }).toList(),
+          children: [
+            _buildGroupHeader(
+              context: context,
+              groupName: 'Food Deliveries',
+              onRefresh: () => controller.fetchFoodDeliveries(),
+              size: size,
+              textTheme: textTheme,
+            ),
+            ...List.generate(3, (index) {
+              final delivery = {
+                'roomId': 'R${index + 1}',
+                'roomName': 'Room ${String.fromCharCode(65 + index)}', // A, B, C
+                'imageUrl': 'https://via.placeholder.com/150',
+              };
+              return _buildFoodDeliveryCard(
+                context: context,
+                delivery: delivery,
+                index: index + 1,
+                size: size,
+                textTheme: textTheme,
+              );
+            }),
+           
+          ],
         );
       } else if (controller.selectedInfoCard.value == 'Checklists') {
         return Column(

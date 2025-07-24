@@ -8,6 +8,7 @@ import 'package:qr_buddy/app/modules/e_ticket/bindings/ticket_dashboard_binding.
 import 'package:qr_buddy/app/modules/e_ticket/views/accept_ticket_screen.dart';
 import 'package:qr_buddy/app/modules/e_ticket/views/ticket_dashboard_screen.dart';
 import 'package:qr_buddy/app/modules/e_ticket/views/ticket_details_screen.dart';
+import 'package:qr_buddy/app/modules/e_ticket/views/qr_scan_screen.dart';
 import 'package:qr_buddy/app/modules/new_ticket/bindings/new_ticket_bindings.dart';
 import 'package:qr_buddy/app/modules/new_ticket/views/new_ticket_screen.dart';
 import 'package:qr_buddy/app/routes/routes.dart';
@@ -43,11 +44,11 @@ class AppRoutes {
           transitionDuration: const Duration(milliseconds: 250),
         ),
         GetPage(
-  name: RoutesName.acceptTicketScreen,
-  page: () => AcceptTicketScreen(
-    ticket: Get.arguments as Ticket,
-  ),
-),
+          name: RoutesName.acceptTicketScreen,
+          page: () => AcceptTicketScreen(
+            ticket: Get.arguments as Ticket,
+          ),
+        ),
         GetPage(
           name: RoutesName.ticketDetailsView,
           page: () {
@@ -56,6 +57,12 @@ class AppRoutes {
             return TicketDetailScreen(ticket: ticket);
           },
           transition: Transition.leftToRight,
+          transitionDuration: const Duration(milliseconds: 250),
+        ),
+        GetPage(
+          name: '/qr-scan',
+          page: () => const QrScanScreen(),
+          transition: Transition.downToUp,
           transitionDuration: const Duration(milliseconds: 250),
         ),
       ];

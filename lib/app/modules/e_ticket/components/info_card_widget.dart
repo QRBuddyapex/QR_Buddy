@@ -347,7 +347,7 @@ class InfoCardContentWidget extends StatelessWidget {
                 textTheme: textTheme,
               );
             }),
-           
+            
           ],
         );
       } else if (controller.selectedInfoCard.value == 'Checklists') {

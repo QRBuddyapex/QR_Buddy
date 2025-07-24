@@ -36,10 +36,19 @@ class _TicketDashboardScreenState extends State<TicketDashboardScreen> {
               onPressed: () => Scaffold.of(context).openDrawer(),
             ),
           ),
-          onQrPressed: () {},
+          onQrPressed: () async {
+            final result = await Get.toNamed('/qr-scan');
+            if (result != null && result is String) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(content: Text('Scanned URL: ' + result)),
+              );
+              // You can handle the scanned URL here (e.g., navigate, fetch data, etc.)
+            }
+          },
           onBrightnessPressed: () {},
           onLocationPressed: () {
-            showDialog(context: context, builder: (context) => const LocationDialog());
+            showDialog(
+                context: context, builder: (context) => const LocationDialog());
           },
           onProfilePressed: () {},
         ),
@@ -61,88 +70,159 @@ class _TicketDashboardScreenState extends State<TicketDashboardScreen> {
                       children: [
                         SingleChildScrollView(
                           scrollDirection: Axis.horizontal,
-                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 16, vertical: 8),
                           child: Row(
                             children: [
                               Obx(() => FilterTab(
                                     label: 'New',
-                                    count: controller.links.firstWhere(
-                                      (link) => link.type == 'NEW',
-                                      orElse: () => Link(type: 'NEW', title: 'New', count: 0),
-                                    ).count,
-                                    isSelected: controller.selectedFilter.value == 'New',
+                                    count: controller.links
+                                        .firstWhere(
+                                          (link) => link.type == 'NEW',
+                                          orElse: () => Link(
+                                              type: 'NEW',
+                                              title: 'New',
+                                              count: 0),
+                                        )
+                                        .count,
+                                    isSelected:
+                                        controller.selectedFilter.value ==
+                                            'New',
                                     onTap: () => controller.setFilter('New'),
                                   )),
                               Obx(() => FilterTab(
                                     label: 'Assigned',
-                                    count: controller.links.firstWhere(
-                                      (link) => link.type == 'ASI',
-                                      orElse: () => Link(type: 'ASI', title: 'Assigned', count: 0),
-                                    ).count,
-                                    isSelected: controller.selectedFilter.value == 'Assigned',
-                                    onTap: () => controller.setFilter('Assigned'),
+                                    count: controller.links
+                                        .firstWhere(
+                                          (link) => link.type == 'ASI',
+                                          orElse: () => Link(
+                                              type: 'ASI',
+                                              title: 'Assigned',
+                                              count: 0),
+                                        )
+                                        .count,
+                                    isSelected:
+                                        controller.selectedFilter.value ==
+                                            'Assigned',
+                                    onTap: () =>
+                                        controller.setFilter('Assigned'),
                                   )),
                               Obx(() => FilterTab(
                                     label: 'Accepted',
-                                    count: controller.links.firstWhere(
-                                      (link) => link.type == 'ACC',
-                                      orElse: () => Link(type: 'ACC', title: 'Accepted', count: 0),
-                                    ).count,
-                                    isSelected: controller.selectedFilter.value == 'Accepted',
-                                    onTap: () => controller.setFilter('Accepted'),
+                                    count: controller.links
+                                        .firstWhere(
+                                          (link) => link.type == 'ACC',
+                                          orElse: () => Link(
+                                              type: 'ACC',
+                                              title: 'Accepted',
+                                              count: 0),
+                                        )
+                                        .count,
+                                    isSelected:
+                                        controller.selectedFilter.value ==
+                                            'Accepted',
+                                    onTap: () =>
+                                        controller.setFilter('Accepted'),
                                   )),
                               Obx(() => FilterTab(
                                     label: 'Completed',
-                                    count: controller.links.firstWhere(
-                                      (link) => link.type == 'COMP',
-                                      orElse: () => Link(type: 'COMP', title: 'Completed', count: 0),
-                                    ).count,
-                                    isSelected: controller.selectedFilter.value == 'Completed',
-                                    onTap: () => controller.setFilter('Completed'),
+                                    count: controller.links
+                                        .firstWhere(
+                                          (link) => link.type == 'COMP',
+                                          orElse: () => Link(
+                                              type: 'COMP',
+                                              title: 'Completed',
+                                              count: 0),
+                                        )
+                                        .count,
+                                    isSelected:
+                                        controller.selectedFilter.value ==
+                                            'Completed',
+                                    onTap: () =>
+                                        controller.setFilter('Completed'),
                                   )),
                               Obx(() => FilterTab(
                                     label: 'Verified',
-                                    count: controller.links.firstWhere(
-                                      (link) => link.type == 'VER',
-                                      orElse: () => Link(type: 'VER', title: 'Verified', count: 0),
-                                    ).count,
-                                    isSelected: controller.selectedFilter.value == 'Verified',
-                                    onTap: () => controller.setFilter('Verified'),
+                                    count: controller.links
+                                        .firstWhere(
+                                          (link) => link.type == 'VER',
+                                          orElse: () => Link(
+                                              type: 'VER',
+                                              title: 'Verified',
+                                              count: 0),
+                                        )
+                                        .count,
+                                    isSelected:
+                                        controller.selectedFilter.value ==
+                                            'Verified',
+                                    onTap: () =>
+                                        controller.setFilter('Verified'),
                                   )),
                               Obx(() => FilterTab(
                                     label: 'On Hold',
-                                    count: controller.links.firstWhere(
-                                      (link) => link.type == 'HOLD',
-                                      orElse: () => Link(type: 'HOLD', title: 'On-Hold', count: 0),
-                                    ).count,
-                                    isSelected: controller.selectedFilter.value == 'On Hold',
-                                    onTap: () => controller.setFilter('On Hold'),
+                                    count: controller.links
+                                        .firstWhere(
+                                          (link) => link.type == 'HOLD',
+                                          orElse: () => Link(
+                                              type: 'HOLD',
+                                              title: 'On-Hold',
+                                              count: 0),
+                                        )
+                                        .count,
+                                    isSelected:
+                                        controller.selectedFilter.value ==
+                                            'On Hold',
+                                    onTap: () =>
+                                        controller.setFilter('On Hold'),
                                   )),
                               Obx(() => FilterTab(
                                     label: 'Re-Open',
-                                    count: controller.links.firstWhere(
-                                      (link) => link.type == 'REO',
-                                      orElse: () => Link(type: 'REO', title: 'Re-Open', count: 0),
-                                    ).count,
-                                    isSelected: controller.selectedFilter.value == 'Re-Open',
-                                    onTap: () => controller.setFilter('Re-Open'),
+                                    count: controller.links
+                                        .firstWhere(
+                                          (link) => link.type == 'REO',
+                                          orElse: () => Link(
+                                              type: 'REO',
+                                              title: 'Re-Open',
+                                              count: 0),
+                                        )
+                                        .count,
+                                    isSelected:
+                                        controller.selectedFilter.value ==
+                                            'Re-Open',
+                                    onTap: () =>
+                                        controller.setFilter('Re-Open'),
                                   )),
                               Obx(() => FilterTab(
                                     label: 'Cancelled',
-                                    count: controller.links.firstWhere(
-                                      (link) => link.type == 'CAN',
-                                      orElse: () => Link(type: 'CAN', title: 'Canceled', count: 0),
-                                    ).count,
-                                    isSelected: controller.selectedFilter.value == 'Cancelled',
-                                    onTap: () => controller.setFilter('Cancelled'),
+                                    count: controller.links
+                                        .firstWhere(
+                                          (link) => link.type == 'CAN',
+                                          orElse: () => Link(
+                                              type: 'CAN',
+                                              title: 'Canceled',
+                                              count: 0),
+                                        )
+                                        .count,
+                                    isSelected:
+                                        controller.selectedFilter.value ==
+                                            'Cancelled',
+                                    onTap: () =>
+                                        controller.setFilter('Cancelled'),
                                   )),
                               Obx(() => FilterTab(
                                     label: 'All',
-                                    count: controller.links.firstWhere(
-                                      (link) => link.type == 'ALL',
-                                      orElse: () => Link(type: 'ALL', title: 'All', count: controller.tickets.length),
-                                    ).count,
-                                    isSelected: controller.selectedFilter.value == 'All',
+                                    count: controller.links
+                                        .firstWhere(
+                                          (link) => link.type == 'ALL',
+                                          orElse: () => Link(
+                                              type: 'ALL',
+                                              title: 'All',
+                                              count: controller.tickets.length),
+                                        )
+                                        .count,
+                                    isSelected:
+                                        controller.selectedFilter.value ==
+                                            'All',
                                     onTap: () => controller.setFilter('All'),
                                   )),
                             ],
@@ -153,7 +233,8 @@ class _TicketDashboardScreenState extends State<TicketDashboardScreen> {
                               physics: const NeverScrollableScrollPhysics(),
                               itemCount: controller.filteredTickets.length,
                               itemBuilder: (context, index) {
-                                final ticket = controller.filteredTickets[index];
+                                final ticket =
+                                    controller.filteredTickets[index];
                                 return Stack(
                                   children: [
                                     TicketCard(
@@ -167,9 +248,11 @@ class _TicketDashboardScreenState extends State<TicketDashboardScreen> {
                                       phoneNumber: ticket.phoneNumber,
                                       assignedTo: ticket.assignedTo,
                                       serviceLabel: ticket.serviceLabel,
-                                      isQuickRequest: ticket.isQuickRequest ?? false,
+                                      isQuickRequest:
+                                          ticket.isQuickRequest ?? false,
                                       uuid: ticket.uuid,
-                                      onTap: () => controller.navigateToDetail(ticket),
+                                      onTap: () =>
+                                          controller.navigateToDetail(ticket),
                                     ),
                                   ],
                                 );
@@ -183,11 +266,6 @@ class _TicketDashboardScreenState extends State<TicketDashboardScreen> {
               ],
             ),
           ),
-        ),
-        floatingActionButton: FloatingActionButton(
-          onPressed: () {},
-          backgroundColor: AppColors.primaryColor,
-          child: const Icon(Icons.add),
         ),
       ),
     );

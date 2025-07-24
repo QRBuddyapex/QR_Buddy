@@ -6,11 +6,13 @@ import 'package:qr_buddy/app/modules/daily_checklist/bindings/daily_checklist_bi
 import 'package:qr_buddy/app/modules/daily_checklist/views/daily_checklist_view.dart';
 import 'package:qr_buddy/app/modules/e_ticket/bindings/ticket_dashboard_binding.dart';
 import 'package:qr_buddy/app/modules/e_ticket/views/accept_ticket_screen.dart';
+import 'package:qr_buddy/app/modules/e_ticket/views/qr_scan_screen.dart';
 import 'package:qr_buddy/app/modules/e_ticket/views/ticket_dashboard_screen.dart';
 import 'package:qr_buddy/app/modules/e_ticket/views/ticket_details_screen.dart';
-import 'package:qr_buddy/app/modules/e_ticket/views/qr_scan_screen.dart';
 import 'package:qr_buddy/app/modules/new_ticket/bindings/new_ticket_bindings.dart';
 import 'package:qr_buddy/app/modules/new_ticket/views/new_ticket_screen.dart';
+import 'package:qr_buddy/app/modules/quality_rounds/bindings/quality_rounds_binding.dart';
+import 'package:qr_buddy/app/modules/quality_rounds/views/quality_rounds_view.dart';
 import 'package:qr_buddy/app/routes/routes.dart';
 
 class AppRoutes {
@@ -40,6 +42,13 @@ class AppRoutes {
           name: RoutesName.dailyChecklistView,
           page: () => const DailyChecklistView(),
           binding: DailyChecklistBinding(),
+          transition: Transition.leftToRight,
+          transitionDuration: const Duration(milliseconds: 250),
+        ),
+        GetPage(
+          name: RoutesName.qualityRoundsScreen,
+          page: () => const QualityRoundsView(),
+          binding: QualityRoundsBinding(),
           transition: Transition.leftToRight,
           transitionDuration: const Duration(milliseconds: 250),
         ),

@@ -8,15 +8,20 @@ class CustomTextField extends StatelessWidget {
   final Function(String) onChanged;
   final String? Function(String?)? validator;
   final String? initialValue;
+  final int? maxLines;
+  final TextInputType? keyboardType;
 
   const CustomTextField({
     Key? key,
      this.label,
     required this.hintText,
+    this.keyboardType = 
+        TextInputType.text,
     this.obscureText = false,
     required this.onChanged,
     this.validator,
     this.initialValue,
+    this.maxLines,
   }) : super(key: key);
 
   @override
@@ -35,9 +40,10 @@ class CustomTextField extends StatelessWidget {
           ),
           const SizedBox(height: 4),
           TextFormField(
+            maxLines: maxLines ?? 1,
             initialValue: initialValue,
             obscureText: obscureText,
-            keyboardType: TextInputType.text,
+            keyboardType:keyboardType,
             onChanged: onChanged,
             decoration: InputDecoration(
               hintText: hintText,

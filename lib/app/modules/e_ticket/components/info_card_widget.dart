@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import 'package:qr_buddy/app/core/theme/app_theme.dart';
 import 'package:qr_buddy/app/modules/e_ticket/components/ticket_card.dart';
 import 'package:qr_buddy/app/modules/e_ticket/controllers/ticket_controller.dart';
+import 'package:qr_buddy/app/routes/routes.dart';
 
 class InfoCardContentWidget extends StatelessWidget {
   const InfoCardContentWidget({Key? key}) : super(key: key);
@@ -124,7 +125,7 @@ class InfoCardContentWidget extends StatelessWidget {
               ),
               ElevatedButton(
                 onPressed: () {
-                  Get.snackbar('QR', 'QR code for ${delivery['roomId']} generated');
+                  Get.toNamed(RoutesName.qualityRoundsScreen);
                 },
                 child: Icon(
                   Icons.qr_code,

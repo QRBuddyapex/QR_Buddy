@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:qr_buddy/app/core/config/token_storage.dart';
 import 'package:qr_buddy/app/core/theme/app_theme.dart';
+import 'package:qr_buddy/app/core/utils/snackbar.dart';
 import 'package:qr_buddy/app/data/repo/auth_repo.dart';
 import 'package:qr_buddy/app/modules/e_ticket/controllers/shift_controller.dart'; // Import the new controller
 import 'package:qr_buddy/app/routes/routes.dart';
@@ -182,7 +183,13 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
               ),
               IconButton(
                 icon: const Icon(Icons.brightness_6, color: AppColors.hintTextColor),
-                onPressed: onBrightnessPressed,
+                onPressed: (){
+                  // onBrightnessPressed
+                    CustomSnackbar.info(
+                              'Coming Soon',
+                              
+                              );
+                  },
               ),
               IconButton(
                 icon: const Icon(Icons.location_on, color: AppColors.hintTextColor),

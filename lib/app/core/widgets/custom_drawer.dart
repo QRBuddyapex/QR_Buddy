@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:qr_buddy/app/core/config/token_storage.dart';
 import 'package:qr_buddy/app/core/theme/app_theme.dart';
+import 'package:qr_buddy/app/core/utils/snackbar.dart';
 import 'package:qr_buddy/app/routes/routes.dart';
 
 
@@ -64,25 +65,35 @@ class _CustomDrawerState extends State<CustomDrawer> {
             ListTile(
               leading: const Icon(Icons.dashboard),
               title: const Text('Dashboard'),
-              onTap: () {},
+              onTap: () {
+                Get.toNamed(RoutesName.ticketDashboardView);
+                Get.back();
+                
+              },
             ),
             ListTile(
               leading: const Icon(Icons.qr_code),
               title: const Text('QR Locator'),
               subtitle: const Text('Search your location'),
-              onTap: () {},
+              onTap: () {
+                CustomSnackbar.info("This Service is not implemented yet(Coming Soon)");
+              },
             ),
             const Divider(),
             ListTile(
               leading: const Icon(Icons.task),
               title: const Text('Task Manager'),
-              onTap: () {},
+              onTap: () {
+                 CustomSnackbar.info("This Service is not implemented yet(Coming Soon)");
+              },
             ),
             ListTile(
               selected: true,
               leading: const Icon(Icons.event_note),
               title: const Text('eTickets'),
-              onTap: () {},
+              onTap: () {
+                 CustomSnackbar.info("This Service is not implemented yet(Coming Soon)");
+              },
               trailing: const Icon(Icons.arrow_drop_down),
               tileColor: AppColors.primaryColor.withOpacity(0.1),
             ),

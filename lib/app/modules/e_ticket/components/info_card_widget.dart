@@ -31,26 +31,26 @@ class InfoCardContentWidget extends StatelessWidget {
               fontSize: size.width * 0.05,
             ),
           ),
-          Row(
-            children: [
-              IconButton(
-                icon: Icon(
-                  Icons.refresh,
-                  color: AppColors.hintTextColor,
-                  size: size.width * 0.06,
-                ),
-                onPressed: onRefresh,
-              ),
-              IconButton(
-                icon: Icon(
-                  Icons.delete,
-                  color: AppColors.hintTextColor,
-                  size: size.width * 0.06,
-                ),
-                onPressed: () {},
-              ),
-            ],
-          ),
+          // Row(
+          //   children: [
+          //     IconButton(
+          //       icon: Icon(
+          //         Icons.refresh,
+          //         color: AppColors.hintTextColor,
+          //         size: size.width * 0.06,
+          //       ),
+          //       onPressed: onRefresh,
+          //     ),
+          //     IconButton(
+          //       icon: Icon(
+          //         Icons.delete,
+          //         color: AppColors.hintTextColor,
+          //         size: size.width * 0.06,
+          //       ),
+          //       onPressed: () {},
+          //     ),
+          //   ],
+          // ),
         ],
       ),
     );

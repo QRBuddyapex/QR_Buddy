@@ -280,6 +280,7 @@ class _qrbuddyDashboardWidgetState extends State<qrbuddyDashboardWidget>
               Icons.checklist_rtl_outlined,
               size,
               textTheme,
+             isDisabled: true,
               _getLineColor(controller.missed.value),
             ),
             _infoCard(

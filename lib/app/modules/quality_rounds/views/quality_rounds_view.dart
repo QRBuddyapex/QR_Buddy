@@ -1,4 +1,4 @@
-// quality_rounds_view.dart
+
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:qr_buddy/app/core/theme/app_theme.dart';
@@ -323,7 +323,7 @@ class QualityRoundsView extends GetView<QualityRoundsController> {
                     .map((param) => _buildFormField(param, controller))
                     .toList(),
                 const SizedBox(height: 16),
-                // Display average rating
+                
                 Center(
                   child: Container(
                     padding: const EdgeInsets.all(20.0),
@@ -355,7 +355,7 @@ class QualityRoundsView extends GetView<QualityRoundsController> {
                 CustomButton(
                   text: controller.isSubmitting.value ? 'Submitting...' : 'Submit',
                   onPressed: () async {
-                    await controller.onSubmit(averageRating as int);
+                    await controller.onSubmit(averageRating as double);
                   },
                   color: AppColors.primaryColor,
                 ),

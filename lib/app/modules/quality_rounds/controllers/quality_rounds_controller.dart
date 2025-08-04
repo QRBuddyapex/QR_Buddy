@@ -30,7 +30,7 @@ class QualityRoundsController extends GetxController {
         hcoId: hcoId,
       );
       formModel.value = form;
-      // Initialize formData with values from the GET API response
+      
       formData.value = {
         for (var param in form.parameters)
           param.parameterName!: param.valueString!.isNotEmpty
@@ -48,7 +48,8 @@ class QualityRoundsController extends GetxController {
     formData[key] = value;
   }
 
-  Future<void> onSubmit() async {
+  Future<void> onSubmit(double averageRating) async {
+    
     if (formModel.value == null) return;
 
     isSubmitting.value = true;
@@ -62,6 +63,7 @@ class QualityRoundsController extends GetxController {
         hcoId: hcoId,
         parameters: formData,
         formParameters: formModel.value!.parameters,
+        averageRating: averageRating.toString(),
       
       );
       Get.snackbar(

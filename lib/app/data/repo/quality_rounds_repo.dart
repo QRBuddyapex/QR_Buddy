@@ -1,4 +1,4 @@
-// quality_rounds_repo.dart
+
 import 'package:dio/dio.dart';
 import 'package:qr_buddy/app/core/config/api_config.dart';
 import 'package:qr_buddy/app/core/config/token_storage.dart';
@@ -43,6 +43,7 @@ class QualityRoundsRepository {
     required String categoryUuid,
     required String userId,
     required String hcoId,
+    required String averageRating,
     required Map<String, dynamic> parameters,
     required List<Parameter> formParameters,
   
@@ -82,9 +83,9 @@ class QualityRoundsRepository {
         'source': 'QR',
         'status_update': 'END',
         'user_id_login': 0,
-        'rating': 3.33, // Optional, add if required
-        'remarks': '', // Optional, add if required
-        'stock_uuid': '-', // Optional, add if required
+        'rating':averageRating, 
+        'remarks': '',
+        'stock_uuid': '-', 
       };
 
       final response = await _apiService.post(

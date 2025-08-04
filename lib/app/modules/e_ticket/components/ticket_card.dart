@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:qr_buddy/app/core/theme/app_theme.dart';
+import 'package:qr_buddy/app/core/utils/snackbar.dart';
 
 class TicketCard extends StatefulWidget {
   final String orderNumber;
@@ -205,7 +206,12 @@ class _TicketCardState extends State<TicketCard> {
                         children: [
                           IconButton(
                             icon: const Icon(Icons.qr_code, color: Colors.blue),
-                            onPressed: () {},
+                            onPressed: () {
+                              CustomSnackbar.info(
+                              'QR Code for ${widget.orderNumber}Coming Soon',
+                              
+                              );
+                            },
                           ),
                           Text(
                             widget.serviceLabel,

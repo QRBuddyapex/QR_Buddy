@@ -1,15 +1,18 @@
+
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:qr_buddy/app/core/config/token_storage.dart';
 import 'package:qr_buddy/app/core/services/api_service.dart';
 import 'package:qr_buddy/app/core/theme/app_theme.dart';
-import 'package:qr_buddy/app/core/widgets/custom_buttom.dart';
+import 'package:qr_buddy/app/core/utils/snackbar.dart';
 import 'package:qr_buddy/app/data/models/order_details_model.dart' as orderModel;
 import 'package:qr_buddy/app/data/models/ticket.dart';
 import 'package:qr_buddy/app/data/repo/ticket_details_repo.dart';
+import 'package:qr_buddy/app/modules/e_ticket/components/history_widget.dart';
 import 'package:qr_buddy/app/modules/e_ticket/controllers/ticket_controller.dart';
 import 'package:qr_buddy/app/routes/routes.dart';
+import 'package:shimmer/shimmer.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class TicketDetailScreen extends StatefulWidget {
@@ -63,13 +66,7 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
       setState(() {
         _isLoading = false;
       });
-      Get.snackbar(
-        'Error',
-        'Failed to fetch order details: $e',
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Colors.red.withOpacity(0.8),
-        colorText: Colors.white,
-      );
+      CustomSnackbar.error('Failed to fetch order details: $e');
     }
   }
 
@@ -81,338 +78,628 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
       _fetchOrderDetails();
     }
   }
-Future<void> _launchPhone(String phoneNumber) async {
-  final Uri url = Uri.parse('tel:$phoneNumber');
-  try {
-    if (await canLaunchUrl(url)) {
-      await launchUrl(url);
-    } else {
-      Get.snackbar(
-        'Error',
-        'Could not launch dialer. Please check permissions or try again.',
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Colors.red.withOpacity(0.8),
-        colorText: Colors.white,
-      );
+
+  Future<void> _launchPhone(String phoneNumber) async {
+    final Uri url = Uri.parse('tel:$phoneNumber');
+    try {
+      if (await canLaunchUrl(url)) {
+        await launchUrl(url);
+      } else {
+        CustomSnackbar.error('Could not launch dialer. Please check permissions or try again.');
+      }
+    } catch (e) {
+      CustomSnackbar.error('Failed to open dialer: $e');
     }
-  } catch (e) {
-    Get.snackbar(
-      'Error',
-      'Failed to open dialer: $e',
-      snackPosition: SnackPosition.BOTTOM,
-      backgroundColor: Colors.red.withOpacity(0.8),
-      colorText: Colors.white,
-    );
   }
 
-  }
   void _showActiveUserDialog(BuildContext context, orderModel.ActiveUser activeUser) {
-  showDialog(
-    context: context,
-    builder: (BuildContext context) {
-      // Check if user is available
-      bool isUserAvailable = activeUser.shiftStatus != 'END';
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        bool isUserAvailable = activeUser.shiftStatus != 'END';
 
-      return AlertDialog(
-        backgroundColor: AppColors.cardBackgroundColor,
-        title: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text(
-              activeUser.username,
-              style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                    color: AppColors.textColor,
-                    fontWeight: FontWeight.bold,
-                  ),
-            ),
-            IconButton(
-              icon: const Icon(Icons.close, color: AppColors.hintTextColor),
-              onPressed: () => Navigator.of(context).pop(),
-            ),
-          ],
-        ),
-        content: SingleChildScrollView(
-          child: Center( // Center the entire content
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.center, // Center horizontally
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center, // Center the row content
-                  children: [
-                    Text(
-                      'Active Tasks: ${activeUser.activeTasks}',
-                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Colors.green),
+        return AlertDialog(
+          backgroundColor: isDarkMode ? AppColors.darkCardBackgroundColor : AppColors.cardBackgroundColor,
+          title: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                activeUser.username,
+                style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                      fontWeight: FontWeight.bold,
                     ),
-                    const SizedBox(width: 10), // Add spacing between elements
-                    Text(
-                      activeUser.shiftStatus == 'END' ? 'Not Available' : 'Available',
-                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                            color: activeUser.shiftStatus == 'END' ? Colors.red : Colors.green,
-                            fontWeight: FontWeight.bold,
-                          ),
-                    ),
-                  ],
+              ),
+              IconButton(
+                icon: Icon(
+                  Icons.close,
+                  color: Theme.of(context).iconTheme.color,
                 ),
-                const SizedBox(height: 20),
-                Text(
-                  'Do you want to assign\nthis task to:\n${activeUser.username}',
-                  style: Theme.of(context).textTheme.bodyLarge?.copyWith(color: Colors.black),
-                  textAlign: TextAlign.center, // Center the text
-                ),
-                const SizedBox(height: 20),
-                if (isUserAvailable) ...[
-                  Column(
-                    mainAxisAlignment: MainAxisAlignment.center, // Center the buttons vertically
+                onPressed: () => Navigator.of(context).pop(),
+              ),
+            ],
+          ),
+          content: SingleChildScrollView(
+            child: Center(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center, // Center the buttons horizontally
-                        children: [
-                          SizedBox(
-                            width: 100,
-                            child: ElevatedButton(
-                              onPressed: () async {
-                                try {
-                                  final userId = await TokenStorage().getUserId() ?? '';
-                                  final hcoId = await TokenStorage().getHcoId() ?? '';
-                                  final orderId = _orderDetailResponse?.order.id ?? '';
-                                  final response = await _repository.assignTaskTo(
-                                    userId: userId,
-                                    hcoId: hcoId,
-                                    orderId: orderId,
-                                    assignedTo: activeUser.id,
-                                    phoneUuid: '5678b6baf95911ef8b460200d429951a',
-                                    hcoKey: '0',
-                                  );
-                                  Navigator.of(context).pop();
-                                  Get.snackbar(
-                                    'Success',
-                                    'Task assigned successfully to ${activeUser.username}',
-                                    snackPosition: SnackPosition.BOTTOM,
-                                    backgroundColor: Colors.green.withOpacity(0.8),
-                                    colorText: Colors.white,
-                                  );
-                                  _fetchOrderDetails();
-                                } catch (e) {
-                                    Navigator.of(context).pop();
-                                  
-                                  Get.snackbar(
-                                    'Success',
-                                    'Task assigned successfully to ${activeUser.username}',
-                                    snackPosition: SnackPosition.BOTTOM,
-                                    backgroundColor: Colors.green.withOpacity(0.8),
-                                    colorText: Colors.white,
-                                  );
-                                    _fetchOrderDetails();
-                                 
-                                }
-                              },
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: AppColors.primaryColor,
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(20),
-                                ),
-                              ),
-                              child: Text(
-                                'Assign Task',
-                                style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                      color: Colors.white,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                              ),
-                            ),
-                          ),
-                          const SizedBox(width: 10), // Add spacing between buttons
-                          SizedBox(
-                            width: 100,
-                            child: ElevatedButton(
-                              onPressed: () => _launchPhone(activeUser.phoneNumber ?? ''),
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: Colors.red,
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(20),
-                                ),
-                              ),
-                              child: Text(
-                                'Call ${activeUser.username.split('@').first}',
-                                style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                      color: Colors.white,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                              ),
-                            ),
-                          ),
-                        ],
+                      Text(
+                        'Active Tasks: ${activeUser.activeTasks}',
+                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Colors.green),
                       ),
-                    ],
-                  ),
-                ] else ...[
-                  SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton(
-                      onPressed: () {
-                        Navigator.of(context).pop();
-                        showDialog(
-                          context: context,
-                          builder: (BuildContext context) {
-                            return AlertDialog(
-                              backgroundColor: AppColors.cardBackgroundColor,
-                              title: Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Icon(Icons.close, color: Colors.red, size: 40),
-                                ],
-                              ),
-                              content: Text(
-                                "Can't assign task to this user",
-                                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                      color: Colors.red,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                textAlign: TextAlign.center,
-                              ),
-                              actions: [
-                                Center(
-                                  child: ElevatedButton(
-                                    onPressed: () => Navigator.of(context).pop(),
-                                    style: ElevatedButton.styleFrom(
-                                      backgroundColor: AppColors.primaryColor,
-                                      shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(20),
-                                      ),
-                                    ),
-                                    child: Text(
-                                      'OK',
-                                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                            color: Colors.white,
-                                            fontWeight: FontWeight.bold,
-                                          ),
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            );
-                          },
-                        );
-                      },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.primaryColor.withOpacity(0.5),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(20),
-                        ),
-                      ),
-                      child: Text(
-                        'Assign Task (Unavailable)',
+                      const SizedBox(width: 10),
+                      Text(
+                        activeUser.shiftStatus == 'END' ? 'Not Available' : 'Available',
                         style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                              color: Colors.white,
+                              color: activeUser.shiftStatus == 'END' ? Colors.red : Colors.green,
                               fontWeight: FontWeight.bold,
                             ),
                       ),
-                    ),
+                    ],
                   ),
+                  const SizedBox(height: 20),
+                  Text(
+                    'Do you want to assign\nthis task to:\n${activeUser.username}',
+                    style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                          color: isDarkMode ? AppColors.darkTextColor : AppColors.textColor,
+                        ),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 20),
+                  if (isUserAvailable) ...[
+                    Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            SizedBox(
+                              width: 100,
+                              child: ElevatedButton(
+                                onPressed: () async {
+                                  try {
+                                    final userId = await TokenStorage().getUserId() ?? '';
+                                    final hcoId = await TokenStorage().getHcoId() ?? '';
+                                    final orderId = _orderDetailResponse?.order.id ?? '';
+                                    final response = await _repository.assignTaskTo(
+                                      userId: userId,
+                                      hcoId: hcoId,
+                                      orderId: orderId,
+                                      assignedTo: activeUser.id,
+                                      phoneUuid: '5678b6baf95911ef8b460200d429951a',
+                                      hcoKey: '0',
+                                    );
+                                    Navigator.of(context).pop();
+                                    CustomSnackbar.success('Task assigned successfully to ${activeUser.username}');
+                                    _fetchOrderDetails();
+                                  } catch (e) {
+                                    Navigator.of(context).pop();
+                                    CustomSnackbar.error('Failed to assign task: $e');
+                                  }
+                                },
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: AppColors.primaryColor,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(20),
+                                  ),
+                                ),
+                                child: Text(
+                                  'Assign Task',
+                                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                        color: Colors.white,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 10),
+                            SizedBox(
+                              width: 100,
+                              child: ElevatedButton(
+                                onPressed: () => _launchPhone(activeUser.phoneNumber ?? ''),
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: Colors.red,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(20),
+                                  ),
+                                ),
+                                child: Text(
+                                  'Call ${activeUser.username.split('@').first}',
+                                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                        color: Colors.white,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ] else ...[
+                    SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton(
+                        onPressed: () {
+                          Navigator.of(context).pop();
+                          showDialog(
+                            context: context,
+                            builder: (BuildContext context) {
+                              return AlertDialog(
+                                backgroundColor: isDarkMode ? AppColors.darkCardBackgroundColor : AppColors.cardBackgroundColor,
+                                title: Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Icon(Icons.close, color: Colors.red, size: 40),
+                                  ],
+                                ),
+                                content: Text(
+                                  "Can't assign task to this user",
+                                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                        color: Colors.red,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                  textAlign: TextAlign.center,
+                                ),
+                                actions: [
+                                  Center(
+                                    child: ElevatedButton(
+                                      onPressed: () => Navigator.of(context).pop(),
+                                      style: ElevatedButton.styleFrom(
+                                        backgroundColor: AppColors.primaryColor,
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius: BorderRadius.circular(20),
+                                        ),
+                                      ),
+                                      child: Text(
+                                        'OK',
+                                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                              color: Colors.white,
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              );
+                            },
+                          );
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppColors.primaryColor.withOpacity(0.5),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                        ),
+                        child: Text(
+                          'Assign Task (Unavailable)',
+                          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold,
+                              ),
+                        ),
+                      ),
+                    ),
+                  ],
                 ],
-              ],
+              ),
             ),
           ),
-        ),
-      );
-    },
-  );
-}
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Theme(
-      data: AppTheme.theme,
-      child: Scaffold(
-        backgroundColor: AppColors.backgroundColor,
-        appBar: AppBar(
-          title: Text(
-            widget.ticket.orderNumber,
-            style: Theme.of(context).textTheme.headlineSmall,
-          ),
-          backgroundColor: AppColors.cardBackgroundColor,
-          leading: IconButton(
-            icon: const Icon(Icons.arrow_back, color: AppColors.hintTextColor),
-            onPressed: () => Get.back(),
-          ),
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+    return Scaffold(
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+      appBar: AppBar(
+        title: Text(
+          widget.ticket.orderNumber,
+          style: Theme.of(context).textTheme.headlineSmall,
         ),
-        body: _isLoading
-            ? const Center(child: CircularProgressIndicator())
-            : _orderDetailResponse == null
-                ? const Center(child: Text('Failed to load order details'))
-                : RefreshIndicator(
-                    onRefresh: _fetchOrderDetails,
-                    color: AppColors.primaryColor,
-                    child: _buildOrderDetailContent(context),
-                  ),
+        backgroundColor: isDarkMode ? AppColors.darkCardBackgroundColor : AppColors.cardBackgroundColor,
+        leading: IconButton(
+          icon: Icon(
+            Icons.arrow_back,
+            color: Theme.of(context).iconTheme.color,
+          ),
+          onPressed: () => Get.back(),
+        ),
       ),
+      body: _isLoading
+          ? Shimmer.fromColors(
+              baseColor: isDarkMode ? AppColors.darkBorderColor : Colors.grey[300]!,
+              highlightColor: isDarkMode ? AppColors.darkCardBackgroundColor : Colors.grey[100]!,
+              child: SingleChildScrollView(
+                padding: EdgeInsets.all(MediaQuery.of(context).size.width * 0.04),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Container(
+                      height: MediaQuery.of(context).size.height * 0.15,
+                      decoration: BoxDecoration(
+                        color: isDarkMode ? AppColors.darkCardBackgroundColor : AppColors.cardBackgroundColor,
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                    SizedBox(height: MediaQuery.of(context).size.height * 0.02),
+                    Container(
+                      height: MediaQuery.of(context).size.height * 0.25,
+                      decoration: BoxDecoration(
+                        color: isDarkMode ? AppColors.darkCardBackgroundColor : AppColors.cardBackgroundColor,
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                    SizedBox(height: MediaQuery.of(context).size.height * 0.02),
+                    Container(
+                      height: MediaQuery.of(context).size.height * 0.1,
+                      decoration: BoxDecoration(
+                        color: isDarkMode ? AppColors.darkCardBackgroundColor : AppColors.cardBackgroundColor,
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                    SizedBox(height: MediaQuery.of(context).size.height * 0.02),
+                    Container(
+                      height: MediaQuery.of(context).size.height * 0.15,
+                      decoration: BoxDecoration(
+                        color: isDarkMode ? AppColors.darkCardBackgroundColor : AppColors.cardBackgroundColor,
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            )
+          : _orderDetailResponse == null
+              ? const Center(child: Text('Failed to load order details'))
+              : RefreshIndicator(
+                  onRefresh: _fetchOrderDetails,
+                  color: AppColors.primaryColor,
+                  child: SingleChildScrollView(
+                    padding: EdgeInsets.all(MediaQuery.of(context).size.width * 0.04),
+                    child: ConstrainedBox(
+                      constraints: BoxConstraints(
+                        maxWidth: MediaQuery.of(context).size.width,
+                      ),
+                      child: _buildOrderDetailContent(context),
+                    ),
+                  ),
+                ),
     );
   }
 
   Widget _buildOrderDetailContent(BuildContext context) {
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
     final order = _orderDetailResponse!.order;
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(16.0),
-      child: Card(
-        color: AppColors.cardBackgroundColor,
-        elevation: 2,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
+    final isAssigned = order.requestStatus == 'ASI';
+    final isAccepted = order.requestStatus == 'ACC';
+    final orderId = order.id ?? '';
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Container(
+          padding: EdgeInsets.all(MediaQuery.of(context).size.width * 0.04),
+          decoration: BoxDecoration(
+            color: isDarkMode ? AppColors.darkCardBackgroundColor : AppColors.cardBackgroundColor,
+            borderRadius: BorderRadius.circular(12),
+            boxShadow: [
+              BoxShadow(
+                color: isDarkMode ? AppColors.darkShadowColor : AppColors.shadowColor,
+                blurRadius: 6,
+              ),
+            ],
+          ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _buildInfoRow(Icons.person, order.requestNumber, Icons.location_on),
-              const SizedBox(height: 10),
-              _buildPhoneRow(order.phoneNumber),
-              const SizedBox(height: 10),
-              _buildPriorityRow(order.priority),
-              const SizedBox(height: 10),
-              _buildInfoTextRow('Department', order.departmentName),
-              const SizedBox(height: 10),
-              _buildInfoTextRow('Location', '${order.blockName}/${order.floorName}'),
-              const SizedBox(height: 10),
-              _buildInfoTextRow('Date/Time', '${order.createdAtDate} ${order.createdAt}'),
-              const SizedBox(height: 10),
-              _buildInfoTextRow('Assigned to', order.assignedToUsername),
-              const SizedBox(height: 20),
-              Text(order.serviceName, style: Theme.of(context).textTheme.headlineSmall),
-              const SizedBox(height: 10),
-              Text('${order.blockName}/${order.floorName}', style: Theme.of(context).textTheme.bodyMedium),
-              const SizedBox(height: 20),
-              _buildActionButtons(context),
-              const SizedBox(height: 20),
-              Text('Assign task to', style: Theme.of(context).textTheme.headlineSmall),
-              const SizedBox(height: 10),
-              _buildAvailableUsersList(context),
-              const SizedBox(height: 20),
-              Text('History', style: Theme.of(context).textTheme.headlineSmall),
-              const SizedBox(height: 10),
-              _buildHistoryList(context),
-              const SizedBox(height: 20),
+              Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      order.requestNumber,
+                      style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+                    ),
+                  ),
+                  _buildPriorityBadge(order.priority),
+                ],
+              ),
+              SizedBox(height: MediaQuery.of(context).size.height * 0.01),
+              Row(
+                children: [
+                  Icon(
+                    Icons.location_on,
+                    size: 18,
+                    color: Theme.of(context).iconTheme.color,
+                  ),
+                  SizedBox(width: MediaQuery.of(context).size.width * 0.015),
+                  Text(
+                    '${order.blockName}/${order.floorName}',
+                    style: Theme.of(context).textTheme.bodyMedium,
+                  ),
+                ],
+              ),
+              SizedBox(height: MediaQuery.of(context).size.height * 0.005),
+              Row(
+                children: [
+                  Icon(
+                    Icons.access_time,
+                    size: 18,
+                    color: Theme.of(context).iconTheme.color,
+                  ),
+                  SizedBox(width: MediaQuery.of(context).size.width * 0.015),
+                  Text(
+                    '${order.createdAtDate} ${order.createdAt}',
+                    style: Theme.of(context).textTheme.bodyMedium,
+                  ),
+                ],
+              ),
             ],
           ),
+        ),
+        SizedBox(height: MediaQuery.of(context).size.height * 0.02),
+        Container(
+          padding: EdgeInsets.all(MediaQuery.of(context).size.width * 0.04),
+          decoration: BoxDecoration(
+            color: isDarkMode ? AppColors.darkCardBackgroundColor : AppColors.cardBackgroundColor,
+            borderRadius: BorderRadius.circular(12),
+            boxShadow: [
+              BoxShadow(
+                color: isDarkMode ? AppColors.darkShadowColor : AppColors.shadowColor,
+                blurRadius: 6,
+              ),
+            ],
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                order.serviceName,
+                style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+              ),
+              SizedBox(height: MediaQuery.of(context).size.height * 0.01),
+              _buildInfoTextRow('Department', order.departmentName),
+              SizedBox(height: MediaQuery.of(context).size.height * 0.01),
+              _buildPhoneRow(order.phoneNumber),
+              SizedBox(height: MediaQuery.of(context).size.height * 0.01),
+              _buildInfoTextRow('Location', '${order.blockName}/${order.floorName}'),
+              SizedBox(height: MediaQuery.of(context).size.height * 0.01),
+              _buildInfoTextRow('Assigned to', order.assignedToUsername),
+            ],
+          ),
+        ),
+        SizedBox(height: MediaQuery.of(context).size.height * 0.02),
+        if (_showInitialButtons) ...[
+          if (isAssigned && !isAccepted) ...[
+            Padding(
+              padding: EdgeInsets.symmetric(horizontal: MediaQuery.of(context).size.width * 0.04),
+              child: _buildMainButton(context, 'Accept', Colors.blue, () {
+                Get.toNamed(RoutesName.acceptTicketScreen, arguments: widget.ticket);
+              }),
+            ),
+            SizedBox(height: MediaQuery.of(context).size.height * 0.01),
+            Padding(
+              padding: EdgeInsets.symmetric(horizontal: MediaQuery.of(context).size.width * 0.04),
+              child: _buildMainButton(context, 'Complete Task', AppColors.statusButtonColor, () {
+                ticketController.showConfirmationDialog(
+                  context,
+                  'Complete',
+                  () => ticketController.showActionFormDialog(
+                    context,
+                    'Complete',
+                    widget.ticket.orderNumber,
+                    widget.ticket.serviceLabel,
+                    orderId,
+                    onSuccess: (response) => _updateButtonVisibility('Complete', response),
+                  ),
+                );
+              }),
+            ),
+            SizedBox(height: MediaQuery.of(context).size.height * 0.01),
+            Padding(
+              padding: EdgeInsets.symmetric(horizontal: MediaQuery.of(context).size.width * 0.04),
+              child: _buildMainButton(context, 'Hold Task', AppColors.holdButtonColor, () {
+                ticketController.showConfirmationDialog(
+                  context,
+                  'Hold',
+                  () => ticketController.showActionFormDialog(
+                    context,
+                    'Hold',
+                    widget.ticket.orderNumber,
+                    widget.ticket.serviceLabel,
+                    orderId,
+                    onSuccess: (response) => _updateButtonVisibility('Hold', response),
+                  ),
+                );
+              }),
+            ),
+            SizedBox(height: MediaQuery.of(context).size.height * 0.01),
+            Padding(
+              padding: EdgeInsets.symmetric(horizontal: MediaQuery.of(context).size.width * 0.04),
+              child: _buildMainButton(context, 'Cancel Task', AppColors.dangerButtonColor, () {
+                ticketController.showConfirmationDialog(
+                  context,
+                  'Cancel',
+                  () => ticketController.showActionFormDialog(
+                    context,
+                    'Cancel',
+                    widget.ticket.orderNumber,
+                    widget.ticket.serviceLabel,
+                    orderId,
+                    onSuccess: (response) => _updateButtonVisibility('Cancel', response),
+                  ),
+                );
+              }),
+            ),
+          ] else ...[
+            Padding(
+              padding: EdgeInsets.symmetric(horizontal: MediaQuery.of(context).size.width * 0.04),
+              child: _buildMainButton(context, 'Complete Task', AppColors.statusButtonColor, () {
+                ticketController.showConfirmationDialog(
+                  context,
+                  'Complete',
+                  () => ticketController.showActionFormDialog(
+                    context,
+                    'Complete',
+                    widget.ticket.orderNumber,
+                    widget.ticket.serviceLabel,
+                    orderId,
+                    onSuccess: (response) => _updateButtonVisibility('Complete', response),
+                  ),
+                );
+              }),
+            ),
+            SizedBox(height: MediaQuery.of(context).size.height * 0.01),
+            Padding(
+              padding: EdgeInsets.symmetric(horizontal: MediaQuery.of(context).size.width * 0.04),
+              child: _buildMainButton(context, 'Hold Task', AppColors.holdButtonColor, () {
+                ticketController.showConfirmationDialog(
+                  context,
+                  'Hold',
+                  () => ticketController.showActionFormDialog(
+                    context,
+                    'Hold',
+                    widget.ticket.orderNumber,
+                    widget.ticket.serviceLabel,
+                    orderId,
+                    onSuccess: (response) => _updateButtonVisibility('Hold', response),
+                  ),
+                );
+              }),
+            ),
+            SizedBox(height: MediaQuery.of(context).size.height * 0.01),
+            Padding(
+              padding: EdgeInsets.symmetric(horizontal: MediaQuery.of(context).size.width * 0.04),
+              child: _buildMainButton(context, 'Cancel Task', AppColors.dangerButtonColor, () {
+                ticketController.showConfirmationDialog(
+                  context,
+                  'Cancel',
+                  () => ticketController.showActionFormDialog(
+                    context,
+                    'Cancel',
+                    widget.ticket.orderNumber,
+                    widget.ticket.serviceLabel,
+                    orderId,
+                    onSuccess: (response) => _updateButtonVisibility('Cancel', response),
+                  ),
+                );
+              }),
+            ),
+          ],
+        ] else ...[
+          Padding(
+            padding: EdgeInsets.symmetric(horizontal: MediaQuery.of(context).size.width * 0.04),
+            child: _buildMainButton(context, 'Reopen', AppColors.statusButtonColor1, () {
+              ticketController.showConfirmationDialog(
+                context,
+                'Reopen',
+                () => ticketController.showActionFormDialog(
+                  context,
+                  'Reopen',
+                  widget.ticket.orderNumber,
+                  widget.ticket.serviceLabel,
+                  orderId,
+                  onSuccess: (response) => _updateButtonVisibility('Reopen', response),
+                ),
+              );
+            }),
+          ),
+          SizedBox(height: MediaQuery.of(context).size.height * 0.01),
+          Padding(
+            padding: EdgeInsets.symmetric(horizontal: MediaQuery.of(context).size.width * 0.04),
+            child: _buildMainButton(context, 'Verify', Colors.purple, () {
+              ticketController.showConfirmationDialog(
+                context,
+                'Verify',
+                () => ticketController.showActionFormDialog(
+                  context,
+                  'Verify',
+                  widget.ticket.orderNumber,
+                  widget.ticket.serviceLabel,
+                  orderId,
+                  onSuccess: (response) => _updateButtonVisibility('Verify', response),
+                ),
+              );
+            }),
+          ),
+        ],
+        SizedBox(height: MediaQuery.of(context).size.height * 0.02),
+        Text(
+          'Assign Tasks to:',
+          style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+        ),
+        SizedBox(height: MediaQuery.of(context).size.height * 0.01),
+        _buildAvailableUsersList(context),
+        SizedBox(height: MediaQuery.of(context).size.height * 0.02),
+        Text(
+          'Activity History',
+          style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+        ),
+        SizedBox(height: MediaQuery.of(context).size.height * 0.01),
+        HistoryListWidget(history: _orderDetailResponse!.history),
+        SizedBox(height: MediaQuery.of(context).size.height * 0.02),
+      ],
+    );
+  }
+
+  Widget _buildPriorityBadge(String priority) {
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+    return Container(
+      padding: EdgeInsets.symmetric(
+        horizontal: MediaQuery.of(context).size.width * 0.025,
+        vertical: MediaQuery.of(context).size.height * 0.01,
+      ),
+      decoration: BoxDecoration(
+        color: isDarkMode ? Colors.blue[900] : Colors.blue[50],
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Text(
+        priority == 'NOR' ? 'Normal Priority' : priority,
+        style: TextStyle(
+          color: isDarkMode ? Colors.blue[200] : Colors.blue[800],
+          fontWeight: FontWeight.bold,
         ),
       ),
     );
   }
 
-  Widget _buildInfoRow(IconData leadingIcon, String leadingText, IconData trailingIcon) {
-    return Row(
-      children: [
-        Icon(leadingIcon, color: AppColors.hintTextColor),
-        const SizedBox(width: 8),
-        Text(leadingText, style: Theme.of(context).textTheme.bodyMedium),
-        const Spacer(),
-        Icon(trailingIcon, color: AppColors.hintTextColor),
-      ],
+  Widget _buildMainButton(BuildContext context, String text, Color color, VoidCallback onPressed) {
+    return SizedBox(
+      width: MediaQuery.of(context).size.width * 0.9,
+      height: MediaQuery.of(context).size.height * 0.06,
+      child: ElevatedButton(
+        onPressed: onPressed,
+        style: ElevatedButton.styleFrom(
+          backgroundColor: color,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        ),
+        child: Text(
+          text,
+          style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
+              ),
+        ),
+      ),
     );
   }
 
   Widget _buildPhoneRow(String phoneNumber) {
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
     return Row(
       children: [
-        Text('Phone Number', style: Theme.of(context).textTheme.bodyMedium),
+        Text(
+          'Phone Number',
+          style: Theme.of(context).textTheme.bodyMedium,
+        ),
         const Spacer(),
         GestureDetector(
           onTap: () => _launchPhone(phoneNumber),
@@ -429,291 +716,109 @@ Future<void> _launchPhone(String phoneNumber) async {
     );
   }
 
-  Widget _buildPriorityRow(String priority) {
-    final isNormal = priority == 'NOR';
-    return Row(
-      children: [
-        Text('Priority', style: Theme.of(context).textTheme.bodyMedium),
-        const Spacer(),
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-          decoration: BoxDecoration(
-            color: Colors.blue[50],
-            borderRadius: BorderRadius.circular(10),
-          ),
-          child: Text(
-            isNormal ? 'Normal' : priority,
-            style: Theme.of(context).textTheme.bodySmall?.copyWith(color: AppColors.linkColor),
-          ),
-        ),
-      ],
-    );
-  }
-
   Widget _buildInfoTextRow(String label, String value) {
     return Row(
       children: [
-        Text(label, style: Theme.of(context).textTheme.bodyMedium),
-        const Spacer(),
-        Text(value, style: Theme.of(context).textTheme.bodyMedium),
-      ],
-    );
-  }
-
-  Widget _buildActionButtons(BuildContext context) {
-    final isAssigned = _orderDetailResponse?.order.requestStatus == 'ASI';
-    final isAccepted = _orderDetailResponse?.order.requestStatus == 'ACC';
-    final orderId = _orderDetailResponse?.order.id ?? '';
-
-    return Column(
-      children: [
-        if (_showInitialButtons) ...[
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: [
-              if (isAssigned && !isAccepted)
-                CustomButton(
-                  width: context.width * 0.22,
-                  onPressed: () {
-                    Get.toNamed(RoutesName.acceptTicketScreen, arguments: widget.ticket);
-                  },
-                  text: 'Accept',
-                  color: AppColors.primaryColor,
-                ),
-              CustomButton(
-                width: context.width * 0.22,
-                onPressed: () => ticketController.showConfirmationDialog(
-                  context,
-                  'Complete',
-                  () => ticketController.showActionFormDialog(
-                    context,
-                    'Complete',
-                    widget.ticket.orderNumber,
-                    widget.ticket.serviceLabel,
-                    orderId,
-                    onSuccess: (response) {
-                      _updateButtonVisibility('Complete', response);
-                    },
-                  ),
-                ),
-                text: 'Complete',
-                color: AppColors.statusButtonColor,
-              ),
-              CustomButton(
-                width: context.width * 0.22,
-                onPressed: () => ticketController.showConfirmationDialog(
-                  context,
-                  'Hold',
-                  () => ticketController.showActionFormDialog(
-                    context,
-                    'Hold',
-                    widget.ticket.orderNumber,
-                    widget.ticket.serviceLabel,
-                    orderId,
-                    onSuccess: (response) {
-                      _updateButtonVisibility('Hold', response);
-                    },
-                  ),
-                ),
-                text: 'Hold',
-                color: AppColors.holdButtonColor,
-              ),
-            ],
-          ),
-          const SizedBox(height: 10),
-          _buildCancelButton(context),
-        ] else ...[
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: [
-              CustomButton(
-                width: context.width * 0.22,
-                onPressed: () => ticketController.showConfirmationDialog(
-                  context,
-                  'Reopen',
-                  () => ticketController.showActionFormDialog(
-                    context,
-                    'Reopen',
-                    widget.ticket.orderNumber,
-                    widget.ticket.serviceLabel,
-                    orderId,
-                    onSuccess: (response) {
-                      _updateButtonVisibility('Reopen', response);
-                    },
-                  ),
-                ),
-                text: 'Reopen',
-                color: AppColors.statusButtonColor1,
-              ),
-              CustomButton(
-                width: context.width * 0.22,
-                onPressed: () => ticketController.showConfirmationDialog(
-                  context,
-                  'Verify',
-                  () => ticketController.showActionFormDialog(
-                    context,
-                    'Verify',
-                    widget.ticket.orderNumber,
-                    widget.ticket.serviceLabel,
-                    orderId,
-                    onSuccess: (response) {
-                      _updateButtonVisibility('Verify', response);
-                    },
-                  ),
-                ),
-                text: 'Verify',
-                color: Colors.purple,
-              ),
-            ],
-          ),
-        ],
-      ],
-    );
-  }
-
-  Widget _buildCancelButton(BuildContext context) {
-    final orderId = _orderDetailResponse?.order.id ?? '';
-    return Center(
-      child: CustomButton(
-        width: context.width * 0.22,
-        onPressed: () => ticketController.showConfirmationDialog(
-          context,
-          'Cancel',
-          () => ticketController.showActionFormDialog(
-            context,
-            'Cancel',
-            widget.ticket.orderNumber,
-            widget.ticket.serviceLabel,
-            orderId,
-            onSuccess: (response) {
-              _updateButtonVisibility('Cancel', response);
-            },
-          ),
+        Text(
+          label,
+          style: Theme.of(context).textTheme.bodyMedium,
         ),
-        text: 'Cancel',
-        color: AppColors.dangerButtonColor,
-      ),
+        const Spacer(),
+        Text(
+          value,
+          style: Theme.of(context).textTheme.bodyMedium,
+        ),
+      ],
     );
   }
 
   Widget _buildAvailableUsersList(BuildContext context) {
     final activeUsers = _orderDetailResponse?.activeUsers ?? [];
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
     if (activeUsers.isEmpty) {
-      return const Text(
+      return Text(
         'No available users',
-        style: TextStyle(color: AppColors.hintTextColor),
+        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+              color: isDarkMode ? AppColors.darkHintTextColor : AppColors.hintTextColor,
+            ),
       );
     }
-    return Column(
-      children: activeUsers.map((activeUser) => _buildActiveUserCard(context, activeUser)).toList(),
-    );
-  }
-
-  Widget _buildActiveUserCard(BuildContext context, orderModel.ActiveUser activeUser) {
-    return SafeArea(
-      child: GestureDetector(
-        onTap: () => _showActiveUserDialog(context, activeUser),
-        child: SizedBox(
-          height: context.height * 0.06,
-          width: double.infinity,
-          child: Card(
-            color: AppColors.whatsappIconColor,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                Text(
-                    activeUser.username.split('@').first,
-                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Colors.white),
-                ),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                  decoration: BoxDecoration(
-                    color: Colors.green[50],
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: Text(
-                    activeUser.activeTasks,
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(color: Colors.green),
-                  ),
-                ),
-                Text(
-                  activeUser.shiftStatus == 'END' ? 'Not Available' : 'Available',
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: activeUser.shiftStatus == 'END' ? Colors.red :  Colors.green[50],
-                        fontWeight: FontWeight.bold,
-                      ),
-                ),
-              ],
-            ),
-          ),
-        ),
+    return SizedBox(
+      height: MediaQuery.of(context).size.height * 0.11,
+      child: ListView.separated(
+        scrollDirection: Axis.horizontal,
+        itemCount: activeUsers.length,
+        separatorBuilder: (context, index) => SizedBox(width: MediaQuery.of(context).size.width * 0.05),
+        itemBuilder: (context, index) => _buildActiveUserCard(context, activeUsers[index]),
       ),
     );
   }
 
-  Widget _buildHistoryList(BuildContext context) {
-    final Map<String, ({IconData icon, Color color})> historyIconMap = {
-      'ESC': (icon: Icons.flag, color: AppColors.escalationIconColor),
-      'ASI': (icon: Icons.person_add, color: AppColors.assignmentIconColor),
-      'ACC': (icon: Icons.check_circle, color: AppColors.primaryColor),
-      'COMP': (icon: Icons.done_all, color: AppColors.statusButtonColor),
-      'HOLD': (icon: Icons.pause_circle, color: AppColors.holdButtonColor),
-      'CAN': (icon: Icons.cancel, color: AppColors.dangerButtonColor),
-      'REO': (icon: Icons.restart_alt, color: AppColors.statusButtonColor1),
-      'VER': (icon: Icons.verified, color: Colors.purple),
-    };
-
-    return ListView.builder(
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      itemCount: _orderDetailResponse!.history.length,
-      itemBuilder: (context, index) {
-        final history = _orderDetailResponse!.history[index];
-        final iconData = historyIconMap[history.type] ??
-            (icon: Icons.info, color: AppColors.hintTextColor);
-
-        return Stack(
-          children: [
-            Positioned(
-              left: context.width * 0.025689,
-              top: 0,
-              bottom: 0,
-              child: Container(
-                width: 2,
-                color: Colors.grey.withOpacity(0.3),
-              ),
-            ),
-            ListTile(
-              contentPadding: const EdgeInsets.symmetric(vertical: 4.0),
-              leading: Icon(
-                iconData.icon,
-                color: iconData.color,
-                size: 24,
-              ),
-              title: Row(
-                children: [
-                  Text(history.createdAt, style: Theme.of(context).textTheme.titleSmall),
-                  const SizedBox(width: 8),
-                  Text(history.createdAtDate, style: Theme.of(context).textTheme.bodySmall),
-                ],
-              ),
-              subtitle: Row(
-                children: [
-                  Expanded(
-                    child: Text(
-                      history.caption + (history.remarks.isNotEmpty ? ' ${history.remarks}' : ''),
-                      style: Theme.of(context).textTheme.bodySmall,
-                    ),
-                  ),
-                  if (history.statusWhatsapp == '1')
-                    Icon(Icons.check_circle, color: AppColors.whatsappIconColor, size: 16),
-                ],
-              ),
+  Widget _buildActiveUserCard(BuildContext context, orderModel.ActiveUser activeUser) {
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+    final isAvailable = activeUser.shiftStatus != 'END';
+    return GestureDetector(
+      onTap: () => _showActiveUserDialog(context, activeUser),
+      child: Container(
+        height: MediaQuery.of(context).size.height * 0.2,
+        width: MediaQuery.of(context).size.width * 0.4,
+        padding: EdgeInsets.all(MediaQuery.of(context).size.width * 0.03),
+        decoration: BoxDecoration(
+          color: isDarkMode ? AppColors.darkCardBackgroundColor : AppColors.cardBackgroundColor,
+          borderRadius: BorderRadius.circular(12),
+          boxShadow: [
+            BoxShadow(
+              color: isDarkMode ? AppColors.darkShadowColor : AppColors.shadowColor,
+              blurRadius: 6,
+              offset: const Offset(0, 2),
             ),
           ],
-        );
-      },
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text(
+              activeUser.username.split('@').first,
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+            SizedBox(height: MediaQuery.of(context).size.height * 0.01),
+            Row(
+              children: [
+                Text(
+                  isAvailable ? 'Available' : 'Not Available',
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: isAvailable ? Colors.green : Colors.red,
+                        fontWeight: FontWeight.w500,
+                      ),
+                ),
+                const Spacer(),
+                Container(
+                  padding: EdgeInsets.symmetric(
+                    horizontal: MediaQuery.of(context).size.width * 0.02,
+                    vertical: MediaQuery.of(context).size.height * 0.01,
+                  ),
+                  decoration: BoxDecoration(
+                    color: Colors.green.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Text(
+                    activeUser.activeTasks,
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: Colors.green,
+                          fontWeight: FontWeight.bold,
+                        ),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

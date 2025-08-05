@@ -1,3 +1,4 @@
+
 import 'package:fl_chart/fl_chart.dart' as fl_chart;
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -53,18 +54,22 @@ class DailyChecklistView extends GetView<DailyChecklistController> {
 
   @override
   Widget build(BuildContext context) {
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+    final textTheme = Theme.of(context).textTheme;
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Daily Checklist'),
         centerTitle: true,
-        backgroundColor: AppColors.backgroundColor,
+        backgroundColor: isDarkMode ? AppColors.darkBackgroundColor : AppColors.backgroundColor,
         elevation: 0,
-        titleTextStyle: const TextStyle(
-          color: Colors.black,
-          fontSize: 20,
+        titleTextStyle: textTheme.titleLarge?.copyWith(
+          color: isDarkMode ? AppColors.darkTextColor : AppColors.textColor,
           fontWeight: FontWeight.bold,
         ),
-        iconTheme: const IconThemeData(color: Colors.black),
+        iconTheme: IconThemeData(
+          color: isDarkMode ? AppColors.darkIconColor : AppColors.iconColor,
+        ),
       ),
       body: Obx(() => Stack(
             children: [
@@ -75,7 +80,9 @@ class DailyChecklistView extends GetView<DailyChecklistController> {
                   children: [
                     Text(
                       'Dashboard > ${controller.selectedOption.value}',
-                      style: const TextStyle(color: AppColors.blackColor),
+                      style: textTheme.bodyMedium?.copyWith(
+                        color: isDarkMode ? AppColors.darkSubtitleColor : AppColors.subtitleColor,
+                      ),
                     ),
                     const SizedBox(height: 16),
                     Column(
@@ -83,12 +90,14 @@ class DailyChecklistView extends GetView<DailyChecklistController> {
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 12),
                           decoration: BoxDecoration(
-                            color: AppColors.backgroundColor,
-                            border: Border.all(color: Colors.grey.shade300),
+                            color: isDarkMode ? AppColors.darkCardBackgroundColor : AppColors.cardBackgroundColor,
+                            border: Border.all(
+                              color: isDarkMode ? AppColors.darkBorderColor : AppColors.borderColor,
+                            ),
                             borderRadius: BorderRadius.circular(25),
                             boxShadow: [
                               BoxShadow(
-                                color: AppColors.shadowColor.withOpacity(0.1),
+                                color: isDarkMode ? AppColors.darkShadowColor : AppColors.shadowColor,
                                 spreadRadius: 1,
                                 blurRadius: 4,
                               ),
@@ -96,25 +105,32 @@ class DailyChecklistView extends GetView<DailyChecklistController> {
                           ),
                           child: DropdownButtonHideUnderline(
                             child: Obx(() {
-                              // Check if categories are available
                               final categories = controller.dailyChecklist.value?.categories ?? [];
                               const noCategoryOption = 'No Category';
 
-                              // List of dropdown items including "No Category"
                               final dropdownItems = [
                                 DropdownMenuItem<String>(
                                   value: noCategoryOption,
-                                  child: Text(noCategoryOption),
+                                  child: Text(
+                                    noCategoryOption,
+                                    style: textTheme.bodyMedium?.copyWith(
+                                      color: isDarkMode ? AppColors.darkTextColor : AppColors.textColor,
+                                    ),
+                                  ),
                                 ),
                                 ...categories.map((Category category) {
                                   return DropdownMenuItem<String>(
                                     value: category.categoryName,
-                                    child: Text(category.categoryName),
+                                    child: Text(
+                                      category.categoryName,
+                                      style: textTheme.bodyMedium?.copyWith(
+                                        color: isDarkMode ? AppColors.darkTextColor : AppColors.textColor,
+                                      ),
+                                    ),
                                   );
                                 }).toList(),
                               ];
 
-                              // Determine the default value
                               String defaultValue;
                               if (categories.isEmpty) {
                                 defaultValue = noCategoryOption;
@@ -124,32 +140,37 @@ class DailyChecklistView extends GetView<DailyChecklistController> {
                                           cat.categoryName == controller.selectedOption.value))) {
                                 defaultValue = controller.selectedOption.value;
                               } else {
-                                defaultValue = noCategoryOption; // Default to "No Category"
+                                defaultValue = noCategoryOption;
                               }
 
                               return DropdownButton<String>(
                                 value: defaultValue,
                                 isExpanded: true,
-                                icon: const Icon(Icons.keyboard_arrow_down),
+                                icon: Icon(
+                                  Icons.keyboard_arrow_down,
+                                  color: isDarkMode ? AppColors.darkIconColor : AppColors.iconColor,
+                                ),
                                 iconSize: 24,
                                 elevation: 0,
-                                style: const TextStyle(
-                                  color: AppColors.blackColor,
-                                  fontSize: 16,
+                                style: textTheme.bodyMedium?.copyWith(
+                                  color: isDarkMode ? AppColors.darkTextColor : AppColors.textColor,
                                 ),
-                                hint: const Text('Loading categories...'),
+                                hint: Text(
+                                  'Loading categories...',
+                                  style: textTheme.bodyMedium?.copyWith(
+                                    color: isDarkMode ? AppColors.darkSubtitleColor : AppColors.subtitleColor,
+                                  ),
+                                ),
                                 items: dropdownItems,
                                 onChanged: (String? newValue) {
                                   if (newValue != null) {
                                     controller.selectedOption.value = newValue;
                                     if (newValue == noCategoryOption) {
-                                      // Call API without category_id
                                       controller.fetchData(
                                         useDateRange: true,
                                         categoryId: null,
                                       );
                                     } else {
-                                      // Find the category ID for the selected option
                                       final selectedCategory = categories.firstWhere(
                                           (cat) => cat.categoryName == newValue);
                                       controller.fetchData(
@@ -167,12 +188,14 @@ class DailyChecklistView extends GetView<DailyChecklistController> {
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 12),
                           decoration: BoxDecoration(
-                            color: AppColors.backgroundColor,
-                            border: Border.all(color: Colors.grey.shade300),
+                            color: isDarkMode ? AppColors.darkCardBackgroundColor : AppColors.cardBackgroundColor,
+                            border: Border.all(
+                              color: isDarkMode ? AppColors.darkBorderColor : AppColors.borderColor,
+                            ),
                             borderRadius: BorderRadius.circular(25),
                             boxShadow: [
                               BoxShadow(
-                                color: Colors.grey.withOpacity(0.1),
+                                color: isDarkMode ? AppColors.darkShadowColor : AppColors.shadowColor,
                                 spreadRadius: 1,
                                 blurRadius: 4,
                               ),
@@ -182,12 +205,14 @@ class DailyChecklistView extends GetView<DailyChecklistController> {
                             child: Obx(() => DropdownButton<String>(
                                   value: controller.selectedTimeRange.value,
                                   isExpanded: true,
-                                  icon: const Icon(Icons.keyboard_arrow_down),
+                                  icon: Icon(
+                                    Icons.keyboard_arrow_down,
+                                    color: isDarkMode ? AppColors.darkIconColor : AppColors.iconColor,
+                                  ),
                                   iconSize: 24,
                                   elevation: 0,
-                                  style: const TextStyle(
-                                    color: Colors.black87,
-                                    fontSize: 16,
+                                  style: textTheme.bodyMedium?.copyWith(
+                                    color: isDarkMode ? AppColors.darkTextColor : AppColors.textColor,
                                   ),
                                   items: [
                                     'Today',
@@ -200,7 +225,12 @@ class DailyChecklistView extends GetView<DailyChecklistController> {
                                   ].map((String value) {
                                     return DropdownMenuItem<String>(
                                       value: value,
-                                      child: Text(value),
+                                      child: Text(
+                                        value,
+                                        style: textTheme.bodyMedium?.copyWith(
+                                          color: isDarkMode ? AppColors.darkTextColor : AppColors.textColor,
+                                        ),
+                                      ),
                                     );
                                   }).toList(),
                                   onChanged: (String? newValue) {
@@ -213,20 +243,21 @@ class DailyChecklistView extends GetView<DailyChecklistController> {
                                           return WillPopScope(
                                             onWillPop: () async => false,
                                             child: Container(
-                                              color: Colors.white,
-                                              child: const Center(
+                                              color: isDarkMode ? Colors.black.withOpacity(0.8) : Colors.white.withOpacity(0.8),
+                                              child: Center(
                                                 child: Column(
-                                                  mainAxisAlignment:
-                                                      MainAxisAlignment.center,
+                                                  mainAxisAlignment: MainAxisAlignment.center,
                                                   children: [
-                                                    CircularProgressIndicator(),
-                                                    SizedBox(height: 16),
+                                                    CircularProgressIndicator(
+                                                      color: AppColors.primaryColor,
+                                                    ),
+                                                    const SizedBox(height: 16),
                                                     Text(
                                                       'Please wait...',
-                                                      style: TextStyle(
+                                                      style: textTheme.bodyMedium?.copyWith(
                                                         fontSize: 16,
-                                                        fontWeight:
-                                                            FontWeight.w500,
+                                                        fontWeight: FontWeight.w500,
+                                                        color: isDarkMode ? AppColors.darkTextColor : AppColors.textColor,
                                                       ),
                                                     ),
                                                   ],
@@ -236,28 +267,19 @@ class DailyChecklistView extends GetView<DailyChecklistController> {
                                           );
                                         },
                                       );
-                                      Future.delayed(const Duration(seconds: 1),
-                                          () {
+                                      Future.delayed(const Duration(seconds: 1), () {
                                         Navigator.of(context).pop();
-                                        controller.selectedTimeRange.value =
-                                            newValue;
-                                        controller
-                                            .updateDateRange(); // Update dates based on selection
-                                        // Determine category_id based on selected option
-                                        final categories = controller
-                                                .dailyChecklist.value?.categories ??
-                                            [];
-                                        if (controller.selectedOption.value ==
-                                            noCategoryOption) {
+                                        controller.selectedTimeRange.value = newValue;
+                                        controller.updateDateRange();
+                                        final categories = controller.dailyChecklist.value?.categories ?? [];
+                                        if (controller.selectedOption.value == noCategoryOption) {
                                           controller.fetchData(
                                             useDateRange: true,
                                             categoryId: null,
                                           );
                                         } else {
-                                          final selectedCategory = categories
-                                              .firstWhereOrNull((cat) =>
-                                                  cat.categoryName ==
-                                                  controller.selectedOption.value);
+                                          final selectedCategory = categories.firstWhereOrNull(
+                                              (cat) => cat.categoryName == controller.selectedOption.value);
                                           controller.fetchData(
                                             useDateRange: true,
                                             categoryId: selectedCategory?.id,
@@ -276,9 +298,12 @@ class DailyChecklistView extends GetView<DailyChecklistController> {
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  const Text(
+                                  Text(
                                     'Start Date',
-                                    style: TextStyle(fontSize: 16),
+                                    style: textTheme.bodyMedium?.copyWith(
+                                      fontSize: 16,
+                                      color: isDarkMode ? AppColors.darkTextColor : AppColors.textColor,
+                                    ),
                                   ),
                                   const SizedBox(height: 8),
                                   CustomDateField(
@@ -290,8 +315,10 @@ class DailyChecklistView extends GetView<DailyChecklistController> {
                                   const SizedBox(height: 8),
                                   Obx(() => Text(
                                         'Selected: ${controller.formatDateForDisplay(controller.startDate.value)}',
-                                        style: const TextStyle(
-                                            color: Colors.grey, fontSize: 14),
+                                        style: textTheme.bodySmall?.copyWith(
+                                          color: isDarkMode ? AppColors.darkSubtitleColor : AppColors.subtitleColor,
+                                          fontSize: 14,
+                                        ),
                                       )),
                                 ],
                               ),
@@ -301,9 +328,12 @@ class DailyChecklistView extends GetView<DailyChecklistController> {
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  const Text(
+                                  Text(
                                     'End Date',
-                                    style: TextStyle(fontSize: 16),
+                                    style: textTheme.bodyMedium?.copyWith(
+                                      fontSize: 16,
+                                      color: isDarkMode ? AppColors.darkTextColor : AppColors.textColor,
+                                    ),
                                   ),
                                   const SizedBox(height: 8),
                                   CustomDateField(
@@ -315,8 +345,10 @@ class DailyChecklistView extends GetView<DailyChecklistController> {
                                   const SizedBox(height: 8),
                                   Obx(() => Text(
                                         'Selected: ${controller.formatDateForDisplay(controller.endDate.value)}',
-                                        style: const TextStyle(
-                                            color: Colors.grey, fontSize: 14),
+                                        style: textTheme.bodySmall?.copyWith(
+                                          color: isDarkMode ? AppColors.darkSubtitleColor : AppColors.subtitleColor,
+                                          fontSize: 14,
+                                        ),
                                       )),
                                 ],
                               ),
@@ -350,7 +382,7 @@ class DailyChecklistView extends GetView<DailyChecklistController> {
                                     'Export', 'Export feature not implemented');
                               },
                               text: 'Export',
-                              color: AppColors.shadowColor,
+                              color: isDarkMode ? AppColors.darkShadowColor : AppColors.shadowColor,
                               width: 100,
                             ),
                           ],
@@ -358,8 +390,7 @@ class DailyChecklistView extends GetView<DailyChecklistController> {
                       ],
                     ),
                     const SizedBox(height: 4),
-                    Obx(() => controller.selectedOption.value ==
-                            'Customer Satisfaction'
+                    Obx(() => controller.selectedOption.value == 'Customer Satisfaction'
                         ? Padding(
                             padding: const EdgeInsets.symmetric(horizontal: 8),
                             child: Column(
@@ -370,13 +401,11 @@ class DailyChecklistView extends GetView<DailyChecklistController> {
                                       child: Container(
                                         padding: const EdgeInsets.all(16),
                                         decoration: BoxDecoration(
-                                          color: Colors.white,
-                                          borderRadius:
-                                              BorderRadius.circular(8),
+                                          color: isDarkMode ? AppColors.darkCardBackgroundColor : Colors.white,
+                                          borderRadius: BorderRadius.circular(8),
                                           boxShadow: [
                                             BoxShadow(
-                                              color: Colors.grey
-                                                  .withOpacity(0.1),
+                                              color: isDarkMode ? AppColors.darkShadowColor : AppColors.shadowColor,
                                               spreadRadius: 1,
                                               blurRadius: 4,
                                             ),
@@ -384,12 +413,11 @@ class DailyChecklistView extends GetView<DailyChecklistController> {
                                         ),
                                         child: Column(
                                           children: [
-                                            const Icon(Icons.trending_up,
-                                                color: Colors.green),
+                                            Icon(Icons.trending_up, color: Colors.green),
                                             const SizedBox(height: 8),
-                                            const Text(
+                                            Text(
                                               'NPS',
-                                              style: TextStyle(
+                                              style: textTheme.bodyMedium?.copyWith(
                                                 color: Colors.green,
                                                 fontSize: 16,
                                                 fontWeight: FontWeight.bold,
@@ -398,9 +426,9 @@ class DailyChecklistView extends GetView<DailyChecklistController> {
                                             const SizedBox(height: 8),
                                             Obx(() => Text(
                                                   '${controller.npsScore}',
-                                                  style: const TextStyle(
-                                                    fontSize: 24,
+                                                  style: textTheme.headlineSmall?.copyWith(
                                                     fontWeight: FontWeight.bold,
+                                                    color: isDarkMode ? AppColors.darkTextColor : AppColors.textColor,
                                                   ),
                                                 )),
                                           ],
@@ -413,26 +441,23 @@ class DailyChecklistView extends GetView<DailyChecklistController> {
                                         padding: const EdgeInsets.all(16),
                                         decoration: BoxDecoration(
                                           color: Colors.green.shade50,
-                                          borderRadius:
-                                              BorderRadius.circular(8),
+                                          borderRadius: BorderRadius.circular(8),
                                         ),
                                         child: Column(
                                           children: [
-                                            const Icon(
-                                                Icons.sentiment_very_satisfied,
-                                                color: Colors.green),
+                                            Icon(Icons.sentiment_very_satisfied, color: Colors.green),
                                             const SizedBox(height: 8),
                                             Obx(() => Text(
                                                   '${controller.promoters.value}%',
-                                                  style: const TextStyle(
-                                                    fontSize: 24,
+                                                  style: textTheme.headlineSmall?.copyWith(
                                                     fontWeight: FontWeight.bold,
                                                     color: Colors.green,
                                                   ),
                                                 )),
-                                            const Text('Promoters',
-                                                style: TextStyle(
-                                                    color: Colors.green)),
+                                            Text(
+                                              'Promoters',
+                                              style: textTheme.bodyMedium?.copyWith(color: Colors.green),
+                                            ),
                                           ],
                                         ),
                                       ),
@@ -447,25 +472,23 @@ class DailyChecklistView extends GetView<DailyChecklistController> {
                                         padding: const EdgeInsets.all(16),
                                         decoration: BoxDecoration(
                                           color: Colors.orange.shade50,
-                                          borderRadius:
-                                              BorderRadius.circular(8),
+                                          borderRadius: BorderRadius.circular(8),
                                         ),
                                         child: Column(
                                           children: [
-                                            const Icon(Icons.sentiment_neutral,
-                                                color: Colors.orange),
+                                            Icon(Icons.sentiment_neutral, color: Colors.orange),
                                             const SizedBox(height: 8),
                                             Obx(() => Text(
                                                   '${controller.passives.value}%',
-                                                  style: const TextStyle(
-                                                    fontSize: 24,
+                                                  style: textTheme.headlineSmall?.copyWith(
                                                     fontWeight: FontWeight.bold,
                                                     color: Colors.orange,
                                                   ),
                                                 )),
-                                            const Text('Passives',
-                                                style: TextStyle(
-                                                    color: Colors.orange)),
+                                            Text(
+                                              'Passives',
+                                              style: textTheme.bodyMedium?.copyWith(color: Colors.orange),
+                                            ),
                                           ],
                                         ),
                                       ),
@@ -476,27 +499,23 @@ class DailyChecklistView extends GetView<DailyChecklistController> {
                                         padding: const EdgeInsets.all(16),
                                         decoration: BoxDecoration(
                                           color: Colors.red.shade50,
-                                          borderRadius:
-                                              BorderRadius.circular(8),
+                                          borderRadius: BorderRadius.circular(8),
                                         ),
                                         child: Column(
                                           children: [
-                                            const Icon(
-                                                Icons
-                                                    .sentiment_very_dissatisfied,
-                                                color: Colors.red),
+                                            Icon(Icons.sentiment_very_dissatisfied, color: Colors.red),
                                             const SizedBox(height: 8),
                                             Obx(() => Text(
                                                   '${controller.detractors.value}%',
-                                                  style: const TextStyle(
-                                                    fontSize: 24,
+                                                  style: textTheme.headlineSmall?.copyWith(
                                                     fontWeight: FontWeight.bold,
                                                     color: Colors.red,
                                                   ),
                                                 )),
-                                            const Text('Detractors',
-                                                style:
-                                                    TextStyle(color: Colors.red)),
+                                            Text(
+                                              'Detractors',
+                                              style: textTheme.bodyMedium?.copyWith(color: Colors.red),
+                                            ),
                                           ],
                                         ),
                                       ),
@@ -508,74 +527,52 @@ class DailyChecklistView extends GetView<DailyChecklistController> {
                           )
                         : const SizedBox()),
                     const SizedBox(height: 24),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceAround,
-                      children: [
-                        _buildStatCard(
-                          icon: Icons.check_circle_outline,
-                          count: controller.rounds.value,
-                          label: 'Rounds',
-                          color: Colors.blue,
-                        ),
-                        _buildStatCard(
-                          icon: Icons.pending_actions,
-                          count: controller.pending.value,
-                          label: 'Pending',
-                          color: Colors.orange,
-                        ),
-                        _buildStatCard(
-                          icon: Icons.check_circle,
-                          count: controller.done.value,
-                          label: 'Done',
-                          color: Colors.green,
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 24),
-                    const Text(
+                    Text(
                       'Feedback Trends (Bar Chart)',
-                      style: TextStyle(
-                        fontSize: 20,
+                      style: textTheme.titleLarge?.copyWith(
                         fontWeight: FontWeight.bold,
+                        color: isDarkMode ? AppColors.darkTextColor : AppColors.textColor,
                       ),
                     ),
                     const SizedBox(height: 16),
                     Obx(() {
                       if (controller.dailyChecklist.value == null ||
-                          controller.dailyChecklist.value!.chartData.bar.xaxis
-                              .categories.isEmpty) {
+                          controller.dailyChecklist.value!.chartData.bar.xaxis.categories.isEmpty) {
                         return Container(
                           height: 300,
                           width: double.infinity,
                           decoration: BoxDecoration(
-                            color: Colors.white,
+                            color: isDarkMode ? AppColors.darkCardBackgroundColor : Colors.white,
                             borderRadius: BorderRadius.circular(8),
                             boxShadow: [
                               BoxShadow(
-                                color: Colors.grey.withOpacity(0.1),
+                                color: isDarkMode ? AppColors.darkShadowColor : AppColors.shadowColor,
                                 spreadRadius: 1,
                                 blurRadius: 4,
                               ),
                             ],
                           ),
-                          child: const Center(child: Text('No data available')),
+                          child: Center(
+                            child: Text(
+                              'No data available',
+                              style: textTheme.bodyMedium?.copyWith(
+                                color: isDarkMode ? AppColors.darkSubtitleColor : AppColors.subtitleColor,
+                              ),
+                            ),
+                          ),
                         );
                       }
 
-                      // Calculate maxY dynamically based on data
-                      final barSeries = controller
-                          .dailyChecklist.value!.chartData.bar.seriesLine;
+                      final barSeries = controller.dailyChecklist.value!.chartData.bar.seriesLine;
                       double maxYBar = 0;
                       for (var s in barSeries) {
                         for (var data in s.data) {
-                          final value = data is String
-                              ? double.tryParse(data) ?? 0
-                              : (data as num).toDouble();
+                          final value = data is String ? double.tryParse(data) ?? 0 : (data as num).toDouble();
                           maxYBar = maxYBar < value ? value : maxYBar;
                         }
                       }
-                      maxYBar = (maxYBar * 1.2).ceilToDouble(); // Add 20% padding
-                      maxYBar = maxYBar < 100 ? 100 : maxYBar; // Ensure minimum height
+                      maxYBar = (maxYBar * 1.2).ceilToDouble();
+                      maxYBar = maxYBar < 100 ? 100 : maxYBar;
 
                       return Column(
                         children: [
@@ -583,11 +580,11 @@ class DailyChecklistView extends GetView<DailyChecklistController> {
                             height: 300,
                             width: double.infinity,
                             decoration: BoxDecoration(
-                              color: Colors.white,
+                              color: isDarkMode ? AppColors.darkCardBackgroundColor : Colors.white,
                               borderRadius: BorderRadius.circular(8),
                               boxShadow: [
                                 BoxShadow(
-                                  color: Colors.grey.withOpacity(0.1),
+                                  color: isDarkMode ? AppColors.darkShadowColor : AppColors.shadowColor,
                                   spreadRadius: 1,
                                   blurRadius: 4,
                                 ),
@@ -603,7 +600,7 @@ class DailyChecklistView extends GetView<DailyChecklistController> {
                                     horizontalInterval: maxYBar / 5,
                                     getDrawingHorizontalLine: (value) {
                                       return fl_chart.FlLine(
-                                        color: Colors.grey.shade200,
+                                        color: isDarkMode ? Colors.grey.shade700 : Colors.grey.shade200,
                                         strokeWidth: 1,
                                       );
                                     },
@@ -617,8 +614,8 @@ class DailyChecklistView extends GetView<DailyChecklistController> {
                                         getTitlesWidget: (value, meta) {
                                           return Text(
                                             value.toInt().toString(),
-                                            style: TextStyle(
-                                              color: Colors.grey.shade600,
+                                            style: textTheme.bodySmall?.copyWith(
+                                              color: isDarkMode ? AppColors.darkSubtitleColor : Colors.grey.shade600,
                                               fontSize: 12,
                                             ),
                                           );
@@ -629,22 +626,15 @@ class DailyChecklistView extends GetView<DailyChecklistController> {
                                       sideTitles: fl_chart.SideTitles(
                                         showTitles: true,
                                         getTitlesWidget: (value, meta) {
-                                          final categories = controller
-                                              .dailyChecklist
-                                              .value!
-                                              .chartData
-                                              .bar
-                                              .xaxis
-                                              .categories;
-                                          if (value >= 0 &&
-                                              value < categories.length) {
+                                          final categories =
+                                              controller.dailyChecklist.value!.chartData.bar.xaxis.categories;
+                                          if (value >= 0 && value < categories.length) {
                                             return Padding(
-                                              padding:
-                                                  const EdgeInsets.only(top: 8),
+                                              padding: const EdgeInsets.only(top: 8),
                                               child: Text(
                                                 categories[value.toInt()],
-                                                style: TextStyle(
-                                                  color: Colors.grey.shade600,
+                                                style: textTheme.bodySmall?.copyWith(
+                                                  color: isDarkMode ? AppColors.darkSubtitleColor : Colors.grey.shade600,
                                                   fontSize: 12,
                                                 ),
                                               ),
@@ -654,58 +644,33 @@ class DailyChecklistView extends GetView<DailyChecklistController> {
                                         },
                                       ),
                                     ),
-                                    rightTitles: fl_chart.AxisTitles(
-                                        sideTitles:
-                                            fl_chart.SideTitles(showTitles: false)),
-                                    topTitles: fl_chart.AxisTitles(
-                                        sideTitles:
-                                            fl_chart.SideTitles(showTitles: false)),
+                                    rightTitles:
+                                        fl_chart.AxisTitles(sideTitles: fl_chart.SideTitles(showTitles: false)),
+                                    topTitles:
+                                        fl_chart.AxisTitles(sideTitles: fl_chart.SideTitles(showTitles: false)),
                                   ),
                                   borderData: fl_chart.FlBorderData(show: false),
-                                  barGroups: controller.dailyChecklist.value!
-                                      .chartData.bar.xaxis.categories
+                                  barGroups: controller.dailyChecklist.value!.chartData.bar.xaxis.categories
                                       .asMap()
                                       .entries
                                       .map((entry) {
                                     final index = entry.key;
-                                    final doneSeries = controller
-                                        .dailyChecklist
-                                        .value!
-                                        .chartData
-                                        .bar
-                                        .seriesLine
-                                        .firstWhere(
-                                            (series) => series.name == 'Done',
-                                            orElse: () => Series(
-                                                name: 'Done', data: ['0']));
-                                    final otherSeries = controller
-                                        .dailyChecklist
-                                        .value!
-                                        .chartData
-                                        .bar
-                                        .seriesLine
-                                        .firstWhere(
-                                            (series) => series.name != 'Done',
-                                            orElse: () => Series(
-                                                name: 'Pending', data: ['0']));
+                                    final doneSeries = controller.dailyChecklist.value!.chartData.bar.seriesLine
+                                        .firstWhere((series) => series.name == 'Done',
+                                            orElse: () => Series(name: 'Done', data: ['0']));
+                                    final otherSeries = controller.dailyChecklist.value!.chartData.bar.seriesLine
+                                        .firstWhere((series) => series.name != 'Done',
+                                            orElse: () => Series(name: 'Pending', data: ['0']));
 
-                                    final doneValue = doneSeries.data.length >
-                                            index
+                                    final doneValue = doneSeries.data.length > index
                                         ? (doneSeries.data[index] is String
-                                            ? double.tryParse(
-                                                    doneSeries.data[index]) ??
-                                                0
-                                            : (doneSeries.data[index] as num)
-                                                .toDouble())
+                                            ? double.tryParse(doneSeries.data[index]) ?? 0
+                                            : (doneSeries.data[index] as num).toDouble())
                                         : 0.0;
-                                    final otherValue = otherSeries.data.length >
-                                            index
+                                    final otherValue = otherSeries.data.length > index
                                         ? (otherSeries.data[index] is String
-                                            ? double.tryParse(
-                                                    otherSeries.data[index]) ??
-                                                0
-                                            : (otherSeries.data[index] as num)
-                                                .toDouble())
+                                            ? double.tryParse(otherSeries.data[index]) ?? 0
+                                            : (otherSeries.data[index] as num).toDouble())
                                         : 0.0;
 
                                     return fl_chart.BarChartGroupData(
@@ -743,21 +708,29 @@ class DailyChecklistView extends GetView<DailyChecklistController> {
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
                               _buildLegendItem(
-                                  color: Colors.green, label: 'Done'),
+                                color: Colors.green,
+                                label: 'Done',
+                                textTheme: textTheme,
+                                isDarkMode: isDarkMode,
+                              ),
                               const SizedBox(width: 16),
                               _buildLegendItem(
-                                  color: Colors.red, label: 'Pending'),
+                                color: Colors.red,
+                                label: 'Pending',
+                                textTheme: textTheme,
+                                isDarkMode: isDarkMode,
+                              ),
                             ],
                           ),
                         ],
                       );
                     }),
                     const SizedBox(height: 24),
-                    const Text(
+                    Text(
                       'Feedback Distribution (Pie Chart)',
-                      style: TextStyle(
-                        fontSize: 20,
+                      style: textTheme.titleLarge?.copyWith(
                         fontWeight: FontWeight.bold,
+                        color: isDarkMode ? AppColors.darkTextColor : AppColors.textColor,
                       ),
                     ),
                     const SizedBox(height: 16),
@@ -771,37 +744,47 @@ class DailyChecklistView extends GetView<DailyChecklistController> {
                               height: 300,
                               width: double.infinity,
                               decoration: BoxDecoration(
-                                color: Colors.white,
+                                color: isDarkMode ? AppColors.darkCardBackgroundColor : Colors.white,
                                 borderRadius: BorderRadius.circular(8),
                                 boxShadow: [
                                   BoxShadow(
-                                    color: Colors.grey.withOpacity(0.1),
+                                    color: isDarkMode ? AppColors.darkShadowColor : AppColors.shadowColor,
                                     spreadRadius: 1,
                                     blurRadius: 4,
                                   ),
                                 ],
                               ),
-                              child: const Center(child: Text('No data available')),
+                              child: Center(
+                                child: Text(
+                                  'No data available',
+                                  style: textTheme.bodyMedium?.copyWith(
+                                    color: isDarkMode ? AppColors.darkSubtitleColor : AppColors.subtitleColor,
+                                  ),
+                                ),
+                              ),
                             ),
                             const SizedBox(height: 16),
                             Container(
                               width: double.infinity,
                               padding: const EdgeInsets.all(16),
                               decoration: BoxDecoration(
-                                color: Colors.white,
+                                color: isDarkMode ? AppColors.darkCardBackgroundColor : Colors.white,
                                 borderRadius: BorderRadius.circular(8),
                                 boxShadow: [
                                   BoxShadow(
-                                    color: Colors.grey.withOpacity(0.1),
+                                    color: isDarkMode ? AppColors.darkShadowColor : AppColors.shadowColor,
                                     spreadRadius: 1,
                                     blurRadius: 4,
                                   ),
                                 ],
                               ),
-                              child: const Text(
+                              child: Text(
                                 'No data available for table',
                                 textAlign: TextAlign.center,
-                                style: TextStyle(fontSize: 14, color: Colors.grey),
+                                style: textTheme.bodyMedium?.copyWith(
+                                  fontSize: 14,
+                                  color: isDarkMode ? AppColors.darkSubtitleColor : AppColors.subtitleColor,
+                                ),
                               ),
                             ),
                             const SizedBox(height: 16),
@@ -809,32 +792,33 @@ class DailyChecklistView extends GetView<DailyChecklistController> {
                               width: double.infinity,
                               padding: const EdgeInsets.all(16),
                               decoration: BoxDecoration(
-                                color: Colors.white,
+                                color: isDarkMode ? AppColors.darkCardBackgroundColor : Colors.white,
                                 borderRadius: BorderRadius.circular(8),
                                 boxShadow: [
                                   BoxShadow(
-                                    color: Colors.grey.withOpacity(0.1),
+                                    color: isDarkMode ? AppColors.darkShadowColor : AppColors.shadowColor,
                                     spreadRadius: 1,
                                     blurRadius: 4,
                                   ),
                                 ],
                               ),
-                              child: const Text(
+                              child: Text(
                                 'No feedback source data available',
                                 textAlign: TextAlign.center,
-                                style: TextStyle(fontSize: 14, color: Colors.grey),
+                                style: textTheme.bodyMedium?.copyWith(
+                                  fontSize: 14,
+                                  color: isDarkMode ? AppColors.darkSubtitleColor : AppColors.subtitleColor,
+                                ),
                               ),
                             ),
                           ],
                         );
                       }
 
-                      // Calculate total feedback count
                       final series = controller.dailyChecklist.value!.feedbackDistribution.series;
                       final labels = controller.dailyChecklist.value!.feedbackDistribution.labels;
                       final total = series.fold(0, (sum, count) => sum + count);
 
-                      // Avoid division by zero
                       if (total == 0) {
                         return Column(
                           children: [
@@ -842,37 +826,47 @@ class DailyChecklistView extends GetView<DailyChecklistController> {
                               height: 300,
                               width: double.infinity,
                               decoration: BoxDecoration(
-                                color: Colors.white,
+                                color: isDarkMode ? AppColors.darkCardBackgroundColor : Colors.white,
                                 borderRadius: BorderRadius.circular(8),
                                 boxShadow: [
                                   BoxShadow(
-                                    color: Colors.grey.withOpacity(0.1),
+                                    color: isDarkMode ? AppColors.darkShadowColor : AppColors.shadowColor,
                                     spreadRadius: 1,
                                     blurRadius: 4,
                                   ),
                                 ],
                               ),
-                              child: const Center(child: Text('No data available')),
+                              child: Center(
+                                child: Text(
+                                  'No data available',
+                                  style: textTheme.bodyMedium?.copyWith(
+                                    color: isDarkMode ? AppColors.darkSubtitleColor : AppColors.subtitleColor,
+                                  ),
+                                ),
+                              ),
                             ),
                             const SizedBox(height: 16),
                             Container(
                               width: double.infinity,
                               padding: const EdgeInsets.all(16),
                               decoration: BoxDecoration(
-                                color: Colors.white,
+                                color: isDarkMode ? AppColors.darkCardBackgroundColor : Colors.white,
                                 borderRadius: BorderRadius.circular(8),
                                 boxShadow: [
                                   BoxShadow(
-                                    color: Colors.grey.withOpacity(0.1),
+                                    color: isDarkMode ? AppColors.darkShadowColor : AppColors.shadowColor,
                                     spreadRadius: 1,
                                     blurRadius: 4,
                                   ),
                                 ],
                               ),
-                              child: const Text(
+                              child: Text(
                                 'No data available for table',
                                 textAlign: TextAlign.center,
-                                style: TextStyle(fontSize: 14, color: Colors.grey),
+                                style: textTheme.bodyMedium?.copyWith(
+                                  fontSize: 14,
+                                  color: isDarkMode ? AppColors.darkSubtitleColor : AppColors.subtitleColor,
+                                ),
                               ),
                             ),
                             const SizedBox(height: 16),
@@ -880,44 +874,43 @@ class DailyChecklistView extends GetView<DailyChecklistController> {
                               width: double.infinity,
                               padding: const EdgeInsets.all(16),
                               decoration: BoxDecoration(
-                                color: Colors.white,
+                                color: isDarkMode ? AppColors.darkCardBackgroundColor : Colors.white,
                                 borderRadius: BorderRadius.circular(8),
                                 boxShadow: [
                                   BoxShadow(
-                                    color: Colors.grey.withOpacity(0.1),
+                                    color: isDarkMode ? AppColors.darkShadowColor : AppColors.shadowColor,
                                     spreadRadius: 1,
                                     blurRadius: 4,
                                   ),
                                 ],
                               ),
-                              child: const Text(
+                              child: Text(
                                 'No feedback source data available',
                                 textAlign: TextAlign.center,
-                                style: TextStyle(fontSize: 14, color: Colors.grey),
+                                style: textTheme.bodyMedium?.copyWith(
+                                  fontSize: 14,
+                                  color: isDarkMode ? AppColors.darkSubtitleColor : AppColors.subtitleColor,
+                                ),
                               ),
                             ),
                           ],
                         );
                       }
 
-                      // Define colors for each mode
                       final modeColors = [
-                        Colors.blue,   // QR
-                        Colors.green,  // WA
+                        Colors.blue, // QR
+                        Colors.green, // WA
                         Colors.orange, // TAB
                         Colors.purple, // PAPER
                       ];
 
-                      // Calculate percentages for each mode
                       final percentages = series
                           .asMap()
                           .map((index, count) => MapEntry(
-                              index,
-                              (count / total * 100).toStringAsFixed(1)))
+                              index, (count / total * 100).toStringAsFixed(1)))
                           .values
                           .toList();
 
-                      // Get feedback source data
                       final feedbackSources = controller.dailyChecklist.value!.feedbackDistribution.feedbackSource;
 
                       return Column(
@@ -926,11 +919,11 @@ class DailyChecklistView extends GetView<DailyChecklistController> {
                             height: 300,
                             width: double.infinity,
                             decoration: BoxDecoration(
-                              color: Colors.white,
+                              color: isDarkMode ? AppColors.darkCardBackgroundColor : Colors.white,
                               borderRadius: BorderRadius.circular(8),
                               boxShadow: [
                                 BoxShadow(
-                                  color: Colors.grey.withOpacity(0.1),
+                                  color: isDarkMode ? AppColors.darkShadowColor : AppColors.shadowColor,
                                   spreadRadius: 1,
                                   blurRadius: 4,
                                 ),
@@ -948,10 +941,10 @@ class DailyChecklistView extends GetView<DailyChecklistController> {
                                       value: count,
                                       title: count > 0 ? '${percentages[index]}%' : '',
                                       radius: 100,
-                                      titleStyle: const TextStyle(
+                                      titleStyle: textTheme.bodyMedium?.copyWith(
                                         fontSize: 16,
                                         fontWeight: FontWeight.bold,
-                                        color: Colors.white,
+                                        color: isDarkMode ? AppColors.darkTextColor : Colors.white,
                                       ),
                                     );
                                   }).toList(),
@@ -972,6 +965,8 @@ class DailyChecklistView extends GetView<DailyChecklistController> {
                                 child: _buildLegendItem(
                                   color: modeColors[index],
                                   label: label,
+                                  textTheme: textTheme,
+                                  isDarkMode: isDarkMode,
                                 ),
                               );
                             }).toList(),
@@ -980,11 +975,11 @@ class DailyChecklistView extends GetView<DailyChecklistController> {
                           Container(
                             width: double.infinity,
                             decoration: BoxDecoration(
-                              color: Colors.white,
+                              color: isDarkMode ? AppColors.darkCardBackgroundColor : Colors.white,
                               borderRadius: BorderRadius.circular(8),
                               boxShadow: [
                                 BoxShadow(
-                                  color: Colors.grey.withOpacity(0.1),
+                                  color: isDarkMode ? AppColors.darkShadowColor : AppColors.shadowColor,
                                   spreadRadius: 1,
                                   blurRadius: 4,
                                 ),
@@ -993,15 +988,15 @@ class DailyChecklistView extends GetView<DailyChecklistController> {
                             child: Table(
                               border: TableBorder(
                                 horizontalInside: BorderSide(
-                                  color: Colors.grey.shade200,
+                                  color: isDarkMode ? Colors.grey.shade700 : Colors.grey.shade200,
                                   width: 1,
                                 ),
                                 top: BorderSide(
-                                  color: Colors.grey.shade200,
+                                  color: isDarkMode ? Colors.grey.shade700 : Colors.grey.shade200,
                                   width: 1,
                                 ),
                                 bottom: BorderSide(
-                                  color: Colors.grey.shade200,
+                                  color: isDarkMode ? Colors.grey.shade700 : Colors.grey.shade200,
                                   width: 1,
                                 ),
                               ),
@@ -1013,12 +1008,27 @@ class DailyChecklistView extends GetView<DailyChecklistController> {
                               children: [
                                 TableRow(
                                   decoration: BoxDecoration(
-                                    color: Colors.grey.shade50,
+                                    color: isDarkMode ? Colors.grey.shade800 : Colors.grey.shade50,
                                   ),
                                   children: [
-                                    _buildTableCell('Mode', isHeader: true),
-                                    _buildTableCell('Count', isHeader: true),
-                                    _buildTableCell('Percentage', isHeader: true),
+                                    _buildTableCell(
+                                      'Mode',
+                                      isHeader: true,
+                                      textTheme: textTheme,
+                                      isDarkMode: isDarkMode,
+                                    ),
+                                    _buildTableCell(
+                                      'Count',
+                                      isHeader: true,
+                                      textTheme: textTheme,
+                                      isDarkMode: isDarkMode,
+                                    ),
+                                    _buildTableCell(
+                                      'Percentage',
+                                      isHeader: true,
+                                      textTheme: textTheme,
+                                      isDarkMode: isDarkMode,
+                                    ),
                                   ],
                                 ),
                                 ...labels.asMap().entries.map((entry) {
@@ -1028,9 +1038,22 @@ class DailyChecklistView extends GetView<DailyChecklistController> {
                                   final percentage = percentages[index];
                                   return TableRow(
                                     children: [
-                                      _buildTableCell(label, color: modeColors[index]),
-                                      _buildTableCell(count.toString()),
-                                      _buildTableCell('$percentage%'),
+                                      _buildTableCell(
+                                        label,
+                                        color: modeColors[index],
+                                        textTheme: textTheme,
+                                        isDarkMode: isDarkMode,
+                                      ),
+                                      _buildTableCell(
+                                        count.toString(),
+                                        textTheme: textTheme,
+                                        isDarkMode: isDarkMode,
+                                      ),
+                                      _buildTableCell(
+                                        '$percentage%',
+                                        textTheme: textTheme,
+                                        isDarkMode: isDarkMode,
+                                      ),
                                     ],
                                   );
                                 }).toList(),
@@ -1038,11 +1061,11 @@ class DailyChecklistView extends GetView<DailyChecklistController> {
                             ),
                           ),
                           const SizedBox(height: 24),
-                          const Text(
+                          Text(
                             'Feedback Source Breakdown',
-                            style: TextStyle(
-                              fontSize: 18,
+                            style: textTheme.titleLarge?.copyWith(
                               fontWeight: FontWeight.bold,
+                              color: isDarkMode ? AppColors.darkTextColor : AppColors.textColor,
                             ),
                           ),
                           const SizedBox(height: 16),
@@ -1051,20 +1074,23 @@ class DailyChecklistView extends GetView<DailyChecklistController> {
                                   width: double.infinity,
                                   padding: const EdgeInsets.all(16),
                                   decoration: BoxDecoration(
-                                    color: Colors.white,
+                                    color: isDarkMode ? AppColors.darkCardBackgroundColor : Colors.white,
                                     borderRadius: BorderRadius.circular(8),
                                     boxShadow: [
                                       BoxShadow(
-                                        color: Colors.grey.withOpacity(0.1),
+                                        color: isDarkMode ? AppColors.darkShadowColor : AppColors.shadowColor,
                                         spreadRadius: 1,
                                         blurRadius: 4,
                                       ),
                                     ],
                                   ),
-                                  child: const Text(
+                                  child: Text(
                                     'No feedback source data available',
                                     textAlign: TextAlign.center,
-                                    style: TextStyle(fontSize: 14, color: Colors.grey),
+                                    style: textTheme.bodyMedium?.copyWith(
+                                      fontSize: 14,
+                                      color: isDarkMode ? AppColors.darkSubtitleColor : AppColors.subtitleColor,
+                                    ),
                                   ),
                                 )
                               : Column(
@@ -1074,7 +1100,6 @@ class DailyChecklistView extends GetView<DailyChecklistController> {
                                     final source = entry.value;
                                     final modeTotal = source.total.toDouble();
 
-                                    // Convert category map to list of entries and sort by count (descending)
                                     final categoryEntries = source.category.entries.toList()
                                       ..sort((a, b) => b.value.compareTo(a.value));
 
@@ -1085,7 +1110,7 @@ class DailyChecklistView extends GetView<DailyChecklistController> {
                                           padding: const EdgeInsets.symmetric(vertical: 8),
                                           child: Text(
                                             '${source.mode} Breakdown',
-                                            style: TextStyle(
+                                            style: textTheme.bodyMedium?.copyWith(
                                               fontSize: 16,
                                               fontWeight: FontWeight.bold,
                                               color: color,
@@ -1095,11 +1120,11 @@ class DailyChecklistView extends GetView<DailyChecklistController> {
                                         Container(
                                           width: double.infinity,
                                           decoration: BoxDecoration(
-                                            color: Colors.white,
+                                            color: isDarkMode ? AppColors.darkCardBackgroundColor : Colors.white,
                                             borderRadius: BorderRadius.circular(8),
                                             boxShadow: [
                                               BoxShadow(
-                                                color: Colors.grey.withOpacity(0.1),
+                                                color: isDarkMode ? AppColors.darkShadowColor : AppColors.shadowColor,
                                                 spreadRadius: 1,
                                                 blurRadius: 4,
                                               ),
@@ -1108,15 +1133,15 @@ class DailyChecklistView extends GetView<DailyChecklistController> {
                                           child: Table(
                                             border: TableBorder(
                                               horizontalInside: BorderSide(
-                                                color: Colors.grey.shade200,
+                                                color: isDarkMode ? Colors.grey.shade700 : Colors.grey.shade200,
                                                 width: 1,
                                               ),
                                               top: BorderSide(
-                                                color: Colors.grey.shade200,
+                                                color: isDarkMode ? Colors.grey.shade700 : Colors.grey.shade200,
                                                 width: 1,
                                               ),
                                               bottom: BorderSide(
-                                                color: Colors.grey.shade200,
+                                                color: isDarkMode ? Colors.grey.shade700 : Colors.grey.shade200,
                                                 width: 1,
                                               ),
                                             ),
@@ -1128,12 +1153,27 @@ class DailyChecklistView extends GetView<DailyChecklistController> {
                                             children: [
                                               TableRow(
                                                 decoration: BoxDecoration(
-                                                  color: Colors.grey.shade50,
+                                                  color: isDarkMode ? Colors.grey.shade800 : Colors.grey.shade50,
                                                 ),
                                                 children: [
-                                                  _buildTableCell('Category', isHeader: true),
-                                                  _buildTableCell('Count', isHeader: true),
-                                                  _buildTableCell('Percentage', isHeader: true),
+                                                  _buildTableCell(
+                                                    'Category',
+                                                    isHeader: true,
+                                                    textTheme: textTheme,
+                                                    isDarkMode: isDarkMode,
+                                                  ),
+                                                  _buildTableCell(
+                                                    'Count',
+                                                    isHeader: true,
+                                                    textTheme: textTheme,
+                                                    isDarkMode: isDarkMode,
+                                                  ),
+                                                  _buildTableCell(
+                                                    'Percentage',
+                                                    isHeader: true,
+                                                    textTheme: textTheme,
+                                                    isDarkMode: isDarkMode,
+                                                  ),
                                                 ],
                                               ),
                                               ...categoryEntries.map((categoryEntry) {
@@ -1141,12 +1181,25 @@ class DailyChecklistView extends GetView<DailyChecklistController> {
                                                     ? 'Uncategorized'
                                                     : categoryEntry.key;
                                                 final count = categoryEntry.value;
-                                                final percentage = (count / modeTotal * 100).toStringAsFixed(1);
+                                                final percentage =
+                                                    (count / modeTotal * 100).toStringAsFixed(1);
                                                 return TableRow(
                                                   children: [
-                                                    _buildTableCell(categoryName),
-                                                    _buildTableCell(count.toString()),
-                                                    _buildTableCell('$percentage%'),
+                                                    _buildTableCell(
+                                                      categoryName,
+                                                      textTheme: textTheme,
+                                                      isDarkMode: isDarkMode,
+                                                    ),
+                                                    _buildTableCell(
+                                                      count.toString(),
+                                                      textTheme: textTheme,
+                                                      isDarkMode: isDarkMode,
+                                                    ),
+                                                    _buildTableCell(
+                                                      '$percentage%',
+                                                      textTheme: textTheme,
+                                                      isDarkMode: isDarkMode,
+                                                    ),
                                                   ],
                                                 );
                                               }).toList(),
@@ -1162,11 +1215,11 @@ class DailyChecklistView extends GetView<DailyChecklistController> {
                       );
                     }),
                     const SizedBox(height: 24),
-                    const Text(
+                    Text(
                       'Log',
-                      style: TextStyle(
-                        fontSize: 20,
+                      style: textTheme.titleLarge?.copyWith(
                         fontWeight: FontWeight.bold,
+                        color: isDarkMode ? AppColors.darkTextColor : AppColors.textColor,
                       ),
                     ),
                     const SizedBox(height: 16),
@@ -1177,25 +1230,27 @@ class DailyChecklistView extends GetView<DailyChecklistController> {
                           width: double.infinity,
                           padding: const EdgeInsets.all(16),
                           decoration: BoxDecoration(
-                            color: Colors.white,
+                            color: isDarkMode ? AppColors.darkCardBackgroundColor : Colors.white,
                             borderRadius: BorderRadius.circular(8),
                             boxShadow: [
                               BoxShadow(
-                                color: Colors.grey.withOpacity(0.1),
+                                color: isDarkMode ? AppColors.darkShadowColor : AppColors.shadowColor,
                                 spreadRadius: 1,
                                 blurRadius: 4,
                               ),
                             ],
                           ),
-                          child: const Text(
+                          child: Text(
                             'No log data available',
                             textAlign: TextAlign.center,
-                            style: TextStyle(fontSize: 14, color: Colors.grey),
+                            style: textTheme.bodyMedium?.copyWith(
+                              fontSize: 14,
+                              color: isDarkMode ? AppColors.darkSubtitleColor : AppColors.subtitleColor,
+                            ),
                           ),
                         );
                       }
 
-                      // Extract unique dates from roundData
                       final roundData = controller.dailyChecklist.value!.roundData;
                       final rooms = controller.dailyChecklist.value!.rooms;
                       final allDates = <String>{};
@@ -1206,7 +1261,6 @@ class DailyChecklistView extends GetView<DailyChecklistController> {
                         });
                       });
 
-                      // Sort dates chronologically
                       final sortedDates = allDates.toList()
                         ..sort((a, b) {
                           try {
@@ -1223,25 +1277,27 @@ class DailyChecklistView extends GetView<DailyChecklistController> {
                           width: double.infinity,
                           padding: const EdgeInsets.all(16),
                           decoration: BoxDecoration(
-                            color: Colors.white,
+                            color: isDarkMode ? AppColors.darkCardBackgroundColor : Colors.white,
                             borderRadius: BorderRadius.circular(8),
                             boxShadow: [
                               BoxShadow(
-                                color: Colors.grey.withOpacity(0.1),
+                                color: isDarkMode ? AppColors.darkShadowColor : AppColors.shadowColor,
                                 spreadRadius: 1,
                                 blurRadius: 4,
                               ),
                             ],
                           ),
-                          child: const Text(
+                          child: Text(
                             'No log data available',
                             textAlign: TextAlign.center,
-                            style: TextStyle(fontSize: 14, color: Colors.grey),
+                            style: textTheme.bodyMedium?.copyWith(
+                              fontSize: 14,
+                              color: isDarkMode ? AppColors.darkSubtitleColor : AppColors.subtitleColor,
+                            ),
                           ),
                         );
                       }
 
-                      // Find the most recent date (closest to today, June 10, 2025)
                       final today = DateTime(2025, 6, 10);
                       String mostRecentDate = sortedDates.first;
                       Duration minDifference = today.difference(_parseShortDate(sortedDates.first)).abs();
@@ -1255,13 +1311,11 @@ class DailyChecklistView extends GetView<DailyChecklistController> {
                         }
                       }
 
-                      // Use a reactive variable to track the selected date, default to most recent
                       final selectedDate = mostRecentDate.obs;
 
                       return Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          // Horizontal date scroller
                           SizedBox(
                             height: 50,
                             child: SingleChildScrollView(
@@ -1274,16 +1328,15 @@ class DailyChecklistView extends GetView<DailyChecklistController> {
                                         },
                                         child: Container(
                                           margin: const EdgeInsets.symmetric(horizontal: 4),
-                                          padding: const EdgeInsets.symmetric(
-                                              horizontal: 16, vertical: 8),
+                                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                                           decoration: BoxDecoration(
                                             color: selectedDate.value == date
                                                 ? Colors.blue.shade50
-                                                : Colors.white,
+                                                : (isDarkMode ? AppColors.darkCardBackgroundColor : Colors.white),
                                             borderRadius: BorderRadius.circular(8),
                                             boxShadow: [
                                               BoxShadow(
-                                                color: Colors.grey.withOpacity(0.1),
+                                                color: isDarkMode ? AppColors.darkShadowColor : AppColors.shadowColor,
                                                 spreadRadius: 1,
                                                 blurRadius: 4,
                                               ),
@@ -1291,12 +1344,12 @@ class DailyChecklistView extends GetView<DailyChecklistController> {
                                           ),
                                           child: Text(
                                             _formatShortDate(date),
-                                            style: TextStyle(
+                                            style: textTheme.bodyMedium?.copyWith(
                                               fontSize: 14,
                                               fontWeight: FontWeight.w500,
                                               color: selectedDate.value == date
                                                   ? Colors.blue
-                                                  : Colors.black,
+                                                  : (isDarkMode ? AppColors.darkTextColor : AppColors.textColor),
                                             ),
                                           ),
                                         ),
@@ -1306,7 +1359,6 @@ class DailyChecklistView extends GetView<DailyChecklistController> {
                             ),
                           ),
                           const SizedBox(height: 16),
-                          // Log entries for the selected date
                           Obx(() {
                             final logEntries = <Widget>[];
                             roundData.forEach((roomId, dateMap) {
@@ -1315,11 +1367,10 @@ class DailyChecklistView extends GetView<DailyChecklistController> {
                                 final rounds = dateMap[selectedDate.value]!;
                                 logEntries.add(_buildLogItem(
                                   location: room?.roomNumber ?? 'Unknown',
-                                  block:
-                                      '${room?.blockName ?? 'Unknown'} - ${room?.floorName ?? 'Unknown'}',
-                                  times: rounds
-                                      .map((round) => round.timeSchedule)
-                                      .toList(),
+                                  block: '${room?.blockName ?? 'Unknown'} - ${room?.floorName ?? 'Unknown'}',
+                                  times: rounds.map((round) => round.timeSchedule).toList(),
+                                  textTheme: textTheme,
+                                  isDarkMode: isDarkMode,
                                 ));
                               }
                             });
@@ -1329,20 +1380,23 @@ class DailyChecklistView extends GetView<DailyChecklistController> {
                                 width: double.infinity,
                                 padding: const EdgeInsets.all(16),
                                 decoration: BoxDecoration(
-                                  color: Colors.white,
+                                  color: isDarkMode ? AppColors.darkCardBackgroundColor : Colors.white,
                                   borderRadius: BorderRadius.circular(8),
                                   boxShadow: [
                                     BoxShadow(
-                                      color: Colors.grey.withOpacity(0.1),
+                                      color: isDarkMode ? AppColors.darkShadowColor : AppColors.shadowColor,
                                       spreadRadius: 1,
                                       blurRadius: 4,
                                     ),
                                   ],
                                 ),
-                                child: const Text(
+                                child: Text(
                                   'No log entries for this date',
                                   textAlign: TextAlign.center,
-                                  style: TextStyle(fontSize: 14, color: Colors.grey),
+                                  style: textTheme.bodyMedium?.copyWith(
+                                    fontSize: 14,
+                                    color: isDarkMode ? AppColors.darkSubtitleColor : AppColors.subtitleColor,
+                                  ),
                                 ),
                               );
                             }
@@ -1359,18 +1413,21 @@ class DailyChecklistView extends GetView<DailyChecklistController> {
               ),
               if (controller.isLoading.value)
                 Container(
-                  color: Colors.white.withOpacity(0.8),
-                  child: const Center(
+                  color: isDarkMode ? Colors.black.withOpacity(0.8) : Colors.white.withOpacity(0.8),
+                  child: Center(
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        CircularProgressIndicator(),
-                        SizedBox(height: 16),
+                        CircularProgressIndicator(
+                          color: AppColors.primaryColor,
+                        ),
+                        const SizedBox(height: 16),
                         Text(
                           'Please wait...',
-                          style: TextStyle(
+                          style: textTheme.bodyMedium?.copyWith(
                             fontSize: 16,
                             fontWeight: FontWeight.w500,
+                            color: isDarkMode ? AppColors.darkTextColor : AppColors.textColor,
                           ),
                         ),
                       ],
@@ -1387,15 +1444,17 @@ class DailyChecklistView extends GetView<DailyChecklistController> {
     required String count,
     required String label,
     required Color color,
+    required TextTheme textTheme,
+    required bool isDarkMode,
   }) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: isDarkMode ? AppColors.darkCardBackgroundColor : Colors.white,
         borderRadius: BorderRadius.circular(8),
         boxShadow: [
           BoxShadow(
-            color: Colors.grey.withOpacity(0.1),
+            color: isDarkMode ? AppColors.darkShadowColor : AppColors.shadowColor,
             spreadRadius: 1,
             blurRadius: 4,
           ),
@@ -1407,15 +1466,15 @@ class DailyChecklistView extends GetView<DailyChecklistController> {
           const SizedBox(height: 8),
           Text(
             count,
-            style: const TextStyle(
-              fontSize: 24,
+            style: textTheme.headlineSmall?.copyWith(
               fontWeight: FontWeight.bold,
+              color: isDarkMode ? AppColors.darkTextColor : AppColors.textColor,
             ),
           ),
           Text(
             label,
-            style: TextStyle(
-              color: Colors.grey.shade600,
+            style: textTheme.bodyMedium?.copyWith(
+              color: isDarkMode ? AppColors.darkSubtitleColor : Colors.grey.shade600,
             ),
           ),
         ],
@@ -1427,6 +1486,8 @@ class DailyChecklistView extends GetView<DailyChecklistController> {
     required String location,
     required String block,
     required List<String> times,
+    required TextTheme textTheme,
+    required bool isDarkMode,
   }) {
     return SafeArea(
       child: Container(
@@ -1436,15 +1497,15 @@ class DailyChecklistView extends GetView<DailyChecklistController> {
           children: [
             Text(
               location,
-              style: const TextStyle(
-                fontSize: 16,
+              style: textTheme.bodyLarge?.copyWith(
                 fontWeight: FontWeight.bold,
+                color: isDarkMode ? AppColors.darkTextColor : AppColors.textColor,
               ),
             ),
             Text(
               block,
-              style: TextStyle(
-                color: Colors.grey.shade600,
+              style: textTheme.bodyMedium?.copyWith(
+                color: isDarkMode ? AppColors.darkSubtitleColor : Colors.grey.shade600,
               ),
             ),
             const SizedBox(height: 8),
@@ -1452,9 +1513,13 @@ class DailyChecklistView extends GetView<DailyChecklistController> {
               spacing: 8,
               children: times
                   .map((time) => Chip(
-                        label: Text(time),
+                        label: Text(
+                          time,
+                          style: textTheme.bodySmall?.copyWith(
+                            color: Colors.pink.shade700,
+                          ),
+                        ),
                         backgroundColor: Colors.pink.shade50,
-                        labelStyle: TextStyle(color: Colors.pink.shade700),
                       ))
                   .toList(),
             ),
@@ -1464,7 +1529,12 @@ class DailyChecklistView extends GetView<DailyChecklistController> {
     );
   }
 
-  Widget _buildLegendItem({required Color color, required String label}) {
+  Widget _buildLegendItem({
+    required Color color,
+    required String label,
+    required TextTheme textTheme,
+    required bool isDarkMode,
+  }) {
     return Row(
       children: [
         Container(
@@ -1478,24 +1548,32 @@ class DailyChecklistView extends GetView<DailyChecklistController> {
         const SizedBox(width: 8),
         Text(
           label,
-          style: TextStyle(
-            color: Colors.grey.shade600,
+          style: textTheme.bodyMedium?.copyWith(
             fontSize: 14,
+            color: isDarkMode ? AppColors.darkSubtitleColor : Colors.grey.shade600,
           ),
         ),
       ],
     );
   }
 
-  Widget _buildTableCell(String text, {bool isHeader = false, Color? color}) {
+  Widget _buildTableCell(
+    String text, {
+    bool isHeader = false,
+    Color? color,
+    required TextTheme textTheme,
+    required bool isDarkMode,
+  }) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
       child: Text(
         text,
-        style: TextStyle(
+        style: textTheme.bodyMedium?.copyWith(
           fontSize: 14,
           fontWeight: isHeader ? FontWeight.bold : FontWeight.normal,
-          color: color ?? (isHeader ? Colors.black : Colors.grey.shade800),
+          color: color ?? (isHeader
+              ? (isDarkMode ? AppColors.darkTextColor : AppColors.textColor)
+              : (isDarkMode ? AppColors.darkSubtitleColor : Colors.grey.shade800)),
         ),
         textAlign: TextAlign.center,
       ),

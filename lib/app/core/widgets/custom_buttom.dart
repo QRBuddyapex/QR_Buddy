@@ -1,6 +1,8 @@
-import 'package:flutter/material.dart';
 
-class CustomButton extends StatelessWidget {
+import 'package:flutter/material.dart';
+import 'package:qr_buddy/app/core/theme/app_theme.dart';
+
+class CustomButton extends StatefulWidget {
   final String text;
   final VoidCallback onPressed;
   final double? height;
@@ -17,26 +19,34 @@ class CustomButton extends StatelessWidget {
   }) : super(key: key);
 
   @override
+  State<CustomButton> createState() => _CustomButtonState();
+}
+
+class _CustomButtonState extends State<CustomButton> {
+
+  @override
   Widget build(BuildContext context) {
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+  
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 16.0),
       child: ElevatedButton(
         style: ElevatedButton.styleFrom(
-          backgroundColor: color,
+          backgroundColor: widget.color ?? AppColors.primaryColor,
+          foregroundColor: isDarkMode ? AppColors.darkTextColor : Colors.white,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(30),
           ),
-          minimumSize: Size(width ?? 150, height ?? 50), // Default values if null
+          minimumSize: Size(widget.width ?? 150, widget.height ?? 50),
         ),
-        onPressed: onPressed,
-        child: Center(
-          child: Text(
-            text,
-            style: const TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
+        onPressed: widget.onPressed,
+        child: Text(
+          widget.text,
+          style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+                color: isDarkMode ? AppColors.darkTextColor : Colors.white,
+              ),
         ),
       ),
     );

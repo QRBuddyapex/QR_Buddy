@@ -1,3 +1,4 @@
+
 import 'package:flutter/material.dart';
 import 'package:qr_buddy/app/core/theme/app_theme.dart';
 
@@ -13,10 +14,9 @@ class CustomTextField extends StatelessWidget {
 
   const CustomTextField({
     Key? key,
-     this.label,
+    this.label,
     required this.hintText,
-    this.keyboardType = 
-        TextInputType.text,
+    this.keyboardType = TextInputType.text,
     this.obscureText = false,
     required this.onChanged,
     this.validator,
@@ -26,38 +26,46 @@ class CustomTextField extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8.0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            label ?? '',
-            style: const TextStyle(
-              fontSize: 14,
-              color: AppColors.textColor,
+          if (label != null)
+            Text(
+              label!,
+              style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                    fontSize: 14,
+                    color: isDarkMode ? AppColors.darkTextColor : AppColors.textColor,
+                  ),
             ),
-          ),
           const SizedBox(height: 4),
           TextFormField(
             maxLines: maxLines ?? 1,
             initialValue: initialValue,
             obscureText: obscureText,
-            keyboardType:keyboardType,
+            keyboardType: keyboardType,
             onChanged: onChanged,
             decoration: InputDecoration(
               hintText: hintText,
-              hintStyle: const TextStyle(color: AppColors.hintTextColor),
+              hintStyle: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color: isDarkMode ? AppColors.darkHintTextColor : AppColors.hintTextColor,
+                  ),
               filled: true,
-              fillColor: AppColors.cardBackgroundColor,
+              fillColor: isDarkMode ? AppColors.darkCardBackgroundColor : AppColors.cardBackgroundColor,
               contentPadding: const EdgeInsets.symmetric(vertical: 16.0, horizontal: 20.0),
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(30),
-                borderSide: const BorderSide(color: AppColors.borderColor),
+                borderSide: BorderSide(
+                  color: isDarkMode ? AppColors.darkBorderColor : AppColors.borderColor,
+                ),
               ),
               enabledBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(30),
-                borderSide: const BorderSide(color: AppColors.borderColor),
+                borderSide: BorderSide(
+                  color: isDarkMode ? AppColors.darkBorderColor : AppColors.borderColor,
+                ),
               ),
               focusedBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(30),

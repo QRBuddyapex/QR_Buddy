@@ -1,3 +1,4 @@
+
 import 'package:flutter/material.dart';
 import 'package:qr_buddy/app/core/theme/app_theme.dart';
 
@@ -15,6 +16,7 @@ class CustomChoiceChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 4.0),
       child: ChoiceChip(
@@ -22,11 +24,13 @@ class CustomChoiceChip extends StatelessWidget {
         selected: selected,
         onSelected: (_) => onSelected(),
         selectedColor: AppColors.primaryColor.withOpacity(0.1),
-        backgroundColor: AppColors.cardBackgroundColor,
+        backgroundColor: isDarkMode ? AppColors.darkCardBackgroundColor : AppColors.cardBackgroundColor,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        labelStyle: TextStyle(
-          color: selected ? AppColors.primaryColor : AppColors.textColor,
-        ),
+        labelStyle: Theme.of(context).textTheme.bodyMedium?.copyWith(
+              color: selected
+                  ? AppColors.primaryColor
+                  : (isDarkMode ? AppColors.darkTextColor : AppColors.textColor),
+            ),
       ),
     );
   }

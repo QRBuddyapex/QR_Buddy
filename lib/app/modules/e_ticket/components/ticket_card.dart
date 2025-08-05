@@ -1,3 +1,4 @@
+
 import 'package:flutter/material.dart';
 import 'package:qr_buddy/app/core/theme/app_theme.dart';
 import 'package:qr_buddy/app/core/utils/snackbar.dart';
@@ -31,220 +32,280 @@ class TicketCard extends StatefulWidget {
     required this.serviceLabel,
     this.isQuickRequest = false,
     required this.onTap,
-    required this.index, this.uuid, this.orderID,
+    required this.index,
+    this.uuid,
+    this.orderID,
   }) : super(key: key);
 
   @override
   State<TicketCard> createState() => _TicketCardState();
 }
 
-class _TicketCardState extends State<TicketCard> {
+class _TicketCardState extends State<TicketCard> with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+  late Animation<double> _fadeAnimation;
+  late Animation<Offset> _slideAnimation;
+
+  Color _getStatusColor(String status) {
+    switch (status) {
+      case 'Accepted':
+        return AppColors.statusButtonColor;
+      case 'Completed':
+        return AppColors.whatsappIconColor;
+      case 'Re-Open':
+        return AppColors.dangerButtonColor;
+      case 'Cancelled':
+        return AppColors.dangerButtonColor;
+      default:
+        return Theme.of(context).brightness == Brightness.dark ? Colors.grey[400]! : Colors.grey;
+    }
+  }
+
+  Color _getStatusBgColor(String status) {
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+    switch (status) {
+      case 'Accepted':
+        return AppColors.statusButtonColor.withOpacity(0.2);
+      case 'Completed':
+        return AppColors.statusButtonColor1.withOpacity(0.2);
+      case 'Re-Open':
+        return AppColors.dangerButtonColor.withOpacity(0.2);
+      default:
+        return isDarkMode ? Colors.grey[700]! : Colors.grey[200]!;
+    }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      duration: const Duration(milliseconds: 500),
+      vsync: this,
+    );
+    _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(_controller);
+    _slideAnimation = Tween<Offset>(begin: const Offset(0.0, 0.1), end: Offset.zero).animate(_controller);
+    _controller.forward();
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
-    final height = MediaQuery.of(context).size.height;
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
     final width = MediaQuery.of(context).size.width;
-    return Column(
-      children: [
-        Card(
-          color: AppColors.cardBackgroundColor,
-          elevation: 4,
-          margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: InkWell(
-            onTap: widget.onTap,
-            child: Stack(
-              children: [
-                // Large semi-transparent number
-                Positioned(
-                  left: width * 0.0001,
-                  top: 0,
-                  bottom: height * 0.01,
-                  child: Opacity(
-                    opacity: 0.1,
-                    child: Center(
-                      child: Text(
-                        '${widget.index + 1}',
-                        style: const TextStyle(
-                          fontSize: 100,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.black,
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-                // Main card content
-                Padding(
-                  padding: const EdgeInsets.all(8), // Reduced from 12 to 8
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      child: Card(
+        elevation: 4,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        color: isDarkMode ? AppColors.darkCardBackgroundColor : AppColors.cardBackgroundColor,
+        child: InkWell(
+          onTap: widget.onTap,
+          borderRadius: BorderRadius.circular(16),
+          child: AnimatedBuilder(
+            animation: _controller,
+            builder: (context, child) {
+              return FadeTransition(
+                opacity: _fadeAnimation,
+                child: SlideTransition(
+                  position: _slideAnimation,
+                  child: Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
+                            Flexible(
+                              child: Text(
+                                widget.orderNumber,
+                                style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                                      color: isDarkMode ? AppColors.darkTextColor : AppColors.textColor,
+                                    ),
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
                             Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
-                                Flexible(
-                                  child: Text(
-                                    widget.orderNumber,
-                                    style: Theme.of(context).textTheme.bodyMedium!.copyWith(
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                ),
                                 Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3), // Reduced padding
+                                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                                   decoration: BoxDecoration(
-                                    color: widget.status == 'Accepted' ? Colors.green[100] : Colors.yellow[100],
-                                    borderRadius: BorderRadius.circular(12),
+                                    color: _getStatusBgColor(widget.status),
+                                    borderRadius: BorderRadius.circular(20),
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: isDarkMode ? AppColors.darkShadowColor : AppColors.shadowColor,
+                                        blurRadius: 4,
+                                        offset: const Offset(0, 2),
+                                      ),
+                                    ],
                                   ),
                                   child: Text(
                                     widget.status,
                                     style: Theme.of(context).textTheme.bodySmall!.copyWith(
-                                          color: widget.status == 'Accepted' ? Colors.green : Colors.yellow[800],
+                                          color: _getStatusColor(widget.status),
                                           fontWeight: FontWeight.bold,
                                         ),
-                                    overflow: TextOverflow.ellipsis,
                                   ),
                                 ),
-                              ],
-                            ),
-                            const SizedBox(height: 4),
-                            Text(
-                              widget.block,
-                              style: Theme.of(context).textTheme.bodySmall,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                            const SizedBox(height: 4),
-                            Text(
-                              'Assigned to ${widget.assignedTo}',
-                              style: Theme.of(context).textTheme.bodySmall,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                            const SizedBox(height: 8),
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Flexible(
-                                  flex: 2, // Give more priority to date
-                                  child: Text(
-                                    widget.date,
-                                    style: Theme.of(context).textTheme.bodySmall,
-                                    overflow: TextOverflow.ellipsis,
+                                const SizedBox(width: 8),
+                                IconButton(
+                                  icon: Icon(
+                                    Icons.qr_code,
+                                    color: AppColors.linkColor,
                                   ),
-                                ),
-                                Flexible(
-                                  flex: 1,
-                                  child: Container(
-                                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3), // Reduced padding
-                                    decoration: BoxDecoration(
-                                      color: Colors.blue[50],
-                                      borderRadius: BorderRadius.circular(12),
-                                    ),
-                                    child: Text(
-                                      widget.department,
-                                      style: Theme.of(context).textTheme.bodySmall!.copyWith(
-                                            color: Colors.blue,
-                                          ),
-                                      overflow: TextOverflow.ellipsis,
-                                      textAlign: TextAlign.center,
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: 8),
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Flexible(
-                                  child: Wrap(
-                                    crossAxisAlignment: WrapCrossAlignment.center,
-                                    spacing: 4,
-                                    children: [
-                                      Text(
-                                        widget.description,
-                                        style: Theme.of(context).textTheme.bodySmall,
-                                        overflow: TextOverflow.ellipsis,
-                                        maxLines: 2, // Limit to 2 lines
-                                      ),
-                                      if (widget.isQuickRequest) ...[
-                                        Text(
-                                          '**Quick Req**',
-                                          style: Theme.of(context).textTheme.bodySmall!.copyWith(
-                                                color: Colors.grey,
-                                                fontStyle: FontStyle.italic,
-                                              ),
-                                        ),
-                                      ],
-                                    ],
-                                  ),
-                                ),
-                                SizedBox(
-                                  width: 60, // Reduced from 80 to 60
-                                  child: Text(
-                                    widget.phoneNumber,
-                                    style: Theme.of(context).textTheme.bodySmall!.copyWith(
-                                          color: Colors.blue,
-                                        ),
-                                    textAlign: TextAlign.right,
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
+                                  onPressed: () {
+                                    CustomSnackbar.info('QR Code for ${widget.orderNumber} Coming Soon');
+                                  },
                                 ),
                               ],
                             ),
                           ],
                         ),
-                      ),
-                      const SizedBox(width: 8),
-                      Column(
-                        children: [
-                          IconButton(
-                            icon: const Icon(Icons.qr_code, color: Colors.blue),
-                            onPressed: () {
-                              CustomSnackbar.info(
-                              'QR Code for ${widget.orderNumber}Coming Soon',
-                              
-                              );
-                            },
-                          ),
-                          Text(
-                            widget.serviceLabel,
-                            style: Theme.of(context).textTheme.bodySmall,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                          const SizedBox(height: 8),
-                          GestureDetector(
-                            onTap: () {},
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3), 
-                              decoration: BoxDecoration(
-                                color: Colors.pink[50],
-                                borderRadius: BorderRadius.circular(12),
-                              ),
+                        const SizedBox(height: 8),
+                        Row(
+                          children: [
+                            Icon(
+                              Icons.location_on,
+                              size: 16,
+                              color: isDarkMode ? AppColors.darkSubtitleColor : AppColors.subtitleColor,
+                            ),
+                            const SizedBox(width: 4),
+                            Expanded(
                               child: Text(
-                                'Feedback',
-                                style: Theme.of(context).textTheme.bodySmall!.copyWith(
-                                      color: Colors.pink,
+                                widget.block,
+                                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                      color: isDarkMode ? AppColors.darkSubtitleColor : AppColors.subtitleColor,
                                     ),
+                                overflow: TextOverflow.ellipsis,
                               ),
                             ),
+                          ],
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          'Assigned to: ${widget.assignedTo}',
+                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                color: isDarkMode ? AppColors.darkSubtitleColor : AppColors.subtitleColor,
+                              ),
+                        ),
+                        const SizedBox(height: 12),
+                        Text(
+                          'Purpose:',
+                          style: Theme.of(context).textTheme.titleSmall!.copyWith(
+                                fontWeight: FontWeight.bold,
+                                color: isDarkMode ? AppColors.darkTextColor : AppColors.textColor,
+                              ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          widget.description,
+                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                color: isDarkMode ? AppColors.darkSubtitleColor : AppColors.subtitleColor,
+                              ),
+                          maxLines: 3,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        const SizedBox(height: 12),
+                        Row(
+                          children: [
+                            Icon(
+                              Icons.access_time,
+                              size: 16,
+                              color: isDarkMode ? AppColors.darkSubtitleColor : AppColors.subtitleColor,
+                            ),
+                            const SizedBox(width: 4),
+                            Text(
+                              widget.date,
+                              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                    color: isDarkMode ? AppColors.darkSubtitleColor : AppColors.subtitleColor,
+                                  ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 12),
+                        Row(
+                          children: [
+                            Text(
+                              'GDA Ref: ',
+                              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                    color: isDarkMode ? AppColors.darkSubtitleColor : AppColors.subtitleColor,
+                                  ),
+                            ),
+                            Expanded(
+                              child: Text(
+                                widget.phoneNumber,
+                                style: Theme.of(context).textTheme.bodySmall!.copyWith(
+                                      color: AppColors.linkColor,
+                                    ),
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                            const SizedBox(width: 4),
+                            Icon(
+                              Icons.copy,
+                              size: 16,
+                              color: isDarkMode ? AppColors.darkSubtitleColor : AppColors.subtitleColor,
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 12),
+                        if (widget.isQuickRequest)
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                            decoration: BoxDecoration(
+                              color: isDarkMode ? AppColors.darkBorderColor : AppColors.borderColor,
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: Text(
+                              'Quick Request',
+                              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                    color: isDarkMode ? AppColors.darkTextColor : AppColors.textColor,
+                                  ),
+                            ),
                           ),
-                        ],
-                      ),
-                    ],
+                        const SizedBox(height: 16),
+                        GestureDetector(
+                          onTap: () {},
+                          child: Container(
+                            width: width,
+                            alignment: Alignment.center,
+                            padding: const EdgeInsets.symmetric(vertical: 12),
+                            decoration: BoxDecoration(
+                              color: AppColors.primaryColor.withOpacity(0.1),
+                              borderRadius: BorderRadius.circular(12),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: isDarkMode ? AppColors.darkShadowColor : AppColors.shadowColor,
+                                  blurRadius: 4,
+                                  offset: const Offset(0, 2),
+                                ),
+                              ],
+                            ),
+                            child: Text(
+                              'Feedback',
+                              style: Theme.of(context).textTheme.bodyMedium!.copyWith(
+                                    color: AppColors.primaryColor,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
-              ],
-            ),
+              );
+            },
           ),
         ),
-      ],
+      ),
     );
   }
 }

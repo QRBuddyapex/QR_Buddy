@@ -7,6 +7,7 @@ class TokenStorage {
   static const String _hcoIdKey = 'hco_id';
   static const String _userNameKey = 'user_name';
   static const String _userTypeKey = 'user_type';
+  static const String _themeKey = 'is_dark_mode'; 
 
   Future<void> saveAuthData({
     required String token,
@@ -20,7 +21,7 @@ class TokenStorage {
       _storage.write(key: _userIdKey, value: userId),
       _storage.write(key: _hcoIdKey, value: hcoId),
       _storage.write(key: _userNameKey, value: userName),
-      _storage.write(key: _userTypeKey, value: userType)
+      _storage.write(key: _userTypeKey, value: userType),
     ]);
   }
 
@@ -35,11 +36,22 @@ class TokenStorage {
   Future<String?> getHcoId() async {
     return await _storage.read(key: _hcoIdKey);
   }
-   Future<String?> getUserName() async {
+
+  Future<String?> getUserName() async {
     return await _storage.read(key: _userNameKey);
   }
-   Future<String?> getUserType() async {
+
+  Future<String?> getUserType() async {
     return await _storage.read(key: _userTypeKey);
+  }
+
+  Future<void> saveTheme(bool isDarkMode) async {
+    await _storage.write(key: _themeKey, value: isDarkMode.toString());
+  }
+
+  Future<bool?> getTheme() async {
+    final value = await _storage.read(key: _themeKey);
+    return value != null ? value.toLowerCase() == 'true' : null;
   }
 
   Future<void> clearToken() async {
@@ -49,6 +61,7 @@ class TokenStorage {
       _storage.delete(key: _hcoIdKey),
       _storage.delete(key: _userNameKey),
       _storage.delete(key: _userTypeKey),
+      _storage.delete(key: _themeKey), 
     ]);
   }
 }

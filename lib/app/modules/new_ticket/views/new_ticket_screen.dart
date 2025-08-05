@@ -1,3 +1,4 @@
+
 import 'dart:io';
 
 import 'package:flutter/material.dart';
@@ -15,24 +16,35 @@ class NewETicketScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final controller = Get.put(NewETicketController());
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
-      backgroundColor: AppColors.backgroundColor,
+      backgroundColor: isDarkMode ? AppColors.darkBackgroundColor : AppColors.backgroundColor,
       appBar: AppBar(
-        backgroundColor: AppColors.cardBackgroundColor,
+        backgroundColor: isDarkMode ? AppColors.darkCardBackgroundColor : AppColors.cardBackgroundColor,
         elevation: 0,
-        title: const Text(
+        title: Text(
           'New eTicket',
-          style: TextStyle(
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
-            color: AppColors.textColor,
+          style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                fontWeight: FontWeight.bold,
+                color: isDarkMode ? AppColors.darkTextColor : AppColors.textColor,
+              ),
+        ),
+        leading: IconButton(
+          icon: Icon(
+            Icons.arrow_back,
+            color: isDarkMode ? AppColors.darkIconColor : AppColors.iconColor,
           ),
+          onPressed: () => Get.back(),
         ),
       ),
       body: Obx(
         () => controller.isLoading.value
-            ? const Center(child: CircularProgressIndicator())
+            ? Center(
+                child: CircularProgressIndicator(
+                  color: AppColors.primaryColor,
+                ),
+              )
             : SingleChildScrollView(
                 padding: const EdgeInsets.all(16.0),
                 child: Form(
@@ -40,7 +52,6 @@ class NewETicketScreen extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // ... (existing dropdowns and fields unchanged)
                       CustomDropdownField(
                         label: 'Room',
                         value: controller.room.value.isEmpty ? null : controller.room.value,
@@ -113,7 +124,7 @@ class NewETicketScreen extends StatelessWidget {
                               color: AppColors.primaryColor.withOpacity(0.1),
                               borderRadius: BorderRadius.circular(10),
                             ),
-                            child: const Icon(
+                            child: Icon(
                               Icons.camera_alt,
                               size: 40,
                               color: AppColors.primaryColor,

@@ -2,15 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:qr_buddy/app/core/config/token_storage.dart';
 import 'package:qr_buddy/app/core/theme/app_theme.dart';
-import 'package:qr_buddy/app/core/utils/snackbar.dart';
 import 'package:qr_buddy/app/data/repo/auth_repo.dart';
-import 'package:qr_buddy/app/modules/e_ticket/controllers/shift_controller.dart'; // Import the new controller
+import 'package:qr_buddy/app/modules/e_ticket/controllers/shift_controller.dart';
 import 'package:qr_buddy/app/routes/routes.dart';
 
 class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
   final String title;
   final VoidCallback? onQrPressed;
-  final VoidCallback? onBrightnessPressed;
   final VoidCallback? onLocationPressed;
   final VoidCallback? onProfilePressed;
   final Widget? leading;
@@ -19,7 +17,6 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
     Key? key,
     required this.title,
     this.onQrPressed,
-    this.onBrightnessPressed,
     this.onLocationPressed,
     this.onProfilePressed,
     this.leading,
@@ -30,6 +27,7 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
     final TokenStorage tokenStorage = TokenStorage();
     final AuthRepository authRepository = AuthRepository();
     final ShiftController shiftController = Get.put(ShiftController());
+    final ThemeController themeController = Get.put(ThemeController());
 
     void showProfileDialog() async {
       final String? userName = await tokenStorage.getUserName() ?? 'User';
@@ -58,57 +56,54 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
                 child: Material(
                   elevation: 10,
                   borderRadius: BorderRadius.circular(8),
+                  color: Theme.of(context).brightness == Brightness.dark
+                      ? AppColors.darkCardBackgroundColor
+                      : AppColors.cardBackgroundColor,
                   child: Container(
                     width: dialogWidth,
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
-                      color: AppColors.cardBackgroundColor,
                       borderRadius: BorderRadius.circular(8),
+                      border: Border.all(
+                        color: Theme.of(context).brightness == Brightness.dark
+                            ? AppColors.darkBorderColor
+                            : AppColors.borderColor,
+                        width: 1,
+                      ),
                     ),
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          userName ?? 'User',
-                          style: AppTheme.theme.textTheme.bodyLarge?.copyWith(
-                            fontWeight: FontWeight.bold,
-                            color: AppColors.textColor,
-                          ) ??
-                              TextStyle(
-                                fontSize: 16,
+                          userName!,
+                          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                                 fontWeight: FontWeight.bold,
-                                color: AppColors.textColor,
                               ),
                         ),
                         const SizedBox(height: 8),
                         Text(
-                          userType ?? 'User',
-                          style: AppTheme.theme.textTheme.bodySmall?.copyWith(
-                            color: AppColors.subtitleColor,
-                          ) ??
-                              TextStyle(
-                                fontSize: 12,
-                                color: AppColors.subtitleColor,
-                              ),
+                          userType!,
+                          style: Theme.of(context).textTheme.bodySmall,
                         ),
                         const SizedBox(height: 16),
                         ElevatedButton(
                           onPressed: () async {
                             await authRepository.logout();
+                            await tokenStorage.clearToken();
                             Get.offAllNamed(RoutesName.loginScreen);
                           },
-                          style: AppTheme.theme.elevatedButtonTheme.style?.copyWith(
-                            backgroundColor: WidgetStateProperty.all(AppColors.dangerButtonColor),
-                            shape: WidgetStateProperty.all(
-                              RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(8),
+                          style: Theme.of(context).elevatedButtonTheme.style?.copyWith(
+                                backgroundColor: WidgetStateProperty.all(AppColors.dangerButtonColor),
+                                shape: WidgetStateProperty.all(
+                                  RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                ),
+                                padding: WidgetStateProperty.all(
+                                  const EdgeInsets.symmetric(vertical: 8),
+                                ),
                               ),
-                            ),
-                            padding: WidgetStateProperty.all(
-                              const EdgeInsets.symmetric(vertical: 8),
-                            ),
-                          ),
                           child: const Center(
                             child: Text(
                               'Log Out',
@@ -128,18 +123,13 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
     }
 
     return AppBar(
-      backgroundColor: AppColors.backgroundColor,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       elevation: 0,
       leading: leading,
       title: Text(
         title,
-        style: AppTheme.theme.textTheme.headlineMedium?.copyWith(
-          fontSize: 20,
-        ) ??
-            TextStyle(
+        style: Theme.of(context).textTheme.headlineMedium?.copyWith(
               fontSize: 20,
-              fontWeight: FontWeight.bold,
-              color: AppColors.textColor,
             ),
       ),
       actions: [
@@ -159,44 +149,45 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
               if (shiftController.shiftStatus.value == 'END' || shiftController.shiftStatus.value == 'BREAK')
                 ElevatedButton(
                   onPressed: () => shiftController.updateShiftStatus('START'),
-                  style: AppTheme.theme.elevatedButtonTheme.style?.copyWith(
+                  style: Theme.of(context).elevatedButtonTheme.style?.copyWith(
                         padding: WidgetStateProperty.all(const EdgeInsets.symmetric(horizontal: 16, vertical: 8)),
-                      ) ??
-                      ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.primaryColor,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(30),
-                        ),
-                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                       ),
-                  child: const Text(
+                  child: Text(
                     'Start Shift',
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: Colors.white,
-                    ),
+                    style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                          color: Colors.white,
+                          fontSize: 14,
+                        ),
                   ),
                 ),
               IconButton(
-                icon: const Icon(Icons.qr_code, color: AppColors.hintTextColor),
+                icon: Icon(
+                  Icons.qr_code,
+                  color: Theme.of(context).iconTheme.color,
+                ),
                 onPressed: onQrPressed,
               ),
+              Obx(() => IconButton(
+                    icon: Icon(
+                      themeController.isDarkMode.value ? Icons.brightness_7 : Icons.brightness_4,
+                      color: Theme.of(context).iconTheme.color,
+                    ),
+                    onPressed: () {
+                      themeController.toggleTheme();
+                    },
+                  )),
               IconButton(
-                icon: const Icon(Icons.brightness_6, color: AppColors.hintTextColor),
-                onPressed: (){
-                  // onBrightnessPressed
-                    CustomSnackbar.info(
-                              'Coming Soon',
-                              
-                              );
-                  },
-              ),
-              IconButton(
-                icon: const Icon(Icons.location_on, color: AppColors.hintTextColor),
+                icon: Icon(
+                  Icons.location_on,
+                  color: Theme.of(context).iconTheme.color,
+                ),
                 onPressed: onLocationPressed,
               ),
               IconButton(
-                icon: const Icon(Icons.person, color: AppColors.hintTextColor),
+                icon: Icon(
+                  Icons.person,
+                  color: Theme.of(context).iconTheme.color,
+                ),
                 onPressed: showProfileDialog,
               ),
             ],

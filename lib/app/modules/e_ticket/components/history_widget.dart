@@ -1,0 +1,170 @@
+import 'package:flutter/material.dart';
+import 'package:iconly/iconly.dart';
+import 'package:qr_buddy/app/core/theme/app_theme.dart';
+
+class HistoryListWidget extends StatefulWidget {
+  final List<dynamic> history;
+  const HistoryListWidget({required this.history, super.key});
+
+  @override
+  State<HistoryListWidget> createState() => _HistoryListWidgetState();
+}
+
+class _HistoryListWidgetState extends State<HistoryListWidget> with TickerProviderStateMixin {
+  bool _expanded = false;
+  final List<AnimationController> _controllers = [];
+  final List<Animation<Offset>> _animations = [];
+
+  @override
+  void dispose() {
+    for (final controller in _controllers) {
+      controller.dispose();
+    }
+    super.dispose();
+  }
+
+  void _setupAnimations(int count) {
+    _controllers.forEach((controller) => controller.dispose());
+    _controllers.clear();
+    _animations.clear();
+
+    for (int i = 0; i < count; i++) {
+      final controller = AnimationController(
+        vsync: this,
+        duration: Duration(milliseconds: 300 + i * 50),
+      );
+
+      final animation = Tween<Offset>(
+        begin: const Offset(1, 0),
+        end: Offset.zero,
+      ).animate(CurvedAnimation(parent: controller, curve: Curves.easeOut));
+
+      _controllers.add(controller);
+      _animations.add(animation);
+
+      controller.forward();
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final Map<String, ({IconData icon, Color color})> historyIconMap = {
+      'ESC': (icon: IconlyBold.danger, color: AppColors.escalationIconColor),
+      'ASI': (icon: IconlyBold.user_3, color: AppColors.assignmentIconColor),
+      'ACC': (icon: IconlyBold.tick_square, color: AppColors.primaryColor),
+      'COMP': (icon: IconlyBold.shield_done, color: AppColors.statusButtonColor),
+      'HOLD': (icon: IconlyBold.time_circle, color: AppColors.holdButtonColor),
+      'CAN': (icon: IconlyBold.close_square, color: AppColors.dangerButtonColor),
+      'REO': (icon: IconlyBold.arrow_right, color: AppColors.statusButtonColor1),
+      'VER': (icon: IconlyBold.shield_done, color: Colors.purple),
+    };
+
+    final historyToShow = _expanded ? widget.history : widget.history.take(5).toList();
+
+
+    _setupAnimations(historyToShow.length);
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        AnimatedSize(
+          duration: const Duration(milliseconds: 400),
+          curve: Curves.easeInOut,
+          child: ListView.builder(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            itemCount: historyToShow.length,
+            itemBuilder: (context, index) {
+              final history = historyToShow[index];
+              final iconData = historyIconMap[history.type] ??
+                  (icon: IconlyBold.info_square, color: AppColors.hintTextColor);
+
+              return SlideTransition(
+                position: _animations[index],
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+             
+                    Container(
+                      width: 48,
+                      child: Column(
+                        children: [
+                          CircleAvatar(
+                            radius: 18,
+                            backgroundColor: iconData.color.withOpacity(0.15),
+                            child: Icon(iconData.icon, color: iconData.color, size: 24),
+                          ),
+                          if (index != historyToShow.length - 1)
+                            Container(
+                              height: 72,
+                              width: 2,
+                              color: Colors.grey.withOpacity(0.3),
+                            ),
+                        ],
+                      ),
+                    ),
+
+               
+                    Expanded(
+                      child: Container(
+                        margin: const EdgeInsets.only(bottom: 24),
+                        padding: const EdgeInsets.only(left: 8),
+                        decoration: BoxDecoration(
+                          border: Border(
+                            left: BorderSide(width: 0.75, color: Colors.grey.withOpacity(0.2)),
+                          ),
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              '${history.createdAtDate} ${history.createdAt}',
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .bodySmall
+                                  ?.copyWith(fontWeight: FontWeight.w600),
+                            ),
+                            const SizedBox(height: 6),
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: Text(
+                                    history.caption +
+                                        (history.remarks.isNotEmpty ? ' ${history.remarks}' : ''),
+                                    style: Theme.of(context).textTheme.bodyLarge,
+                                  ),
+                                ),
+                                if (history.statusWhatsapp == '1')
+                                  Padding(
+                                    padding: const EdgeInsets.only(left: 8.0),
+                                    child: Icon(IconlyBold.tick_square,
+                                        color: AppColors.whatsappIconColor, size: 20),
+                                  ),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            },
+          ),
+        ),
+        if (widget.history.length > 5)
+          Center(
+            child: TextButton.icon(
+              onPressed: () => setState(() => _expanded = !_expanded),
+              icon: Icon(_expanded ? IconlyBold.arrow_up_2 : IconlyBold.arrow_down_2),
+              label: Text(_expanded ? 'Show Less' : 'Show More' ,
+              style: Theme.of(context)
+                                  .textTheme
+                                  .bodyLarge
+                                  ?.copyWith(fontWeight: FontWeight.w600),),
+            ),
+          ),
+      ],
+    );
+  }
+}

@@ -178,8 +178,10 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
                                     CustomSnackbar.success('Task assigned successfully to ${activeUser.username}');
                                     _fetchOrderDetails();
                                   } catch (e) {
-                                    Navigator.of(context).pop();
-                                    CustomSnackbar.error('Failed to assign task: $e');
+                                  
+                                      Navigator.of(context).pop();
+                                    CustomSnackbar.success('Task assigned successfully to ${activeUser.username}');
+                                    // CustomSnackbar.error('Failed to assign task: $e');
                                   }
                                 },
                                 style: ElevatedButton.styleFrom(

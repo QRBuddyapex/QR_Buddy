@@ -475,8 +475,8 @@ class FullScreenNotification extends StatelessWidget {
                                     style: TextStyle(
                                         fontSize: 14, color: Colors.grey)),
                                 Text(
-                                    location.isNotEmpty
-                                        ? location.split(',')[0].trim()
+                                    location.contains('Block') || location.contains('Floor')
+                                        ? location.split(',').firstWhere((part) => part.contains('Block') || part.contains('Floor'), orElse: () => '').trim()
                                         : 'Unknown',
                                     style: const TextStyle(
                                       fontSize: 16,
@@ -493,9 +493,7 @@ class FullScreenNotification extends StatelessWidget {
                                     style: TextStyle(
                                         fontSize: 14, color: Colors.grey)),
                                 Text(
-                                    location.isNotEmpty && location.contains(',')
-                                        ? location.split(',')[1].trim()
-                                        : 'Unknown',
+                                    '', // Hide Room-Bed unless specified
                                     style: const TextStyle(
                                       fontSize: 16,
                                       fontWeight: FontWeight.bold,

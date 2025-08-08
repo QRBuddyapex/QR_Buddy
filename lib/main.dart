@@ -29,16 +29,20 @@ Future<void> main() async {
   final token = await notificationServices.getDeviceToken();
   print('FCM Token: $token');
 
+
   final tokenStorage = TokenStorage();
   final authToken = await tokenStorage.getToken();
+
 
   final permissionStatus = await Permission.location.status;
   if (!permissionStatus.isGranted) {
     final requestStatus = await Permission.location.request();
     if (!requestStatus.isGranted) {
+  
       exit(0);
     }
   }
+
 
   if (Platform.isAndroid) {
     await _checkForUpdate();
@@ -48,9 +52,6 @@ Future<void> main() async {
   final initialRoute = (authToken != null && userId != null)
       ? RoutesName.ticketDashboardView
       : RoutesName.loginScreen;
-
-  // Initialize ThemeController before running the app
-  final ThemeController themeController = Get.put(ThemeController());
 
   runApp(MyApp(
     notificationServices: notificationServices,
@@ -126,9 +127,7 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Ensure ThemeController is initialized
-    final ThemeController themeController = Get.find<ThemeController>();
-
+     final ThemeController themeController = Get.put(ThemeController());
     // Pass context to firebaseInit after the app is built
     WidgetsBinding.instance.addPostFrameCallback((_) {
       notificationServices.firebaseInit(context);

@@ -289,7 +289,7 @@ class _TicketCardState extends State<TicketCard> with SingleTickerProviderStateM
                               ],
                             ),
                             child: Text(
-                              'Feedback',
+                              'View Ticket',
                               style: Theme.of(context).textTheme.bodyMedium!.copyWith(
                                     color: AppColors.primaryColor,
                                     fontWeight: FontWeight.bold,

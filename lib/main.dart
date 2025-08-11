@@ -128,7 +128,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
      final ThemeController themeController = Get.put(ThemeController());
-    // Pass context to firebaseInit after the app is built
+ 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       notificationServices.firebaseInit(context);
     });

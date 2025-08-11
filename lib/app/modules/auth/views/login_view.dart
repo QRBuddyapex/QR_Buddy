@@ -1,4 +1,3 @@
-
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:qr_buddy/app/core/config/notifications_services.dart';
@@ -34,7 +33,9 @@ class _LoginViewState extends State<LoginView> {
     final textTheme = Theme.of(context).textTheme;
 
     return Scaffold(
-      backgroundColor: isDarkMode ? AppColors.darkBackgroundColor : AppColors.backgroundColor,
+      backgroundColor: isDarkMode
+          ? AppColors.darkBackgroundColor
+          : AppColors.backgroundColor,
       body: Center(
         child: SingleChildScrollView(
           child: Padding(
@@ -43,11 +44,15 @@ class _LoginViewState extends State<LoginView> {
               () => Container(
                 padding: const EdgeInsets.all(20),
                 decoration: BoxDecoration(
-                  color: isDarkMode ? AppColors.darkCardBackgroundColor : AppColors.cardBackgroundColor,
+                  color: isDarkMode
+                      ? AppColors.darkCardBackgroundColor
+                      : AppColors.cardBackgroundColor,
                   borderRadius: BorderRadius.circular(15),
                   boxShadow: [
                     BoxShadow(
-                      color: isDarkMode ? AppColors.darkShadowColor : AppColors.shadowColor,
+                      color: isDarkMode
+                          ? AppColors.darkShadowColor
+                          : AppColors.shadowColor,
                       spreadRadius: 5,
                       blurRadius: 7,
                       offset: const Offset(0, 3),
@@ -60,13 +65,14 @@ class _LoginViewState extends State<LoginView> {
                     Image.network(
                       'https://qrbuddy.in/assets/qr_buddy_logo.9534a79b.png',
                       height: 60,
-                     
                     ),
                     const SizedBox(height: 20),
                     Text(
                       'Sign in',
                       style: textTheme.headlineMedium?.copyWith(
-                        color: isDarkMode ? AppColors.darkTextColor : AppColors.textColor,
+                        color: isDarkMode
+                            ? AppColors.darkTextColor
+                            : AppColors.textColor,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
@@ -79,6 +85,8 @@ class _LoginViewState extends State<LoginView> {
                     CustomTextField(
                       hintText: 'Password',
                       obscureText: true,
+                      showToggleIcon: true,
+                      visibilityController: loginController.isPasswordVisible,
                       onChanged: loginController.updatePassword,
                     ),
                     const SizedBox(height: 20),
@@ -87,7 +95,7 @@ class _LoginViewState extends State<LoginView> {
                             color: AppColors.primaryColor,
                           )
                         : CustomButton(
-                          width: width,
+                            width: width,
                             text: 'Sign In',
                             onPressed: loginController.login,
                             color: AppColors.primaryColor,

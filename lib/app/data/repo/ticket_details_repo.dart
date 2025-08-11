@@ -86,7 +86,7 @@ class OrderDetailRepository {
       ),
     );
 
-    if (response.statusCode == 200 && response.data['status'] == 1) {
+    if (response.statusCode == 200 ) {
       return response.data;
     } else {
       throw Exception(response.data['message'] ?? 'Failed to assign task');

@@ -77,7 +77,7 @@ class _AcceptTicketScreenState extends State<AcceptTicketScreen> {
         'Accept',
         widget.ticket.orderNumber,
         widget.ticket.serviceLabel,
-        _orderDetailResponse!.order.id,
+        _orderDetailResponse!.order!.id!,
         onSuccess: (response) {
           Get.toNamed(RoutesName.ticketDashboardView);
           ticketController.fetchTickets();

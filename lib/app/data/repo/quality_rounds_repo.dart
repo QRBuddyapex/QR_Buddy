@@ -1,4 +1,3 @@
-
 import 'package:dio/dio.dart';
 import 'package:qr_buddy/app/core/config/api_config.dart';
 import 'package:qr_buddy/app/core/config/token_storage.dart';
@@ -43,10 +42,10 @@ class QualityRoundsRepository {
     required String categoryUuid,
     required String userId,
     required String hcoId,
+    required String roomUuid,
     required String averageRating,
     required Map<String, dynamic> parameters,
     required List<Parameter> formParameters,
-  
   }) async {
     try {
       final data = {
@@ -79,13 +78,13 @@ class QualityRoundsRepository {
           };
         }).toList(),
         'round_uuid': '-',
-        'room_uuid': '0640eb9d136411ef8eae0200d429951a',
+        'room_uuid': roomUuid,
         'source': 'QR',
         'status_update': 'END',
         'user_id_login': 0,
-        'rating':averageRating, 
+        'rating': averageRating,
         'remarks': '',
-        'stock_uuid': '-', 
+        'stock_uuid': '-',
       };
 
       final response = await _apiService.post(
@@ -98,7 +97,6 @@ class QualityRoundsRepository {
           'phone_uuid': '',
           'hco_key': '0',
         },
-       
       );
 
       if (response.statusCode != 200) {

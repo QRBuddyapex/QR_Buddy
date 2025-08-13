@@ -1,4 +1,3 @@
-
 import 'package:get/get.dart';
 import 'package:qr_buddy/app/core/config/token_storage.dart';
 import 'package:qr_buddy/app/data/models/management_form_model.dart';
@@ -11,10 +10,16 @@ class QualityRoundsController extends GetxController {
   final RxBool isLoading = false.obs;
   final RxString errorMessage = ''.obs;
   final RxBool isSubmitting = false.obs;
+  final RxString roomUuid = ''.obs;
 
   @override
   void onInit() {
     super.onInit();
+    // Get room_uuid from route arguments
+    final arguments = Get.arguments as Map<String, dynamic>?;
+    if (arguments != null && arguments.containsKey('room_uuid')) {
+      roomUuid.value = arguments['room_uuid'];
+    }
     fetchFormData();
   }
 
@@ -30,7 +35,7 @@ class QualityRoundsController extends GetxController {
         hcoId: hcoId,
       );
       formModel.value = form;
-      
+
       formData.value = {
         for (var param in form.parameters)
           param.parameterName!: param.valueString!.isNotEmpty
@@ -49,8 +54,14 @@ class QualityRoundsController extends GetxController {
   }
 
   Future<void> onSubmit(double averageRating) async {
-    
-    if (formModel.value == null) return;
+    if (formModel.value == null || roomUuid.value.isEmpty) {
+      Get.snackbar(
+        'Error',
+        'Form data or room UUID is missing',
+        snackPosition: SnackPosition.BOTTOM,
+      );
+      return;
+    }
 
     isSubmitting.value = true;
     errorMessage.value = '';
@@ -61,10 +72,10 @@ class QualityRoundsController extends GetxController {
         categoryUuid: 'e1643e28404611ef99170200d429951a',
         userId: userId,
         hcoId: hcoId,
+        roomUuid: roomUuid.value,
         parameters: formData,
         formParameters: formModel.value!.parameters,
         averageRating: averageRating.toString(),
-      
       );
       Get.snackbar(
         'Success',

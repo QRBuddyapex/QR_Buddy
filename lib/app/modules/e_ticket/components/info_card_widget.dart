@@ -31,26 +31,6 @@ class InfoCardContentWidget extends StatelessWidget {
               fontSize: size.width * 0.05,
             ),
           ),
-          // Row(
-          //   children: [
-          //     IconButton(
-          //       icon: Icon(
-          //         Icons.refresh,
-          //         color: AppColors.hintTextColor,
-          //         size: size.width * 0.06,
-          //       ),
-          //       onPressed: onRefresh,
-          //     ),
-          //     IconButton(
-          //       icon: Icon(
-          //         Icons.delete,
-          //         color: AppColors.hintTextColor,
-          //         size: size.width * 0.06,
-          //       ),
-          //       onPressed: () {},
-          //     ),
-          //   ],
-          // ),
         ],
       ),
     );
@@ -112,20 +92,13 @@ class InfoCardContentWidget extends StatelessWidget {
                           fontSize: size.width * 0.03,
                         ),
                       ),
-                      Text(
-                        "Room Name: ${delivery['roomName']}",
-                        style: textTheme.bodySmall?.copyWith(
-                          color: AppColors.hintTextColor,
-                          fontSize: size.width * 0.035,
-                        ),
-                      ),
                     ],
                   ),
                 ],
               ),
               ElevatedButton(
                 onPressed: () {
-                  Get.toNamed(RoutesName.qualityRoundsScreen);
+                  Get.toNamed(RoutesName.qualityRoundsScreen, arguments: {'room_uuid': delivery['uuid']});
                 },
                 child: Icon(
                   Icons.qr_code,
@@ -326,30 +299,29 @@ class InfoCardContentWidget extends StatelessWidget {
         );
       } else if (controller.selectedInfoCard.value == 'Food Delivery') {
         return Column(
-          children: [
-            _buildGroupHeader(
-              context: context,
-              groupName: 'Food Deliveries',
-              onRefresh: () => controller.fetchFoodDeliveries(),
-              size: size,
-              textTheme: textTheme,
-            ),
-            ...List.generate(3, (index) {
-              final delivery = {
-                'roomId': 'R${index + 1}',
-                'roomName': 'Room ${String.fromCharCode(65 + index)}', // A, B, C
-                'imageUrl': 'https://via.placeholder.com/150',
-              };
-              return _buildFoodDeliveryCard(
-                context: context,
-                delivery: delivery,
-                index: index + 1,
-                size: size,
-                textTheme: textTheme,
-              );
-            }),
-            
-          ],
+          children: controller.tasks.map((group) {
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _buildGroupHeader(
+                  context: context,
+                  groupName: group['group'],
+                  onRefresh: () => controller.fetchFoodDeliveries(),
+                  size: size,
+                  textTheme: textTheme,
+                ),
+                ...group['tasks'].asMap().entries.map((entry) {
+                  return _buildFoodDeliveryCard(
+                    context: context,
+                    delivery: entry.value,
+                    index: entry.key + 1,
+                    size: size,
+                    textTheme: textTheme,
+                  );
+                }).toList(),
+              ],
+            );
+          }).toList(),
         );
       } else if (controller.selectedInfoCard.value == 'Checklists') {
         return Column(

@@ -26,19 +26,26 @@ class FoodDeliveryResponse {
         "message": message,
       };
 }
-
 class PendingRound {
   PendingRound({
     required this.id,
     required this.uuid,
     required this.roomId,
+    required this.roomuuid,
     required this.status,
+    required this.roomNumber,
+    required this.categoryName,
+    required this.categoryUuid, // Add categoryUuid
   });
 
   final int? id;
   final String? uuid;
   final int? roomId;
+  final String? roomuuid;
   final int? status;
+  final String? roomNumber;
+  final String? categoryName;
+  final String? categoryUuid; // New field
 
   factory PendingRound.fromJson(Map<String, dynamic> json) {
     return PendingRound(
@@ -46,6 +53,10 @@ class PendingRound {
       uuid: json["uuid"]?.toString(),
       roomId: _parseInt(json["room_id"]),
       status: _parseInt(json["status"]),
+      roomNumber: json["room_number"]?.toString(),
+      roomuuid: json["room_uuid"]?.toString(), // Parse room_uuid
+      categoryName: json["category_name"]?.toString(),
+      categoryUuid: json["category_uuid"]?.toString(), // Parse category_uuid
     );
   }
 
@@ -54,10 +65,12 @@ class PendingRound {
         "uuid": uuid,
         "room_id": roomId,
         "status": status,
+        "room_number": roomNumber,
+        "room_uuid": roomuuid,
+        "category_name": categoryName,
+        "category_uuid": categoryUuid,
       };
-
 }
-
 int? _parseInt(dynamic value) {
   if (value == null) return null;
   if (value is int) return value;

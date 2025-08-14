@@ -6,6 +6,7 @@ import 'package:qr_buddy/app/modules/daily_checklist/bindings/daily_checklist_bi
 import 'package:qr_buddy/app/modules/daily_checklist/views/daily_checklist_view.dart';
 import 'package:qr_buddy/app/modules/e_ticket/bindings/ticket_dashboard_binding.dart';
 import 'package:qr_buddy/app/modules/e_ticket/views/accept_ticket_screen.dart';
+import 'package:qr_buddy/app/modules/e_ticket/views/qr_scan_for_food_delivery.dart';
 import 'package:qr_buddy/app/modules/e_ticket/views/qr_scan_screen.dart';
 import 'package:qr_buddy/app/modules/e_ticket/views/ticket_dashboard_screen.dart';
 import 'package:qr_buddy/app/modules/e_ticket/views/ticket_details_screen.dart';
@@ -71,6 +72,12 @@ class AppRoutes {
         GetPage(
           name: '/qr-scan',
           page: () => const QrScanScreen(),
+          transition: Transition.downToUp,
+          transitionDuration: const Duration(milliseconds: 250),
+        ),
+          GetPage(
+          name: RoutesName.qrScanForFoodDelivery,
+          page: () => const QrScanForFoodDelivery(),
           transition: Transition.downToUp,
           transitionDuration: const Duration(milliseconds: 250),
         ),

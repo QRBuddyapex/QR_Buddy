@@ -8,6 +8,7 @@ class RoutesName {
   static const String dailyChecklistView = '/daily_checklist_view';
    static const String acceptTicketScreen = '/accept-ticket';
     static const String qualityRoundsScreen = '/quality_rounds_view';
+     static const String qrScanForFoodDelivery = '/qr_scan_for_food_delivery_view';
 
   // static const String ticketHistoryView = '/ticket_history_view';
   // static const String registerUserView = '/user_signup_view';

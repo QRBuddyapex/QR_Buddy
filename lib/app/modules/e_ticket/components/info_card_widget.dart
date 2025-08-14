@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:qr_buddy/app/core/theme/app_theme.dart';
+import 'package:qr_buddy/app/modules/e_ticket/components/checklist_log_section.dart';
 import 'package:qr_buddy/app/modules/e_ticket/components/ticket_card.dart';
 import 'package:qr_buddy/app/modules/e_ticket/controllers/ticket_controller.dart';
 import 'package:qr_buddy/app/routes/routes.dart';
@@ -37,125 +38,112 @@ class InfoCardContentWidget extends StatelessWidget {
       ),
     );
   }
-Widget _buildFoodDeliveryCard({
-  required BuildContext context,
-  required Map<String, dynamic> delivery,
-  required int index,
-  required Size size,
-  required TextTheme textTheme,
-}) {
-  final roomUuid = delivery['room_uuid']?.toString().trim();
-  print('Delivery card room_uuid: $roomUuid'); // Debug log
-  return Padding(
-    padding: EdgeInsets.symmetric(
-      horizontal: size.width * 0.004,
-      vertical: size.height * 0.01,
-    ),
-    child: Card(
-      elevation: 5,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(15),
-        side: BorderSide(
-          color: Theme.of(context).brightness == Brightness.dark
-              ? AppColors.darkBorderColor
-              : AppColors.shadowColor.withOpacity(0.1),
-          width: 1,
-        ),
-      ),
-      color: Theme.of(context).brightness == Brightness.dark
-          ? AppColors.darkCardBackgroundColor
-          : AppColors.cardBackgroundColor,
-      child: Padding(
-        padding: EdgeInsets.all(size.width * 0.04),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Row(
-              children: [
-                // Container(
-                //   padding: EdgeInsets.all(size.width * 0.015),
-                //   decoration: BoxDecoration(
-                //     color: AppColors.primaryColor.withOpacity(0.1),
-                //     borderRadius: BorderRadius.circular(8),
-                //   ),
-                //   child: Text(
-                //     "Delivery $index",
-                //     style: textTheme.bodyMedium?.copyWith(
-                //       color: AppColors.primaryColor,
-                //       fontWeight: FontWeight.bold,
-                //       fontSize: size.width * 0.04,
-                //     ),
-                //   ),
-                // ),
-                SizedBox(width: size.width * 0.02),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      "Room: ${delivery['room_number']}",
-                      style: textTheme.bodyMedium?.copyWith(
-                        color: Theme.of(context).brightness == Brightness.dark
-                            ? AppColors.darkTextColor
-                            : AppColors.textColor,
-                        fontWeight: FontWeight.bold,
-                        fontSize: size.width * 0.03,
-                      ),
-                    ),
-                    SizedBox(height: size.height * 0.005),
-                    Text(
-                      "Category: ${delivery['category_name']}",
-                      style: textTheme.bodySmall?.copyWith(
-                        color: Theme.of(context).brightness == Brightness.dark
-                            ? AppColors.darkSubtitleColor
-                            : AppColors.hintTextColor,
-                        fontSize: size.width * 0.035,
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-            ElevatedButton(
-              onPressed: () async {
-                final scannedUuid = await Get.toNamed(
-                  RoutesName.qrScanForFoodDelivery,
-                  arguments: {'room_uuid': roomUuid},
-                );
 
-                if (scannedUuid != null && scannedUuid == roomUuid) {
-                  Get.toNamed(
-                    RoutesName.qualityRoundsScreen,
-                    arguments: {
-                      'room_uuid': roomUuid,
-                      'category_uuid': delivery['category_uuid'],
-                    },
-                  );
-                } else if (scannedUuid != null) {
-                  Get.snackbar(
-                    'Error',
-                    'Scanned QR code does not match the room UUID',
-                    snackPosition: SnackPosition.BOTTOM,
-                    backgroundColor: Colors.red.withOpacity(0.8),
-                    colorText: Colors.white,
-                  );
-                }
-              },
-              child: Icon(
-                Icons.qr_code,
-                color: Colors.white,
-                size: size.width * 0.06,
+  Widget _buildFoodDeliveryCard({
+    required BuildContext context,
+    required Map<String, dynamic> delivery,
+    required int index,
+    required Size size,
+    required TextTheme textTheme,
+  }) {
+    final roomUuid = delivery['room_uuid']?.toString().trim();
+    print('Delivery card room_uuid: $roomUuid'); // Debug log
+    return Padding(
+      padding: EdgeInsets.symmetric(
+        horizontal: size.width * 0.004,
+        vertical: size.height * 0.01,
+      ),
+      child: Card(
+        elevation: 5,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(15),
+          side: BorderSide(
+            color: Theme.of(context).brightness == Brightness.dark
+                ? AppColors.darkBorderColor
+                : AppColors.shadowColor.withOpacity(0.1),
+            width: 1,
+          ),
+        ),
+        color: Theme.of(context).brightness == Brightness.dark
+            ? AppColors.darkCardBackgroundColor
+            : AppColors.cardBackgroundColor,
+        child: Padding(
+          padding: EdgeInsets.all(size.width * 0.04),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Row(
+                children: [
+                  SizedBox(width: size.width * 0.02),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        "Room: ${delivery['room_number']}",
+                        style: textTheme.bodyMedium?.copyWith(
+                          color: Theme.of(context).brightness == Brightness.dark
+                              ? AppColors.darkTextColor
+                              : AppColors.textColor,
+                          fontWeight: FontWeight.bold,
+                          fontSize: size.width * 0.03,
+                        ),
+                      ),
+                      SizedBox(height: size.height * 0.005),
+                      Text(
+                        "Category: ${delivery['category_name']}",
+                        style: textTheme.bodySmall?.copyWith(
+                          color: Theme.of(context).brightness == Brightness.dark
+                              ? AppColors.darkSubtitleColor
+                              : AppColors.hintTextColor,
+                          fontSize: size.width * 0.035,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
               ),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.primaryColor,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8),
+              ElevatedButton(
+                onPressed: () async {
+                  final scannedUuid = await Get.toNamed(
+                    RoutesName.qrScanForFoodDelivery,
+                    arguments: {'room_uuid': roomUuid},
+                  );
+
+                  if (scannedUuid != null && scannedUuid == roomUuid) {
+                    Get.toNamed(
+                      RoutesName.qualityRoundsScreen,
+                      arguments: {
+                        'room_uuid': roomUuid,
+                        'category_uuid': delivery['category_uuid'],
+                      },
+                    );
+                  } else if (scannedUuid != null) {
+                    Get.snackbar(
+                      'Error',
+                      'Scanned QR code does not match the room UUID',
+                      snackPosition: SnackPosition.BOTTOM,
+                      backgroundColor: Colors.red.withOpacity(0.8),
+                      colorText: Colors.white,
+                    );
+                  }
+                },
+                child: Icon(
+                  Icons.qr_code,
+                  color: Colors.white,
+                  size: size.width * 0.06,
+                ),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.primaryColor,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
-    ));
+    );
   }
 
   Widget _buildChecklistCard({
@@ -374,34 +362,63 @@ Widget _buildFoodDeliveryCard({
         );
       } else if (controller.selectedInfoCard.value == 'Checklists') {
         return Column(
-          children: controller.checklists.map((group) {
-            return Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _buildGroupHeader(
-                  context: context,
-                  groupName: group['group'],
-                  onRefresh: () => controller.fetchChecklists(),
-                  size: size,
-                  textTheme: textTheme,
-                ),
-                ...group['checklists'].asMap().entries.map((entry) {
-                  return _buildChecklistCard(
+          children: [
+            ...controller.checklists.map((group) {
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _buildGroupHeader(
                     context: context,
-                    checklist: entry.value,
-                    index: entry.key + 1,
+                    groupName: group['group'],
+                    onRefresh: () => controller.fetchChecklistLog(),
                     size: size,
                     textTheme: textTheme,
-                  );
-                }).toList(),
-                _buildAddButton(
-                  context: context,
-                  label: 'Add Checklist',
-                  size: size,
-                ),
-              ],
-            );
-          }).toList(),
+                  ),
+                  ...group['checklists'].asMap().entries.map((entry) {
+                    return _buildChecklistCard(
+                      context: context,
+                      checklist: entry.value,
+                      index: entry.key + 1,
+                      size: size,
+                      textTheme: textTheme,
+                    );
+                  }).toList(),
+                  _buildAddButton(
+                    context: context,
+                    label: 'Add Checklist',
+                    size: size,
+                  ),
+                ],
+              );
+            }).toList(),
+            if (controller.checklistLogRoundData.isEmpty)
+              ChecklistLogSection(
+                roundDataRx: controller.checklistLogRoundData,
+                roomsRx: controller.checklistLogRooms,
+                parseShortDate: (str) {
+                  final parts = str.trim().split(' ');
+                  if (parts.length != 2) return DateTime.now();
+                  final day = int.tryParse(parts[0]) ?? 1;
+                  const monthMap = {
+                    'Jan': 1,
+                    'Feb': 2,
+                    'Mar': 3,
+                    'Apr': 4,
+                    'May': 5,
+                    'Jun': 6,
+                    'Jul': 7,
+                    'Aug': 8,
+                    'Sep': 9,
+                    'Oct': 10,
+                    'Nov': 11,
+                    'Dec': 12,
+                  };
+                  final month = monthMap[parts[1]] ?? 1;
+                  return DateTime(2025, month, day);
+                },
+                formatShortDate: (str) => str,
+              ),
+          ],
         );
       }
       return const SizedBox.shrink();

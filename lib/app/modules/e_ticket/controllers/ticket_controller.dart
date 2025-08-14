@@ -48,7 +48,7 @@ class TicketController extends GetxController {
   final remarksController = TextEditingController();
   final holdDateTimeController = TextEditingController();
   var selectedImage = Rxn<File>();
-
+  
   var checklistLogRoundData = <String, Map<String, List<dynamic>>>{}.obs;
   var checklistLogRooms = <String, dynamic>{}.obs;
 

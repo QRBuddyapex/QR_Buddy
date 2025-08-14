@@ -17,11 +17,11 @@ class _QrScanForFoodDeliveryState extends State<QrScanForFoodDelivery> {
   @override
   void initState() {
     super.initState();
-    // Reset scanned state and get expected room_uuid from arguments
+ 
     scanned = false;
     final arguments = Get.arguments as Map<String, dynamic>?;
     expectedRoomUuid = arguments?['room_uuid']?.toString();
-    print('Expected room_uuid: $expectedRoomUuid'); // Debug log
+    print('Expected room_uuid: $expectedRoomUuid');
   }
 
   @override
@@ -49,10 +49,10 @@ class _QrScanForFoodDeliveryState extends State<QrScanForFoodDelivery> {
                 final barcode =
                     capture.barcodes.isNotEmpty ? capture.barcodes.first : null;
                 if (!scanned && barcode != null && barcode.rawValue != null) {
-                  final scannedValue = barcode.rawValue!.trim(); // Remove whitespace
-                  print('Scanned value: $scannedValue'); // Debug log
+                  final scannedValue = barcode.rawValue!.trim(); 
+                  print('Scanned value: $scannedValue'); 
 
-                  // Extract UUID from the URL
+                
                   String? extractedUuid;
                   if (scannedValue.contains('https://qrbuddy.in/buddy/') &&
                       scannedValue.contains('/en')) {
@@ -63,9 +63,9 @@ class _QrScanForFoodDeliveryState extends State<QrScanForFoodDelivery> {
                     }
                   }
 
-                  scanned = true;
+                  scanned = true; 
                   if (expectedRoomUuid != null && extractedUuid == expectedRoomUuid) {
-                    Get.back(result: extractedUuid); // Return matching UUID
+                    Get.back(result: extractedUuid); 
                   } else {
                     Get.snackbar(
                       'Error',
@@ -73,9 +73,16 @@ class _QrScanForFoodDeliveryState extends State<QrScanForFoodDelivery> {
                       snackPosition: SnackPosition.BOTTOM,
                       backgroundColor: Colors.red.withOpacity(0.8),
                       colorText: Colors.white,
+                      duration: const Duration(seconds: 3),
                     );
-                    // Reset scanned to allow retry
-                    scanned = false;
+                 
+                    Future.delayed(const Duration(milliseconds: 500), () {
+                      if (mounted) {
+                        setState(() {
+                          scanned = false;
+                        });
+                      }
+                    });
                   }
                 }
               },

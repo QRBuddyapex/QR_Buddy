@@ -38,113 +38,120 @@ class InfoCardContentWidget extends StatelessWidget {
       ),
     );
   }
-
-  Widget _buildFoodDeliveryCard({
-    required BuildContext context,
-    required Map<String, dynamic> delivery,
-    required int index,
-    required Size size,
-    required TextTheme textTheme,
-  }) {
-    final roomUuid = delivery['room_uuid']?.toString().trim();
-    print('Delivery card room_uuid: $roomUuid'); // Debug log
-    return Padding(
-      padding: EdgeInsets.symmetric(
-        horizontal: size.width * 0.004,
-        vertical: size.height * 0.01,
-      ),
-      child: Card(
-        elevation: 5,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(15),
-          side: BorderSide(
-            color: Theme.of(context).brightness == Brightness.dark
-                ? AppColors.darkBorderColor
-                : AppColors.shadowColor.withOpacity(0.1),
-            width: 1,
-          ),
+Widget _buildFoodDeliveryCard({
+  required BuildContext context,
+  required Map<String, dynamic> delivery,
+  required int index,
+  required Size size,
+  required TextTheme textTheme,
+}) {
+  final roomUuid = delivery['room_uuid']?.toString().trim();
+  print('Delivery card room_uuid: $roomUuid'); 
+  return Padding(
+    padding: EdgeInsets.symmetric(
+      horizontal: size.width * 0.004,
+      vertical: size.height * 0.01,
+    ),
+    child: Card(
+      elevation: 5,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(15),
+        side: BorderSide(
+          color: Theme.of(context).brightness == Brightness.dark
+              ? AppColors.darkBorderColor
+              : AppColors.shadowColor.withOpacity(0.1),
+          width: 1,
         ),
-        color: Theme.of(context).brightness == Brightness.dark
-            ? AppColors.darkCardBackgroundColor
-            : AppColors.cardBackgroundColor,
-        child: Padding(
-          padding: EdgeInsets.all(size.width * 0.04),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Row(
+      ),
+      color: Theme.of(context).brightness == Brightness.dark
+          ? AppColors.darkCardBackgroundColor
+          : AppColors.cardBackgroundColor,
+      child: Padding(
+        padding: EdgeInsets.all(size.width * 0.04),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Flexible(
+              child: Row(
                 children: [
                   SizedBox(width: size.width * 0.02),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        "Room: ${delivery['room_number']}",
-                        style: textTheme.bodyMedium?.copyWith(
-                          color: Theme.of(context).brightness == Brightness.dark
-                              ? AppColors.darkTextColor
-                              : AppColors.textColor,
-                          fontWeight: FontWeight.bold,
-                          fontSize: size.width * 0.03,
+                  Flexible(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          "Room: ${delivery['room_number']}",
+                          style: textTheme.bodyMedium?.copyWith(
+                            color: Theme.of(context).brightness == Brightness.dark
+                                ? AppColors.darkTextColor
+                                : AppColors.textColor,
+                            fontWeight: FontWeight.bold,
+                            fontSize: size.width * 0.03,
+                          ),
+                          maxLines: null,
+                          overflow: TextOverflow.visible,
                         ),
-                      ),
-                      SizedBox(height: size.height * 0.005),
-                      Text(
-                        "Category: ${delivery['category_name']}",
-                        style: textTheme.bodySmall?.copyWith(
-                          color: Theme.of(context).brightness == Brightness.dark
-                              ? AppColors.darkSubtitleColor
-                              : AppColors.hintTextColor,
-                          fontSize: size.width * 0.035,
+                        SizedBox(height: size.height * 0.005),
+                        Text(
+                          "Category: ${delivery['category_name']}",
+                          style: textTheme.bodySmall?.copyWith(
+                            color: Theme.of(context).brightness == Brightness.dark
+                                ? AppColors.darkSubtitleColor
+                                : AppColors.hintTextColor,
+                            fontSize: size.width * 0.035,
+                          ),
+                          maxLines: null,
+                          overflow: TextOverflow.visible,
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
                 ],
               ),
-              ElevatedButton(
-                onPressed: () async {
-                  final scannedUuid = await Get.toNamed(
-                    RoutesName.qrScanForFoodDelivery,
-                    arguments: {'room_uuid': roomUuid},
-                  );
+            ),
+            ElevatedButton(
+              onPressed: () async {
+                final scannedUuid = await Get.toNamed(
+                  RoutesName.qrScanForFoodDelivery,
+                  arguments: {'room_uuid': roomUuid},
+                );
 
-                  if (scannedUuid != null && scannedUuid == roomUuid) {
-                    Get.toNamed(
-                      RoutesName.qualityRoundsScreen,
-                      arguments: {
-                        'room_uuid': roomUuid,
-                        'category_uuid': delivery['category_uuid'],
-                      },
-                    );
-                  } else if (scannedUuid != null) {
-                    Get.snackbar(
-                      'Error',
-                      'Scanned QR code does not match the room UUID',
-                      snackPosition: SnackPosition.BOTTOM,
-                      backgroundColor: Colors.red.withOpacity(0.8),
-                      colorText: Colors.white,
-                    );
-                  }
-                },
-                child: Icon(
-                  Icons.qr_code,
-                  color: Colors.white,
-                  size: size.width * 0.06,
-                ),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.primaryColor,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
-                  ),
+                if (scannedUuid != null && scannedUuid == roomUuid) {
+                  Get.toNamed(
+                    RoutesName.qualityRoundsScreen,
+                    arguments: {
+                      'room_uuid': roomUuid,
+                      'category_uuid': delivery['category_uuid'],
+                    },
+                  );
+                } else if (scannedUuid != null) {
+                  Get.snackbar(
+                    'Error',
+                    'Scanned QR code does not match the room UUID',
+                    snackPosition: SnackPosition.BOTTOM,
+                    backgroundColor: Colors.red.withOpacity(0.8),
+                    colorText: Colors.white,
+                  );
+                }
+              },
+              child: Icon(
+                Icons.qr_code,
+                color: Colors.white,
+                size: size.width * 0.06,
+              ),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.primaryColor,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
                 ),
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
-    );
-  }
+    ),
+  );
+}
 
   Widget _buildChecklistCard({
     required BuildContext context,

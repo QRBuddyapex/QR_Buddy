@@ -34,6 +34,7 @@ class QualityRoundsRepository {
     } on DioException catch (e) {
       throw ApiException.fromDioError(e);
     } catch (e) {
+      print(e);
       throw Exception('Failed to fetch parameters: $e');
     }
   }

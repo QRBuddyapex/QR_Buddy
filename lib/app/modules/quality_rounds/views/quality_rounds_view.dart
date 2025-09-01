@@ -1,4 +1,3 @@
-
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:qr_buddy/app/core/theme/app_theme.dart';
@@ -41,7 +40,7 @@ class QualityRoundsView extends GetView<QualityRoundsController> {
 
   Widget _buildNumberField(Parameter param, QualityRoundsController controller) {
     return CustomTextField(
-      label: param.parameterName ?? param.parameterName,
+      label: param.parameterName ?? '',
       hintText: 'Enter ${param.parameterName}',
       onChanged: (value) => controller.updateFormData(param.parameterName!, value),
       initialValue: controller.formData[param.parameterName!] as String?,
@@ -51,7 +50,7 @@ class QualityRoundsView extends GetView<QualityRoundsController> {
 
   Widget _buildSingleLineTextField(Parameter param, QualityRoundsController controller) {
     return CustomTextField(
-      label: param.parameterName ?? param.parameterName,
+      label: param.parameterName ?? '',
       hintText: 'Enter ${param.parameterName}',
       onChanged: (value) => controller.updateFormData(param.parameterName!, value),
       initialValue: controller.formData[param.parameterName!] as String?,
@@ -60,7 +59,7 @@ class QualityRoundsView extends GetView<QualityRoundsController> {
 
   Widget _buildMultipleLineTextField(Parameter param, QualityRoundsController controller) {
     return CustomTextField(
-      label: param.parameterName ?? param.parameterName,
+      label: param.parameterName ?? '',
       hintText: 'Enter ${param.parameterName}',
       onChanged: (value) => controller.updateFormData(param.parameterName!, value),
       initialValue: controller.formData[param.parameterName!] as String?,
@@ -69,21 +68,25 @@ class QualityRoundsView extends GetView<QualityRoundsController> {
   }
 
   Widget _buildSelectField(Parameter param, QualityRoundsController controller) {
-    final choices = param.choices.isNotEmpty
-        ? param.choices.map((e) => e.toString()).toList()
-        : ['Option 1', 'Option 2', 'Option 3'];
-    final currentValue = controller.formData[param.parameterName!] as String? ?? choices.first;
+    final List<Choice> choicesList = param.choices.isNotEmpty
+        ? param.choices
+        : [
+            Choice(id: null, parameterId: null, value: 'Option 1', title: 'Option 1', score: null, specifyStatus: null, specifyTitle: null),
+            Choice(id: null, parameterId: null, value: 'Option 2', title: 'Option 2', score: null, specifyStatus: null, specifyTitle: null),
+            Choice(id: null, parameterId: null, value: 'Option 3', title: 'Option 3', score: null, specifyStatus: null, specifyTitle: null),
+          ];
+    final currentValue = controller.formData[param.parameterName!] as String? ?? choicesList.first.value;
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8.0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            param.parameterName ?? param.parameterName ?? '',
+            param.parameterName ?? '',
             style: Theme.of(Get.context!).textTheme.bodyMedium,
           ),
           DropdownButtonFormField<String>(
-            value: choices.contains(currentValue) ? currentValue : null,
+            value: choicesList.map((c) => c.value).contains(currentValue) ? currentValue : null,
             hint: const Text('Select an option'),
             decoration: InputDecoration(
               border: OutlineInputBorder(
@@ -91,9 +94,9 @@ class QualityRoundsView extends GetView<QualityRoundsController> {
                 borderSide: const BorderSide(color: AppColors.borderColor),
               ),
             ),
-            items: choices.map<DropdownMenuItem<String>>((choice) => DropdownMenuItem<String>(
-                  value: choice,
-                  child: Text(choice),
+            items: choicesList.map<DropdownMenuItem<String>>((choice) => DropdownMenuItem<String>(
+                  value: choice.value,
+                  child: Text(choice.title ?? ''),
                 )).toList(),
             onChanged: (value) {
               if (value != null) {
@@ -122,7 +125,7 @@ class QualityRoundsView extends GetView<QualityRoundsController> {
             activeColor: AppColors.primaryColor,
           ),
           Text(
-            param.parameterName ?? param.parameterName ?? '',
+            param.parameterName ?? '',
             style: Theme.of(Get.context!).textTheme.bodyMedium,
           ),
         ],
@@ -131,63 +134,87 @@ class QualityRoundsView extends GetView<QualityRoundsController> {
   }
 
   Widget _buildMultipleCheckboxField(Parameter param, QualityRoundsController controller) {
-    final choices = param.choices.isNotEmpty ? param.choices : ['Option 1', 'Option 2', 'Option 3'];
-    final currentValues = (controller.formData[param.parameterName!] as List<dynamic>?)?.cast<String>() ?? [];
+    final List<Choice> choicesList = param.choices.isNotEmpty
+        ? param.choices
+        : [
+            Choice(id: null, parameterId: null, value: 'Option 1', title: 'Option 1', score: null, specifyStatus: null, specifyTitle: null),
+            Choice(id: null, parameterId: null, value: 'Option 2', title: 'Option 2', score: null, specifyStatus: null, specifyTitle: null),
+            Choice(id: null, parameterId: null, value: 'Option 3', title: 'Option 3', score: null, specifyStatus: null, specifyTitle: null),
+          ];
+    final currentValues = (controller.formData[param.parameterName!] as List<String>?) ?? [];
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8.0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
-        children: choices.map((choice) {
-          final isSelected = currentValues.contains(choice);
-          return Row(
-            children: [
-              Checkbox(
-                value: isSelected,
-                onChanged: (value) {
-                  if (value != null) {
-                    final updatedValues = List<String>.from(currentValues);
-                    if (value) {
-                      updatedValues.add(choice);
-                    } else {
-                      updatedValues.remove(choice);
+        children: [
+          Text(
+            param.parameterName ?? '',
+            style: Theme.of(Get.context!).textTheme.bodyMedium,
+          ),
+          ...choicesList.map((choice) {
+            final isSelected = currentValues.contains(choice.value);
+            return Row(
+              children: [
+                Checkbox(
+                  value: isSelected,
+                  onChanged: (value) {
+                    if (value != null) {
+                      final updatedValues = List<String>.from(currentValues);
+                      if (value) {
+                        updatedValues.add(choice.value ?? '');
+                      } else {
+                        updatedValues.remove(choice.value);
+                      }
+                      controller.updateFormData(param.parameterName!, updatedValues);
                     }
-                    controller.updateFormData(param.parameterName!, updatedValues);
-                  }
-                },
-                activeColor: AppColors.primaryColor,
-              ),
-              Text(choice, style: Theme.of(Get.context!).textTheme.bodyMedium),
-            ],
-          );
-        }).toList(),
+                  },
+                  activeColor: AppColors.primaryColor,
+                ),
+                Text(choice.title ?? '', style: Theme.of(Get.context!).textTheme.bodyMedium),
+              ],
+            );
+          }).toList(),
+        ],
       ),
     );
   }
 
   Widget _buildRadioField(Parameter param, QualityRoundsController controller) {
-    final choices = param.choices.isNotEmpty ? param.choices : ['Option 1', 'Option 2', 'Option 3'];
-    final currentValue = controller.formData[param.parameterName!] as String? ?? choices.first;
+    final List<Choice> choicesList = param.choices.isNotEmpty
+        ? param.choices
+        : [
+            Choice(id: null, parameterId: null, value: 'Option 1', title: 'Option 1', score: null, specifyStatus: null, specifyTitle: null),
+            Choice(id: null, parameterId: null, value: 'Option 2', title: 'Option 2', score: null, specifyStatus: null, specifyTitle: null),
+            Choice(id: null, parameterId: null, value: 'Option 3', title: 'Option 3', score: null, specifyStatus: null, specifyTitle: null),
+          ];
+    final currentValue = controller.formData[param.parameterName!] as String? ?? choicesList.first.value;
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8.0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
-        children: choices.map((choice) {
-          return Row(
-            children: [
-              Radio<String>(
-                value: choice,
-                groupValue: currentValue,
-                onChanged: (value) {
-                  if (value != null) {
-                    controller.updateFormData(param.parameterName!, value);
-                  }
-                },
-                activeColor: AppColors.primaryColor,
-              ),
-              Text(choice, style: Theme.of(Get.context!).textTheme.bodyMedium),
-            ],
-          );
-        }).toList(),
+        children: [
+          Text(
+            param.parameterName ?? '',
+            style: Theme.of(Get.context!).textTheme.bodyMedium,
+          ),
+          ...choicesList.map((choice) {
+            return Row(
+              children: [
+                Radio<String>(
+                  value: choice.value ?? '',
+                  groupValue: currentValue,
+                  onChanged: (value) {
+                    if (value != null) {
+                      controller.updateFormData(param.parameterName!, value);
+                    }
+                  },
+                  activeColor: AppColors.primaryColor,
+                ),
+                Text(choice.title ?? '', style: Theme.of(Get.context!).textTheme.bodyMedium),
+              ],
+            );
+          }).toList(),
+        ],
       ),
     );
   }
@@ -200,7 +227,7 @@ class QualityRoundsView extends GetView<QualityRoundsController> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            param.parameterName ?? param.parameterName ?? '',
+            param.parameterName ?? '',
             style: Theme.of(Get.context!).textTheme.bodyMedium,
           ),
           Row(
@@ -229,7 +256,7 @@ class QualityRoundsView extends GetView<QualityRoundsController> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            param.parameterName ?? param.parameterName ?? '',
+            param.parameterName ?? '',
             style: Theme.of(Get.context!).textTheme.bodyMedium,
           ),
           Row(
@@ -268,7 +295,7 @@ class QualityRoundsView extends GetView<QualityRoundsController> {
   Widget _buildEmojiField(Parameter param, QualityRoundsController controller) {
     final currentValue = controller.formData[param.parameterName!] as String?;
     return EmojiSelectorField(
-      label: param.parameterName ?? param.parameterName ?? '',
+      label: param.parameterName ?? '',
       initialValue: currentValue,
       onChanged: (value) {
         controller.updateFormData(param.parameterName!, value);
@@ -294,7 +321,6 @@ class QualityRoundsView extends GetView<QualityRoundsController> {
           return const Center(child: Text('No form data available'));
         }
 
-    
         double totalRating = 0.0;
         int ratingCount = 0;
         for (var param in controller.formModel.value!.parameters) {
@@ -323,7 +349,6 @@ class QualityRoundsView extends GetView<QualityRoundsController> {
                     .map((param) => _buildFormField(param, controller))
                     .toList(),
                 const SizedBox(height: 16),
-                
                 Center(
                   child: Container(
                     padding: const EdgeInsets.all(20.0),
@@ -355,7 +380,7 @@ class QualityRoundsView extends GetView<QualityRoundsController> {
                 CustomButton(
                   text: controller.isSubmitting.value ? 'Submitting...' : 'Submit',
                   onPressed: () async {
-                    await controller.onSubmit(averageRating as double);
+                    await controller.onSubmit(averageRating);
                   },
                   color: AppColors.primaryColor,
                 ),

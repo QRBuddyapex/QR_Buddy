@@ -88,11 +88,11 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   print("Background message data: ${message.data.toString()}");
   print("Background message data structure: ${message.data}");
 
-  // Initialize NotificationServices
+
   final notificationServices = NotificationServices();
   await notificationServices.initLocalNotification(null);
 
-  // Show full-screen notification for background/terminated state
+
   if (!NotificationServices.hasProcessedMessage(message.messageId)) {
     NotificationServices.addProcessedMessage(message.messageId);
     final notification = message.data['message'] as Map<String, dynamic>? ?? {};

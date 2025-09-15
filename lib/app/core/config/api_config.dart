@@ -1,7 +1,7 @@
 class AppUrl {
   AppUrl._();
 
-  static const String _serverUrl = 'https://qrbuddyapi.in';
+   static const String _serverUrl = 'https://qikhims.com';
 
 
   static const String baseUrl = "$_serverUrl/v3/api";

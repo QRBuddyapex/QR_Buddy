@@ -30,7 +30,7 @@ if (flutterVersionName == null) {
 }
 
 android {
-    namespace "com.nxtdesigns.qrbuddy"
+    namespace "com.nxtdesigns.qrbuddy_v2"
     compileSdk 35
     ndkVersion flutter.ndkVersion
 
@@ -48,7 +48,7 @@ android {
     }
 
     defaultConfig {
-        applicationId "com.nxtdesigns.qrbuddy"
+        applicationId "com.nxtdesigns.qrbuddy_v2"
         minSdkVersion flutter.minSdkVersion
         targetSdkVersion flutter.targetSdkVersion
         versionCode flutterVersionCode.toInteger()

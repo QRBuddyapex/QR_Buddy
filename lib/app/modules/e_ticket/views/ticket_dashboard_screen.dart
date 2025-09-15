@@ -34,6 +34,8 @@ class _TicketDashboardScreenState extends State<TicketDashboardScreen> {
     setState(() => _isLoading = true);
     try {
       await controller.fetchTickets();
+      await controller.fetchFoodDeliveries();
+     
     } finally {
       setState(() => _isLoading = false);
     }

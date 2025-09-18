@@ -4,6 +4,7 @@ import 'package:pretty_dio_logger/pretty_dio_logger.dart';
 import 'package:qr_buddy/app/core/config/api_config.dart';
 import 'package:qr_buddy/app/data/interceptors/auth_interceptor.dart';
 import 'package:qr_buddy/app/data/interceptors/error_interceptor.dart';
+import 'package:qr_buddy/app/data/interceptors/token_validity_interceptor.dart';
 
 class ApiService {
   late final Dio _dio;
@@ -28,6 +29,7 @@ class ApiService {
     _dio.interceptors.addAll([
       AuthInterceptor(),
       ErrorInterceptor(),
+      TokenValidityInterceptor(),
       if (kDebugMode)
         PrettyDioLogger(
           requestHeader: true,

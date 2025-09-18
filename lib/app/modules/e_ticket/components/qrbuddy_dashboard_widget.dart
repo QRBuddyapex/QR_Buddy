@@ -1,4 +1,3 @@
-
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:qr_buddy/app/core/theme/app_theme.dart';
@@ -82,14 +81,9 @@ class _qrbuddyDashboardWidgetState extends State<qrbuddyDashboardWidget>
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Header Section (Today's Status)
             _buildTodaysStatusSection(size, textTheme),
             SizedBox(height: verticalPadding * 2),
-
-            // Info Grid Section
             _buildInfoGrid(size, textTheme),
-
-            // Expandable Content Section
             Obx(() {
               if (controller.selectedInfoCard.value == 'Rating') {
                 final double avgRating = controller.getAverageRatingForCompleted();
@@ -298,12 +292,11 @@ class _qrbuddyDashboardWidgetState extends State<qrbuddyDashboardWidget>
             ),
             _infoCard(
               "Checklists",
-              controller.missed.value.toString(),
+              controller.totalChecklists.value.toString(), // Use logEntriesCount instead of totalChecklists
               Icons.checklist_rtl_outlined,
               size,
               textTheme,
-              // isDisabled: true,
-              _getLineColor(controller.missed.value),
+              _getLineColor(controller.logEntriesCount.value),
             ),
             _infoCard(
               "Rating",

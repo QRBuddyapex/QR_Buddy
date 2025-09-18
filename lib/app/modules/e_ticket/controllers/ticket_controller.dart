@@ -4,9 +4,11 @@ import 'package:dio/dio.dart' as dio;
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:intl/intl.dart';
 import 'package:qr_buddy/app/core/config/token_storage.dart';
 import 'package:qr_buddy/app/core/services/api_service.dart';
 import 'package:qr_buddy/app/core/theme/app_theme.dart';
+import 'package:qr_buddy/app/data/models/daily_checklist_model.dart';
 import 'package:qr_buddy/app/data/models/e_tickets.dart';
 import 'package:qr_buddy/app/data/models/ticket.dart';
 import 'package:qr_buddy/app/data/repo/daily_checklist_repo.dart';
@@ -29,13 +31,20 @@ class TicketController extends GetxController {
   var todayStatus = 0.0.obs;
   var flags = 90.obs;
   var comments = 17.obs;
-  var missed = 20.obs;
-  RxDouble reviewPending = 0.0.obs;
   var schedules = 4.obs;
   var openIssues = 1.obs;
   var tasksCount = 0.obs;
   var documents = 0.obs;
   RxDouble averageRating = 0.0.obs;
+  var totalChecklists = 0.obs;
+  var logEntriesCount = 0.obs; // New observable for log entries count
+  RxDouble reviewPending = 0.0.obs;
+
+  var dailyChecklist = Rxn<DailyChecklistModel>();
+  var startDate = DateTime.now().subtract(const Duration(days: 7)).obs;
+  var endDate = DateTime.now().obs;
+  var selectedCategory = 'No Category'.obs;
+  var isLoading = false.obs;
 
   var _orders = <Order>[].obs;
   List<Order> get orders => _orders;
@@ -48,9 +57,6 @@ class TicketController extends GetxController {
   final remarksController = TextEditingController();
   final holdDateTimeController = TextEditingController();
   var selectedImage = Rxn<File>();
-  
-  var checklistLogRoundData = <String, Map<String, List<dynamic>>>{}.obs;
-  var checklistLogRooms = <String, dynamic>{}.obs;
 
   @override
   void onInit() {
@@ -73,7 +79,7 @@ class TicketController extends GetxController {
     );
     fetchTickets();
     fetchFoodDeliveries();
-    fetchChecklists();
+    fetchChecklistLog();
     updateTasksCount();
   }
 
@@ -82,6 +88,106 @@ class TicketController extends GetxController {
     remarksController.dispose();
     holdDateTimeController.dispose();
     super.onClose();
+  }
+
+  String formatDateForDisplay(DateTime date) {
+    final day = date.day.toString().padLeft(2, '0');
+    final month = date.month.toString().padLeft(2, '0');
+    final year = date.year;
+    return '$day-$month-$year';
+  }
+
+  String _formatDateForApi(DateTime date) {
+    final day = date.day.toString().padLeft(2, '0');
+    final month = date.month.toString().padLeft(2, '0');
+    final year = date.year;
+    return '$year-$month-$day';
+  }
+
+  DateTime? _parseChecklistDate(String dateAndTime) {
+    try {
+      // Expected format: "DD-MMM-YYYY HH:MM" (e.g., "17-Sep-2025 14:30")
+      final formatter = DateFormat('dd-MMM-yyyy HH:mm');
+      return formatter.parse(dateAndTime);
+    } catch (e) {
+      print('Error parsing date: $dateAndTime, $e');
+      return null;
+    }
+  }
+
+  Future<void> fetchChecklistLog() async {
+    try {
+      isLoading.value = true;
+      final hcoId = await TokenStorage().getHcoId();
+      final userId = await TokenStorage().getUserId();
+      const phoneUuid = '5678b6baf95911ef8b460200d429951a';
+      if (hcoId == null || userId == null) {
+        Get.snackbar('Error', 'HCO ID or User ID not found');
+        return;
+      }
+
+      final categories = dailyChecklist.value?.categories ?? [];
+      String? categoryId;
+      if (selectedCategory.value != 'No Category') {
+        final selected = categories.firstWhereOrNull(
+            (cat) => cat.categoryName == selectedCategory.value);
+        categoryId = selected?.id;
+      }
+
+      final response = await _dailyChecklistRepository.fetchDailyChecklist(
+        hcoId: hcoId,
+        userId: userId,
+        phoneUuid: phoneUuid,
+        dateFrom: _formatDateForApi(startDate.value),
+        dateTo: _formatDateForApi(endDate.value),
+        categoryId: categoryId,
+      );
+
+      dailyChecklist.value = response;
+
+      // Calculate total checklists and log entries, filter by date range
+      int checklistCount = 0;
+      int logEntryCount = 0;
+      final filteredChecklists = <Map<String, dynamic>>[];
+      final start = DateTime(startDate.value.year, startDate.value.month, startDate.value.day);
+      final end = DateTime(endDate.value.year, endDate.value.month, endDate.value.day, 23, 59, 59);
+
+      response.roundData.forEach((roomId, dateMap) {
+        dateMap.forEach((date, rounds) {
+          for (var round in rounds) {
+            final dateAndTime = '${date} ${round.timeSchedule ?? ''}';
+            final parsedDate = _parseChecklistDate(dateAndTime);
+            if (parsedDate != null && 
+                parsedDate.isAfter(start.subtract(const Duration(microseconds: 1))) && 
+                parsedDate.isBefore(end.add(const Duration(microseconds: 1)))) {
+              checklistCount += 1;
+              logEntryCount += 1; // Count each round as a log entry
+              final room = response.rooms[roomId];
+              filteredChecklists.add({
+                'checklist_name': round.itemName ?? 'Checklist',
+                'location': '${room?.blockName ?? 'Unknown'} - ${room?.floorName ?? 'Unknown'}',
+                'date_and_time': dateAndTime,
+              });
+            }
+          }
+        });
+      });
+
+      totalChecklists.value = checklistCount;
+      logEntriesCount.value = logEntryCount; // Update log entries count
+      checklists.clear();
+      checklists.assignAll([
+        
+      ]);
+    } catch (e) {
+      Get.snackbar('Error', 'Failed to fetch checklist log: $e');
+      dailyChecklist.value = null;
+      totalChecklists.value = 0;
+      logEntriesCount.value = 0; // Reset log entries count on error
+      checklists.clear();
+    } finally {
+      isLoading.value = false;
+    }
   }
 
   Future<void> fetchTickets() async {
@@ -173,25 +279,6 @@ class TicketController extends GetxController {
     }
   }
 
-  void fetchChecklists() {
-    checklists.clear();
-    checklists.assignAll([
-      {
-        'group': 'Checklist Group 1',
-        'checklists': [
-          {'checklist_name': 'Safety Inspection', 'location': 'Block A/GF', 'date_and_time': '15/04/2025, 09:00 AM'},
-          {'checklist_name': 'Equipment Check', 'location': 'Block B/1F', 'date_and_time': '15/04/2025, 11:00 AM'},
-        ],
-      },
-      {
-        'group': 'Checklist Group 2',
-        'checklists': [
-          {'checklist_name': 'Fire Drill', 'location': 'Block C/2F', 'date_and_time': '16/04/2025, 02:00 PM'},
-        ],
-      },
-    ]);
-  }
-
   void updateTasksCount() {
     int totalTasks = tasks.fold(0, (sum, group) => sum + (group['tasks'] as List).length);
     tasksCount.value = totalTasks;
@@ -204,6 +291,9 @@ class TicketController extends GetxController {
 
   void setSelectedInfoCard(String card) {
     selectedInfoCard.value = card;
+    if (card == 'Checklists') {
+      fetchChecklistLog();
+    }
   }
 
   void navigateToDetail(Ticket ticket) {
@@ -564,66 +654,66 @@ class TicketController extends GetxController {
                         },
                         child: Container(
                           padding: const EdgeInsets.all(20),
-                            decoration: BoxDecoration(
-                              color: AppColors.primaryColor.withOpacity(0.1),
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                            child: selectedImage.value == null
-                                ? const Icon(
-                                    Icons.camera_alt,
-                                    color: AppColors.primaryColor,
-                                    size: 40,
-                                  )
-                                : ClipRRect(
-                                    borderRadius: BorderRadius.circular(10),
-                                    child: Image.file(
-                                      selectedImage.value!,
-                                      width: 100,
-                                      height: 100,
-                                      fit: BoxFit.cover,
-                                    ),
-                                  ),
+                          decoration: BoxDecoration(
+                            color: AppColors.primaryColor.withOpacity(0.1),
+                            borderRadius: BorderRadius.circular(10),
                           ),
+                          child: selectedImage.value == null
+                              ? const Icon(
+                                  Icons.camera_alt,
+                                  color: AppColors.primaryColor,
+                                  size: 40,
+                                )
+                              : ClipRRect(
+                                  borderRadius: BorderRadius.circular(10),
+                                  child: Image.file(
+                                    selectedImage.value!,
+                                    width: 100,
+                                    height: 100,
+                                    fit: BoxFit.cover,
+                                  ),
+                                ),
                         ),
-                      )),
-                    ],
+                      ),
+                    )),
+              ],
+            ),
+          ),
+          actions: [
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                onPressed: () async {
+                  try {
+                    final response = await updateRequest(action: action, orderId: orderId);
+                    Navigator.of(context).pop();
+                    clearDialogFields();
+                    await fetchTickets();
+                    onSuccess?.call(response);
+                  } catch (e) {
+                    // Error handling is already done in updateRequest
+                  }
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.primaryColor,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(20),
                   ),
                 ),
-                actions: [
-                  SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton(
-                      onPressed: () async {
-                        try {
-                          final response = await updateRequest(action: action, orderId: orderId);
-                          Navigator.of(context).pop();
-                          clearDialogFields();
-                          await fetchTickets();
-                          onSuccess?.call(response);
-                        } catch (e) {
-                          // Error handling is already done in updateRequest
-                        }
-                      },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.primaryColor,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(20),
-                        ),
+                child: Text(
+                  'Submit',
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
                       ),
-                      child: Text(
-                        'Submit',
-                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                              color: Colors.white,
-                              fontWeight: FontWeight.bold,
-                            ),
-                      ),
-                    ),
-                  ),
-                ],
-              );
-            }
-         ); }
-
+                ),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
 
   double getAverageRatingForCompleted() {
     final completedOrders = tickets
@@ -635,7 +725,6 @@ class TicketController extends GetxController {
     if (completedOrders.isEmpty) return 0.0;
 
     final validRatings = completedOrders.map((order) => double.parse(order.rating)).toList();
-    print('Valid Ratings: $validRatings');
     return validRatings.isNotEmpty ? (validRatings.reduce((a, b) => a + b) / validRatings.length) : 0.0;
   }
 
@@ -645,28 +734,5 @@ class TicketController extends GetxController {
         .map((ticket) => _orders.firstWhere((order) => order.uuid == ticket.uuid))
         .where((order) => order.rating != '-1' && double.tryParse(order.rating) != null)
         .length;
-  }
-
-  Future<void> fetchChecklistLog() async {
-    try {
-      final hcoId = await TokenStorage().getHcoId();
-      final userId = await TokenStorage().getUserId();
-      const phoneUuid = '5678b6baf95911ef8b460200d429951a';
-      if (hcoId == null || userId == null) {
-        Get.snackbar('Error', 'HCO ID or User ID not found');
-        return;
-      }
-      final response = await _dailyChecklistRepository.fetchDailyChecklist(
-        hcoId: hcoId,
-        userId: userId,
-        phoneUuid: phoneUuid,
-      );
-      checklistLogRoundData.value = response.roundData;
-      checklistLogRooms.value = response.rooms;
-    } catch (e) {
-      Get.snackbar('Error', 'Failed to fetch checklist log: $e');
-      checklistLogRoundData.clear();
-      checklistLogRooms.clear();
-    }
   }
 }

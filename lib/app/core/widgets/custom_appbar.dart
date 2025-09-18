@@ -160,13 +160,13 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
                         ),
                   ),
                 ),
-              IconButton(
-                icon: Icon(
-                  Icons.qr_code,
-                  color: Theme.of(context).iconTheme.color,
-                ),
-                onPressed: onQrPressed,
-              ),
+              // IconButton(
+              //   icon: Icon(
+              //     Icons.qr_code,
+              //     color: Theme.of(context).iconTheme.color,
+              //   ),
+              //   onPressed: onQrPressed,
+              // ),
               Obx(() => IconButton(
                     icon: Icon(
                       themeController.isDarkMode.value ? Icons.brightness_7 : Icons.brightness_4,

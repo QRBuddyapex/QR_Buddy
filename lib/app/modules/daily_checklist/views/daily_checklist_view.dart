@@ -1,8 +1,8 @@
-
 import 'package:fl_chart/fl_chart.dart' as fl_chart;
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:qr_buddy/app/core/theme/app_theme.dart';
+import 'package:qr_buddy/app/core/widgets/custom_appbar.dart';
 import 'package:qr_buddy/app/core/widgets/custom_buttom.dart';
 import 'package:qr_buddy/app/core/widgets/custom_date_field.dart';
 import 'package:qr_buddy/app/data/models/daily_checklist_model.dart';
@@ -44,12 +44,57 @@ class DailyChecklistView extends GetView<DailyChecklistController> {
 
     // Use 2025 as the year (current year based on system date)
     const year = 2025;
-    return DateTime(year, month, day);
+    return DateTime(year, month, day, 17, 21); // Adjusted to 10:51 PM IST (UTC+5:30)
   }
 
   // Helper function to format DateTime back to "3 Jun" for display
   String _formatShortDate(String dateStr) {
     return dateStr; // Keep the original format for display
+  }
+
+  Widget _buildTableCell(String text,
+      {bool isHeader = false,
+      Color? color,
+      required TextTheme textTheme,
+      required bool isDarkMode}) {
+    return Padding(
+      padding: const EdgeInsets.all(8.0),
+      child: Text(
+        text,
+        textAlign: TextAlign.center,
+        style: textTheme.bodyMedium?.copyWith(
+          fontWeight: isHeader ? FontWeight.bold : FontWeight.normal,
+          color: color ??
+              (isDarkMode
+                  ? (isHeader ? AppColors.darkTextColor : AppColors.darkSubtitleColor)
+                  : (isHeader ? AppColors.textColor : AppColors.subtitleColor)),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildLegendItem({
+    required Color color,
+    required String label,
+    required TextTheme textTheme,
+    required bool isDarkMode,
+  }) {
+    return Row(
+      children: [
+        Container(
+          width: 12,
+          height: 12,
+          color: color,
+        ),
+        const SizedBox(width: 4),
+        Text(
+          label,
+          style: textTheme.bodyMedium?.copyWith(
+            color: isDarkMode ? AppColors.darkTextColor : AppColors.textColor,
+          ),
+        ),
+      ],
+    );
   }
 
   @override
@@ -58,18 +103,52 @@ class DailyChecklistView extends GetView<DailyChecklistController> {
     final textTheme = Theme.of(context).textTheme;
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Daily Checklist'),
-        centerTitle: true,
-        backgroundColor: isDarkMode ? AppColors.darkBackgroundColor : AppColors.backgroundColor,
-        elevation: 0,
-        titleTextStyle: textTheme.titleLarge?.copyWith(
-          color: isDarkMode ? AppColors.darkTextColor : AppColors.textColor,
-          fontWeight: FontWeight.bold,
+      appBar: CustomAppBar(
+        title: 'Daily Checklist',
+        leading: IconButton(
+          icon: Icon(
+            Icons.arrow_back,
+            color: isDarkMode ? AppColors.darkIconColor : AppColors.iconColor,
+          ),
+          onPressed: () => Get.back(),
         ),
-        iconTheme: IconThemeData(
-          color: isDarkMode ? AppColors.darkIconColor : AppColors.iconColor,
-        ),
+        onQrPressed: () async {
+          // Placeholder for QR scan functionality
+          final result = await Get.toNamed('/qr-scan');
+          if (result != null && result is String) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(
+                  'Scanned URL: $result',
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        color: Colors.white,
+                      ),
+                ),
+                backgroundColor: AppColors.primaryColor.withOpacity(0.9),
+              ),
+            );
+          }
+        },
+        onLocationPressed: () {
+          // Placeholder for location dialog
+          showDialog(
+            context: context,
+            builder: (context) => AlertDialog(
+              title: const Text('Location'),
+              content: const Text('Location selection not implemented.'),
+              actions: [
+                TextButton(
+                  onPressed: Get.back,
+                  child: const Text('OK'),
+                ),
+              ],
+            ),
+          );
+        },
+        onProfilePressed: () {
+          // Placeholder for profile action
+          Get.snackbar('Profile', 'Profile feature not implemented');
+        },
       ),
       body: Obx(() => Stack(
             children: [
@@ -365,26 +444,42 @@ class DailyChecklistView extends GetView<DailyChecklistController> {
                               color: AppColors.primaryColor,
                               width: 100,
                             ),
-                            const SizedBox(width: 8),
-                            CustomButton(
-                              onPressed: () {
-                                Get.snackbar(
-                                    'Invite', 'Invite feature not implemented');
-                              },
-                              text: 'Invite',
-                              color: AppColors.escalationIconColor,
-                              width: 100,
-                            ),
-                            const SizedBox(width: 8),
-                            CustomButton(
-                              onPressed: () {
-                                Get.snackbar(
-                                    'Export', 'Export feature not implemented');
-                              },
-                              text: 'Export',
-                              color: isDarkMode ? AppColors.darkShadowColor : AppColors.shadowColor,
-                              width: 100,
-                            ),
+                            // Conditionally show other buttons after filter
+                            Obx(() {
+                              if (controller.isFiltered.value) {
+                                return Row(
+                                  children: [
+                                    const SizedBox(width: 8),
+                                    CustomButton(
+                                      onPressed: controller.onSchedulePressed,
+                                      text: 'Schedule',
+                                      color: AppColors.primaryColor,
+                                      width: 100,
+                                    ),
+                                    const SizedBox(width: 8),
+                                    CustomButton(
+                                      onPressed: () {
+                                        Get.snackbar('Invite', 'Invite feature not implemented');
+                                      },
+                                      text: 'Invite',
+                                      color: AppColors.escalationIconColor,
+                                      width: 100,
+                                    ),
+                                    const SizedBox(width: 8),
+                                    CustomButton(
+                                      onPressed: () {
+                                        Get.snackbar('Export', 'Export feature not implemented');
+                                      },
+                                      text: 'Export',
+                                      color: isDarkMode ? AppColors.darkShadowColor : AppColors.shadowColor,
+                                      width: 100,
+                                    ),
+                                  ],
+                                );
+                              } else {
+                                return const SizedBox.shrink();
+                              }
+                            }),
                           ],
                         ),
                       ],
@@ -1298,7 +1393,7 @@ class DailyChecklistView extends GetView<DailyChecklistController> {
                         );
                       }
 
-                      final today = DateTime(2025, 6, 10);
+                      final today = DateTime(2025, 9, 16, 17, 21); // 10:51 PM IST
                       String mostRecentDate = sortedDates.first;
                       Duration minDifference = today.difference(_parseShortDate(sortedDates.first)).abs();
 
@@ -1525,57 +1620,6 @@ class DailyChecklistView extends GetView<DailyChecklistController> {
             ),
           ],
         ),
-      ),
-    );
-  }
-
-  Widget _buildLegendItem({
-    required Color color,
-    required String label,
-    required TextTheme textTheme,
-    required bool isDarkMode,
-  }) {
-    return Row(
-      children: [
-        Container(
-          width: 16,
-          height: 16,
-          decoration: BoxDecoration(
-            color: color,
-            borderRadius: BorderRadius.circular(4),
-          ),
-        ),
-        const SizedBox(width: 8),
-        Text(
-          label,
-          style: textTheme.bodyMedium?.copyWith(
-            fontSize: 14,
-            color: isDarkMode ? AppColors.darkSubtitleColor : Colors.grey.shade600,
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildTableCell(
-    String text, {
-    bool isHeader = false,
-    Color? color,
-    required TextTheme textTheme,
-    required bool isDarkMode,
-  }) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
-      child: Text(
-        text,
-        style: textTheme.bodyMedium?.copyWith(
-          fontSize: 14,
-          fontWeight: isHeader ? FontWeight.bold : FontWeight.normal,
-          color: color ?? (isHeader
-              ? (isDarkMode ? AppColors.darkTextColor : AppColors.textColor)
-              : (isDarkMode ? AppColors.darkSubtitleColor : Colors.grey.shade800)),
-        ),
-        textAlign: TextAlign.center,
       ),
     );
   }

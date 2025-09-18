@@ -1,9 +1,9 @@
-
 import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:qr_buddy/app/core/theme/app_theme.dart';
+import 'package:qr_buddy/app/core/widgets/custom_appbar.dart';
 import 'package:qr_buddy/app/core/widgets/custom_buttom.dart';
 import 'package:qr_buddy/app/core/widgets/custom_dropdown.dart';
 import 'package:qr_buddy/app/core/widgets/custom_textfield.dart';
@@ -20,16 +20,8 @@ class NewETicketScreen extends StatelessWidget {
 
     return Scaffold(
       backgroundColor: isDarkMode ? AppColors.darkBackgroundColor : AppColors.backgroundColor,
-      appBar: AppBar(
-        backgroundColor: isDarkMode ? AppColors.darkCardBackgroundColor : AppColors.cardBackgroundColor,
-        elevation: 0,
-        title: Text(
-          'New eTicket',
-          style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                fontWeight: FontWeight.bold,
-                color: isDarkMode ? AppColors.darkTextColor : AppColors.textColor,
-              ),
-        ),
+      appBar: CustomAppBar(
+        title: 'New eTicket',
         leading: IconButton(
           icon: Icon(
             Icons.arrow_back,
@@ -37,6 +29,43 @@ class NewETicketScreen extends StatelessWidget {
           ),
           onPressed: () => Get.back(),
         ),
+        onQrPressed: () async {
+          // Placeholder for QR scan functionality
+          final result = await Get.toNamed('/qr-scan');
+          if (result != null && result is String) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(
+                  'Scanned URL: $result',
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        color: Colors.white,
+                      ),
+                ),
+                backgroundColor: AppColors.primaryColor.withOpacity(0.9),
+              ),
+            );
+          }
+        },
+        onLocationPressed: () {
+          // Placeholder for location dialog
+          showDialog(
+            context: context,
+            builder: (context) => AlertDialog(
+              title: const Text('Location'),
+              content: const Text('Location selection not implemented.'),
+              actions: [
+                TextButton(
+                  onPressed: Get.back,
+                  child: const Text('OK'),
+                ),
+              ],
+            ),
+          );
+        },
+        onProfilePressed: () {
+          // Placeholder for profile action
+          Get.snackbar('Profile', 'Profile feature not implemented');
+        },
       ),
       body: Obx(
         () => controller.isLoading.value

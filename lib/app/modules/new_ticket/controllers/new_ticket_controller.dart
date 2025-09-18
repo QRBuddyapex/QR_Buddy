@@ -33,45 +33,55 @@ class NewETicketController extends GetxController {
     super.onInit();
     fetchFormData();
   }
+Future<void> fetchFormData() async {
+  try {
+    isLoading.value = true;
 
-  Future<void> fetchFormData() async {
-    try {
-      isLoading.value = true;
+    final userId = await _tokenStorage.getUserId();
+    final hcoId = await _tokenStorage.getHcoId();
 
-      final userId = await _tokenStorage.getUserId();
-      final hcoId = await _tokenStorage.getHcoId();
-
-      if (userId == null || hcoId == null) {
-        Get.snackbar('Error', 'Authentication data missing',
-            snackPosition: SnackPosition.BOTTOM);
-        return;
-      }
-
-      final payload = {
-        'user_id': userId,
-        'hco_id': hcoId,
-      };
-
-      final response = await _apiService.post(
-        '/mobile.html?action=fetch_form&user_id=$userId&hco_id=$hcoId',
-        data: payload,
-      );
-
-      if (response.statusCode == 200 && response.data['status'] == 1) {
-        formResponse = NewETicketResponseModel.fromJson(response.data);
-        roomOptions.value = formResponse!.rooms.map((room) => room.roomNumber).toList();
-        serviceOptions.value = formResponse!.services.map((service) => service.serviceName).toList();
-      } else {
-        Get.snackbar('Error', 'Failed to fetch data: ${response.data['message']}',
-            snackPosition: SnackPosition.BOTTOM);
-      }
-    } catch (e) {
-      Get.snackbar('Error', 'Failed to fetch data: $e',
+    if (userId == null || hcoId == null) {
+      Get.snackbar('Error', 'Authentication data missing',
           snackPosition: SnackPosition.BOTTOM);
-    } finally {
-      isLoading.value = false;
+      return;
     }
+
+    final payload = {
+      'user_id': userId,
+      'hco_id': hcoId,
+    };
+
+    final response = await _apiService.post(
+      '/mobile.html?action=fetch_form&user_id=$userId&hco_id=$hcoId',
+      data: payload,
+    );
+
+    if (response.statusCode == 200) {
+      final data = response.data;
+
+      // rooms
+      final roomsList = (data['rooms'] as List)
+          .map((r) => r['room_number'].toString())
+          .toList();
+
+      // services
+      final servicesList = (data['services'] as List)
+          .map((s) => s['service_name'].toString())
+          .toList();
+
+      roomOptions.value = roomsList;
+      serviceOptions.value = servicesList;
+    } else {
+      Get.snackbar('Error', 'Failed to fetch data',
+          snackPosition: SnackPosition.BOTTOM);
+    }
+  } catch (e) {
+    Get.snackbar('Error', 'Failed to fetch data: $e',
+        snackPosition: SnackPosition.BOTTOM);
+  } finally {
+    isLoading.value = false;
   }
+}
 
   void updateRoom(String? value) => room.value = value ?? '';
   void updateServices(String? value) => services.value = value ?? '';

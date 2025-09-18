@@ -1,6 +1,3 @@
-
-import 'dart:ui';
-
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:iconly/iconly.dart';
@@ -35,7 +32,6 @@ class _CustomDrawerState extends State<CustomDrawer> with TickerProviderStateMix
       });
     });
 
-    // Logo animation
     _logoController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 600),
@@ -61,7 +57,7 @@ class _CustomDrawerState extends State<CustomDrawer> with TickerProviderStateMix
         duration: Duration(milliseconds: 300 + i * 100),
       );
       final slideAnimation = Tween<Offset>(
-        begin: const Offset(0.5, 0),
+        begin: const Offset(0.3, 0),
         end: Offset.zero,
       ).animate(CurvedAnimation(parent: controller, curve: Curves.easeOut));
       final fadeAnimation = Tween<double>(
@@ -89,173 +85,149 @@ class _CustomDrawerState extends State<CustomDrawer> with TickerProviderStateMix
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
 
     return Drawer(
-      elevation: 0,
-      backgroundColor: Colors.transparent,
-      child: ClipRRect(
-        borderRadius: const BorderRadius.horizontal(right: Radius.circular(16)),
-        child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
-          child: Container(
-            decoration: BoxDecoration(
-              color: isDarkMode ? AppColors.darkGlassBackground : AppColors.glassBackground,
-              borderRadius: const BorderRadius.horizontal(right: Radius.circular(16)),
-              border: Border.all(
-                color: Colors.white.withOpacity(0.2),
-                width: 1.5,
+      elevation: 6,
+      backgroundColor: isDarkMode ? AppColors.darkBackgroundColor : Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.horizontal(right: Radius.circular(16)),
+      ),
+      child: Column(
+        children: [
+          DrawerHeader(
+            // decoration: BoxDecoration(
+            //   gradient: LinearGradient(
+            //     colors: isDarkMode
+            //         ? [
+            //             AppColors.darkDrawerHeaderGradientStart,
+            //             AppColors.darkDrawerHeaderGradientEnd,
+            //           ]
+            //         : [
+            //             AppColors.drawerHeaderGradientStart,
+            //             AppColors.drawerHeaderGradientEnd,
+            //           ],
+            //     begin: Alignment.topLeft,
+            //     end: Alignment.bottomRight,
+            //   ),
+            //   borderRadius: const BorderRadius.only(
+            //     bottomLeft: Radius.circular(16),
+            //     bottomRight: Radius.circular(16),
+            //   ),
+            //   boxShadow: [
+            //     BoxShadow(
+            //       color: isDarkMode ? AppColors.darkShadowColor : AppColors.shadowColor,
+            //       blurRadius: 8,
+            //       offset: const Offset(0, 4),
+            //     ),
+            //   ],
+            // ),
+            child: ScaleTransition(
+              scale: _logoAnimation,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(12),
+                    child: Image.asset(
+                      'assets/images/qr_buddy_logo__1_-removebg-preview.png',
+                      height: 70,
+                      width: 100,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  Text(
+                    userName ?? 'User',
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                          color: isDarkMode ? AppColors.backgroundColor : AppColors.iconColor,
+                          fontWeight: FontWeight.bold,
+                        ),
+                  ),
+                  Text(
+                    'Welcome back!',
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: isDarkMode ? AppColors.backgroundColor : AppColors.iconColor,
+                        ),
+                  ),
+                ],
               ),
             ),
-            child: Column(
+          ),
+          Expanded(
+            child: ListView(
+              padding: const EdgeInsets.symmetric(vertical: 8),
+              physics: const BouncingScrollPhysics(),
               children: [
-                DrawerHeader(
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      colors: isDarkMode
-                          ? [
-                              AppColors.darkDrawerHeaderGradientStart,
-                              AppColors.darkDrawerHeaderGradientEnd,
-                            ]
-                          : [
-                              AppColors.drawerHeaderGradientStart,
-                              AppColors.drawerHeaderGradientEnd,
-                            ],
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                    ),
-                    borderRadius: const BorderRadius.only(
-                      bottomLeft: Radius.circular(16),
-                      bottomRight: Radius.circular(16),
-                    ),
-                    boxShadow: [
-                      BoxShadow(
-                        color: isDarkMode ? AppColors.darkShadowColor : AppColors.shadowColor,
-                        blurRadius: 10,
-                        offset: const Offset(0, 4),
-                      ),
-                    ],
-                  ),
-                  child: ScaleTransition(
-                    scale: _logoAnimation,
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        ClipRRect(
-                          borderRadius: BorderRadius.circular(12),
-                          child: Image.asset(
-                            'assets/images/qr_buddy_logo__1_-removebg-preview.png',
-                            height: 70,
-                            width: 100,
-                          ),
-                        ),
-                        const SizedBox(height: 12),
-                        Text(
-                          userName ?? 'User',
-                          style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                                color: Colors.white,
-                                fontWeight: FontWeight.bold,
-                              ),
-                        ),
-                        Text(
-                          'Welcome back!',
-                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                color: Colors.white.withOpacity(0.8),
-                              ),
-                        ),
-                      ],
-                    ),
-                  ),
+                _buildAnimatedTile(
+                  index: 0,
+                  icon: IconlyBold.home,
+                  title: "Dashboard",
+                  onTap: () {
+                    Get.toNamed(RoutesName.ticketDashboardView);
+                    Get.back();
+                  },
                 ),
-                Expanded(
-                  child: ListView(
-                    padding: const EdgeInsets.symmetric(vertical: 8),
-                    physics: const BouncingScrollPhysics(),
-                    children: [
-                      _buildAnimatedTile(
-                        index: 0,
-                        icon: IconlyBold.home,
-                        title: "Dashboard",
-                        onTap: () {
-                          Get.toNamed(RoutesName.ticketDashboardView);
-                          Get.back();
-                        },
-                      ),
-                      _buildAnimatedTile(
-                        index: 1,
-                        icon: IconlyBold.scan,
-                        title: "QR Locator",
-                        subtitle: "Search your location",
-                        onTap: () {
-                          CustomSnackbar.info("This Service is not implemented yet (Coming Soon)");
-                        },
-                      ),
-                      const Divider(
-                        indent: 16,
-                        endIndent: 16,
-                        color: AppColors.borderColor,
-                        height: 1,
-                      ),
-                      _buildAnimatedTile(
-                        index: 2,
-                        icon: IconlyBold.work,
-                        title: "Task Manager",
-                        onTap: () {
-                          CustomSnackbar.info("This Service is not implemented yet (Coming Soon)");
-                        },
-                      ),
-                      _buildAnimatedTile(
-                        index: 3,
-                        icon: IconlyBold.ticket,
-                        title: "eTickets",
-                        selected: true,
-                        onTap: () {
-                          CustomSnackbar.info("This Service is not implemented yet (Coming Soon)");
-                        },
-                        trailing: const Icon(IconlyBold.arrow_down_2, color: AppColors.primaryColor),
-                        tileColor: isDarkMode ? AppColors.darkGlassTileBackground : AppColors.glassTileBackground,
-                      ),
-                      _buildAnimatedTile(
-                        index: 4,
-                        icon: IconlyBold.plus,
-                        title: "New eTicket",
-                        onTap: () {
-                          Get.toNamed(RoutesName.newtTicketView);
-                        },
-                      ),
-                      _buildAnimatedTile(
-                        index: 5,
-                        icon: IconlyBold.document,
-                        title: "Daily Checklist",
-                        onTap: () {
-                          Get.toNamed(RoutesName.dailyChecklistView);
-                        },
-                      ),
-                      const Divider(
-                        indent: 16,
-                        endIndent: 16,
-                        color: AppColors.borderColor,
-                        height: 1,
-                      ),
-                      _buildAnimatedTile(
-                        index: 6,
-                        icon: IconlyBold.logout,
-                        title: "Logout",
-                        onTap: () async {
-                          final authRepository = AuthRepository();
-                          await authRepository.logout();
-                          await TokenStorage().clearToken();
-                          Get.offAllNamed(RoutesName.loginScreen);
-                        },
-                        iconColor: AppColors.dangerButtonColor,
-                        textColor: AppColors.dangerButtonColor,
-                      ),
-                      const SizedBox(height: 24),
-                    ],
-                  ),
+                _buildAnimatedTile(
+                  index: 1,
+                  icon: IconlyBold.scan,
+                  title: "QR Locator",
+                  subtitle: "Search your location",
+                  onTap: () {
+                    CustomSnackbar.info("This Service is not implemented yet (Coming Soon)");
+                  },
                 ),
+                const Divider(indent: 16, endIndent: 16),
+                _buildAnimatedTile(
+                  index: 2,
+                  icon: IconlyBold.work,
+                  title: "Task Manager",
+                  onTap: () {
+                    CustomSnackbar.info("This Service is not implemented yet (Coming Soon)");
+                  },
+                ),
+                _buildAnimatedTile(
+                  index: 3,
+                  icon: IconlyBold.ticket,
+                  title: "eTickets",
+                  selected: true,
+                  onTap: () {
+                    CustomSnackbar.info("This Service is not implemented yet (Coming Soon)");
+                  },
+                  trailing: const Icon(IconlyBold.arrow_down_2, color: AppColors.primaryColor),
+                ),
+                _buildAnimatedTile(
+                  index: 4,
+                  icon: IconlyBold.plus,
+                  title: "New eTicket",
+                  onTap: () {
+                    Get.toNamed(RoutesName.newtTicketView);
+                  },
+                ),
+                _buildAnimatedTile(
+                  index: 5,
+                  icon: IconlyBold.document,
+                  title: "Daily Checklist",
+                  onTap: () {
+                    Get.toNamed(RoutesName.dailyChecklistView);
+                  },
+                ),
+                const Divider(indent: 16, endIndent: 16),
+                _buildAnimatedTile(
+                  index: 6,
+                  icon: IconlyBold.logout,
+                  title: "Logout",
+                  onTap: () async {
+                    final authRepository = AuthRepository();
+                    await authRepository.logout();
+                    await TokenStorage().clearToken();
+                    Get.offAllNamed(RoutesName.loginScreen);
+                  },
+                  iconColor: AppColors.dangerButtonColor,
+                  textColor: AppColors.dangerButtonColor,
+                ),
+                const SizedBox(height: 24),
               ],
             ),
           ),
-        ),
+        ],
       ),
     );
   }
@@ -278,70 +250,52 @@ class _CustomDrawerState extends State<CustomDrawer> with TickerProviderStateMix
       position: _slideAnimations[index],
       child: FadeTransition(
         opacity: _fadeAnimations[index],
-        child: MouseRegion(
-          onEnter: (_) => setState(() => _hoveredIndex = index),
-          onExit: (_) => setState(() => _hoveredIndex = null),
-          child: AnimatedContainer(
-            duration: const Duration(milliseconds: 200),
-            margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-            decoration: BoxDecoration(
-              color: _hoveredIndex == index
-                  ? (isDarkMode ? AppColors.darkDrawerTileHover : AppColors.drawerTileHover)
-                  : (tileColor ?? (isDarkMode ? AppColors.darkGlassTileBackground : AppColors.glassTileBackground)),
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(
-                color: Colors.white.withOpacity(0.2),
-                width: 1,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 200),
+          margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+          decoration: BoxDecoration(
+            color: tileColor ??
+                (selected
+                    ? AppColors.primaryColor.withOpacity(0.1)
+                    : (isDarkMode
+                        ? AppColors.darkCardBackgroundColor
+                        : AppColors.cardBackgroundColor)),
+            borderRadius: BorderRadius.circular(12),
+            boxShadow: [
+              BoxShadow(
+                color: isDarkMode ? AppColors.darkShadowColor : AppColors.shadowColor,
+                blurRadius: selected ? 8 : 4,
+                offset: const Offset(0, 2),
               ),
-              boxShadow: selected
-                  ? [
-                      BoxShadow(
-                        color: AppColors.primaryColor.withOpacity(0.2),
-                        blurRadius: 8,
-                        offset: const Offset(0, 4),
-                      ),
-                    ]
-                  : [
-                      BoxShadow(
-                        color: isDarkMode ? AppColors.darkShadowColor : AppColors.shadowColor,
-                        blurRadius: 6,
-                        offset: const Offset(0, 2),
-                      ),
-                    ],
+            ],
+          ),
+          child: ListTile(
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            leading: Icon(
+              icon,
+              color: iconColor ??
+                  (selected ? AppColors.primaryColor : (isDarkMode ? AppColors.darkTextColor : AppColors.textColor)),
+              size: 26,
             ),
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(16),
-              child: BackdropFilter(
-                filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
-                child: ListTile(
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                  contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                  leading: Icon(
-                    icon,
-                    color: iconColor ?? (selected ? AppColors.primaryColor : (isDarkMode ? AppColors.darkTextColor : AppColors.textColor)),
-                    size: 28,
+            title: Text(
+              title,
+              style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    color: textColor ??
+                        (selected ? AppColors.primaryColor : (isDarkMode ? AppColors.darkTextColor : AppColors.textColor)),
+                    fontWeight: selected ? FontWeight.bold : FontWeight.w500,
                   ),
-                  title: Text(
-                    title,
-                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                          color: textColor ??
-                              (selected ? AppColors.primaryColor : (isDarkMode ? AppColors.darkTextColor : AppColors.textColor)),
-                          fontWeight: selected ? FontWeight.bold : FontWeight.w500,
+            ),
+            subtitle: subtitle != null
+                ? Text(
+                    subtitle,
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: isDarkMode ? AppColors.darkSubtitleColor : AppColors.subtitleColor,
                         ),
-                  ),
-                  subtitle: subtitle != null
-                      ? Text(
-                          subtitle,
-                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                color: isDarkMode ? AppColors.darkSubtitleColor : AppColors.subtitleColor,
-                              ),
-                        )
-                      : null,
-                  trailing: trailing,
-                  onTap: onTap,
-                ),
-              ),
-            ),
+                  )
+                : null,
+            trailing: trailing,
+            onTap: onTap,
           ),
         ),
       ),

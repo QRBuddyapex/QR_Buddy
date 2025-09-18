@@ -5,8 +5,10 @@ import 'package:get/get.dart';
 import 'package:qr_buddy/app/core/theme/app_theme.dart';
 import 'package:qr_buddy/app/core/widgets/custom_appbar.dart';
 import 'package:qr_buddy/app/core/widgets/custom_buttom.dart';
+import 'package:qr_buddy/app/core/widgets/custom_drawer.dart';
 import 'package:qr_buddy/app/core/widgets/custom_dropdown.dart';
 import 'package:qr_buddy/app/core/widgets/custom_textfield.dart';
+import 'package:qr_buddy/app/modules/e_ticket/components/location_dialog.dart';
 import 'package:qr_buddy/app/modules/new_ticket/components/custom_choice_chip.dart';
 import 'package:qr_buddy/app/modules/new_ticket/controllers/new_ticket_controller.dart';
 
@@ -21,16 +23,17 @@ class NewETicketScreen extends StatelessWidget {
     return Scaffold(
       backgroundColor: isDarkMode ? AppColors.darkBackgroundColor : AppColors.backgroundColor,
       appBar: CustomAppBar(
-        title: 'New eTicket',
-        leading: IconButton(
-          icon: Icon(
-            Icons.arrow_back,
-            color: isDarkMode ? AppColors.darkIconColor : AppColors.iconColor,
+        title: '',
+        leading: Builder(
+          builder: (context) => IconButton(
+            icon: Icon(
+              Icons.menu,
+              color: Theme.of(context).iconTheme.color,
+            ),
+            onPressed: () => Scaffold.of(context).openDrawer(),
           ),
-          onPressed: () => Get.back(),
         ),
         onQrPressed: () async {
-          // Placeholder for QR scan functionality
           final result = await Get.toNamed('/qr-scan');
           if (result != null && result is String) {
             ScaffoldMessenger.of(context).showSnackBar(
@@ -47,26 +50,14 @@ class NewETicketScreen extends StatelessWidget {
           }
         },
         onLocationPressed: () {
-          // Placeholder for location dialog
           showDialog(
             context: context,
-            builder: (context) => AlertDialog(
-              title: const Text('Location'),
-              content: const Text('Location selection not implemented.'),
-              actions: [
-                TextButton(
-                  onPressed: Get.back,
-                  child: const Text('OK'),
-                ),
-              ],
-            ),
+            builder: (context) => const LocationDialog(),
           );
         },
-        onProfilePressed: () {
-          // Placeholder for profile action
-          Get.snackbar('Profile', 'Profile feature not implemented');
-        },
+        onProfilePressed: () {},
       ),
+      drawer: const CustomDrawer(),
       body: Obx(
         () => controller.isLoading.value
             ? Center(

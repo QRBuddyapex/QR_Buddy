@@ -21,6 +21,8 @@ class _qrbuddyDashboardWidgetState extends State<qrbuddyDashboardWidget>
   @override
   void initState() {
     super.initState();
+    // Set default selected tab to "E-Tickets"
+    controller.setSelectedInfoCard('E-Tickets');
     _animationController = AnimationController(
       duration: const Duration(milliseconds: 1200),
       vsync: this,
@@ -292,7 +294,7 @@ class _qrbuddyDashboardWidgetState extends State<qrbuddyDashboardWidget>
             ),
             _infoCard(
               "Checklists",
-              controller.totalChecklists.value.toString(), // Use logEntriesCount instead of totalChecklists
+              controller.totalChecklists.value.toString(),
               Icons.checklist_rtl_outlined,
               size,
               textTheme,
@@ -320,7 +322,10 @@ class _qrbuddyDashboardWidgetState extends State<qrbuddyDashboardWidget>
         onTap: isDisabled
             ? null
             : () {
-                controller.setSelectedInfoCard(isSelected ? '' : title);
+                // Only change selection if a different tab is tapped
+                if (!isSelected) {
+                  controller.setSelectedInfoCard(title);
+                }
               },
         child: Container(
           padding: EdgeInsets.symmetric(

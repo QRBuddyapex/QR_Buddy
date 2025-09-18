@@ -5,7 +5,9 @@ import 'package:qr_buddy/app/core/theme/app_theme.dart';
 import 'package:qr_buddy/app/core/widgets/custom_appbar.dart';
 import 'package:qr_buddy/app/core/widgets/custom_buttom.dart';
 import 'package:qr_buddy/app/core/widgets/custom_date_field.dart';
+import 'package:qr_buddy/app/core/widgets/custom_drawer.dart';
 import 'package:qr_buddy/app/data/models/daily_checklist_model.dart';
+import 'package:qr_buddy/app/modules/e_ticket/components/location_dialog.dart';
 
 import '../controllers/daily_checklist_controller.dart';
 
@@ -104,16 +106,17 @@ class DailyChecklistView extends GetView<DailyChecklistController> {
 
     return Scaffold(
       appBar: CustomAppBar(
-        title: 'Daily Checklist',
-        leading: IconButton(
-          icon: Icon(
-            Icons.arrow_back,
-            color: isDarkMode ? AppColors.darkIconColor : AppColors.iconColor,
+        title: '',
+        leading: Builder(
+          builder: (context) => IconButton(
+            icon: Icon(
+              Icons.menu,
+              color: Theme.of(context).iconTheme.color,
+            ),
+            onPressed: () => Scaffold.of(context).openDrawer(),
           ),
-          onPressed: () => Get.back(),
         ),
         onQrPressed: () async {
-          // Placeholder for QR scan functionality
           final result = await Get.toNamed('/qr-scan');
           if (result != null && result is String) {
             ScaffoldMessenger.of(context).showSnackBar(
@@ -130,26 +133,14 @@ class DailyChecklistView extends GetView<DailyChecklistController> {
           }
         },
         onLocationPressed: () {
-          // Placeholder for location dialog
           showDialog(
             context: context,
-            builder: (context) => AlertDialog(
-              title: const Text('Location'),
-              content: const Text('Location selection not implemented.'),
-              actions: [
-                TextButton(
-                  onPressed: Get.back,
-                  child: const Text('OK'),
-                ),
-              ],
-            ),
+            builder: (context) => const LocationDialog(),
           );
         },
-        onProfilePressed: () {
-          // Placeholder for profile action
-          Get.snackbar('Profile', 'Profile feature not implemented');
-        },
+        onProfilePressed: () {},
       ),
+      drawer: const CustomDrawer(),
       body: Obx(() => Stack(
             children: [
               SingleChildScrollView(
@@ -444,7 +435,6 @@ class DailyChecklistView extends GetView<DailyChecklistController> {
                               color: AppColors.primaryColor,
                               width: 100,
                             ),
-                            // Conditionally show other buttons after filter
                             Obx(() {
                               if (controller.isFiltered.value) {
                                 return Row(
@@ -462,18 +452,18 @@ class DailyChecklistView extends GetView<DailyChecklistController> {
                                         Get.snackbar('Invite', 'Invite feature not implemented');
                                       },
                                       text: 'Invite',
-                                      color: AppColors.escalationIconColor,
+                                      color: AppColors.primaryColor,
                                       width: 100,
                                     ),
                                     const SizedBox(width: 8),
-                                    CustomButton(
-                                      onPressed: () {
-                                        Get.snackbar('Export', 'Export feature not implemented');
-                                      },
-                                      text: 'Export',
-                                      color: isDarkMode ? AppColors.darkShadowColor : AppColors.shadowColor,
-                                      width: 100,
-                                    ),
+                                    // CustomButton(
+                                    //   onPressed: () {
+                                    //     Get.snackbar('Export', 'Export feature not implemented');
+                                    //   },
+                                    //   text: 'Export',
+                                    //   color: isDarkMode ? AppColors.darkShadowColor : AppColors.shadowColor,
+                                    //   width: 100,
+                                    // ),
                                   ],
                                 );
                               } else {
@@ -1393,7 +1383,7 @@ class DailyChecklistView extends GetView<DailyChecklistController> {
                         );
                       }
 
-                      final today = DateTime(2025, 9, 16, 17, 21); // 10:51 PM IST
+                      final today = DateTime(2025, 9, 18, 21, 41); // 9:41 PM IST
                       String mostRecentDate = sortedDates.first;
                       Duration minDifference = today.difference(_parseShortDate(sortedDates.first)).abs();
 

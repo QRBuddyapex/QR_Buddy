@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart'; // Added for SystemNavigator.pop
 import 'package:get/get.dart';
 import 'package:iconly/iconly.dart';
 import 'package:qr_buddy/app/core/config/token_storage.dart';
@@ -27,9 +28,11 @@ class _CustomDrawerState extends State<CustomDrawer> with TickerProviderStateMix
   void initState() {
     super.initState();
     getUserName().then((value) {
-      setState(() {
-        userName = value;
-      });
+      if (mounted) {
+        setState(() {
+          userName = value;
+        });
+      }
     });
 
     _logoController = AnimationController(
@@ -84,150 +87,118 @@ class _CustomDrawerState extends State<CustomDrawer> with TickerProviderStateMix
   Widget build(BuildContext context) {
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
 
-    return Drawer(
-      elevation: 6,
-      backgroundColor: isDarkMode ? AppColors.darkBackgroundColor : Colors.white,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.horizontal(right: Radius.circular(16)),
-      ),
-      child: Column(
-        children: [
-          DrawerHeader(
-            // decoration: BoxDecoration(
-            //   gradient: LinearGradient(
-            //     colors: isDarkMode
-            //         ? [
-            //             AppColors.darkDrawerHeaderGradientStart,
-            //             AppColors.darkDrawerHeaderGradientEnd,
-            //           ]
-            //         : [
-            //             AppColors.drawerHeaderGradientStart,
-            //             AppColors.drawerHeaderGradientEnd,
-            //           ],
-            //     begin: Alignment.topLeft,
-            //     end: Alignment.bottomRight,
-            //   ),
-            //   borderRadius: const BorderRadius.only(
-            //     bottomLeft: Radius.circular(16),
-            //     bottomRight: Radius.circular(16),
-            //   ),
-            //   boxShadow: [
-            //     BoxShadow(
-            //       color: isDarkMode ? AppColors.darkShadowColor : AppColors.shadowColor,
-            //       blurRadius: 8,
-            //       offset: const Offset(0, 4),
-            //     ),
-            //   ],
-            // ),
-            child: ScaleTransition(
-              scale: _logoAnimation,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(12),
-                    child: Image.asset(
-                      'assets/images/qr_buddy_logo__1_-removebg-preview.png',
-                      height: 70,
-                      width: 100,
+    return WillPopScope(
+      onWillPop: () async {
+        // Exit the app when the back button is pressed
+        SystemNavigator.pop();
+        return false; // Prevent default back navigation
+      },
+      child: Drawer(
+        elevation: 6,
+        backgroundColor: isDarkMode ? AppColors.darkBackgroundColor : Colors.white,
+        shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.horizontal(right: Radius.circular(16)),
+        ),
+        child: Column(
+          children: [
+            DrawerHeader(
+              child: ScaleTransition(
+                scale: _logoAnimation,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(12),
+                      child: Image.asset(
+                        'assets/images/qr_buddy_logo__1_-removebg-preview.png',
+                        height: 70,
+                        width: 100,
+                      ),
                     ),
+                    const SizedBox(height: 12),
+                    Text(
+                      userName ?? 'User',
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                            color: isDarkMode ? AppColors.backgroundColor : AppColors.iconColor,
+                            fontWeight: FontWeight.bold,
+                          ),
+                    ),
+                    Text(
+                      'Welcome back!',
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                            color: isDarkMode ? AppColors.backgroundColor : AppColors.iconColor,
+                          ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            Expanded(
+              child: ListView(
+                padding: const EdgeInsets.symmetric(vertical: 8),
+                physics: const BouncingScrollPhysics(),
+                children: [
+                  _buildAnimatedTile(
+                    index: 0,
+                    icon: IconlyBold.home,
+                    title: "Dashboard",
+                    onTap: () {
+                      Get.offNamed(RoutesName.ticketDashboardView); // Changed to offNamed
+                    },
                   ),
-                  const SizedBox(height: 12),
-                  Text(
-                    userName ?? 'User',
-                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                          color: isDarkMode ? AppColors.backgroundColor : AppColors.iconColor,
-                          fontWeight: FontWeight.bold,
-                        ),
+                  _buildAnimatedTile(
+                    index: 1,
+                    icon: IconlyBold.scan,
+                    title: "QR Locator",
+                    subtitle: "Search your location",
+                    onTap: () {
+                      CustomSnackbar.info("This Service is not implemented yet (Coming Soon)");
+                    },
                   ),
-                  Text(
-                    'Welcome back!',
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: isDarkMode ? AppColors.backgroundColor : AppColors.iconColor,
-                        ),
+                  _buildAnimatedTile(
+                    index: 2,
+                    icon: IconlyBold.work,
+                    title: "Task Manager",
+                    onTap: () {
+                      CustomSnackbar.info("This Service is not implemented yet (Coming Soon)");
+                    },
                   ),
+                  _buildAnimatedTile(
+                    index: 4,
+                    icon: IconlyBold.plus,
+                    title: "New eTicket",
+                    onTap: () {
+                      Get.offNamed(RoutesName.newtTicketView); // Changed to offNamed
+                    },
+                  ),
+                  _buildAnimatedTile(
+                    index: 5,
+                    icon: IconlyBold.document,
+                    title: "Daily Checklist",
+                    onTap: () {
+                      Get.offNamed(RoutesName.dailyChecklistView); // Changed to offNamed
+                    },
+                  ),
+                  _buildAnimatedTile(
+                    index: 6,
+                    icon: IconlyBold.logout,
+                    title: "Logout",
+                    onTap: () async {
+                      final authRepository = AuthRepository();
+                      await authRepository.logout();
+                      await TokenStorage().clearToken();
+                      Get.offAllNamed(RoutesName.loginScreen); // Kept offAllNamed for logout
+                    },
+                    iconColor: AppColors.dangerButtonColor,
+                    textColor: AppColors.dangerButtonColor,
+                  ),
+                  const SizedBox(height: 24),
                 ],
               ),
             ),
-          ),
-          Expanded(
-            child: ListView(
-              padding: const EdgeInsets.symmetric(vertical: 8),
-              physics: const BouncingScrollPhysics(),
-              children: [
-                _buildAnimatedTile(
-                  index: 0,
-                  icon: IconlyBold.home,
-                  title: "Dashboard",
-                  onTap: () {
-                    Get.toNamed(RoutesName.ticketDashboardView);
-                    Get.back();
-                  },
-                ),
-                _buildAnimatedTile(
-                  index: 1,
-                  icon: IconlyBold.scan,
-                  title: "QR Locator",
-                  subtitle: "Search your location",
-                  onTap: () {
-                    CustomSnackbar.info("This Service is not implemented yet (Coming Soon)");
-                  },
-                ),
-                const Divider(indent: 16, endIndent: 16),
-                _buildAnimatedTile(
-                  index: 2,
-                  icon: IconlyBold.work,
-                  title: "Task Manager",
-                  onTap: () {
-                    CustomSnackbar.info("This Service is not implemented yet (Coming Soon)");
-                  },
-                ),
-                _buildAnimatedTile(
-                  index: 3,
-                  icon: IconlyBold.ticket,
-                  title: "eTickets",
-                  selected: true,
-                  onTap: () {
-                    CustomSnackbar.info("This Service is not implemented yet (Coming Soon)");
-                  },
-                  trailing: const Icon(IconlyBold.arrow_down_2, color: AppColors.primaryColor),
-                ),
-                _buildAnimatedTile(
-                  index: 4,
-                  icon: IconlyBold.plus,
-                  title: "New eTicket",
-                  onTap: () {
-                    Get.toNamed(RoutesName.newtTicketView);
-                  },
-                ),
-                _buildAnimatedTile(
-                  index: 5,
-                  icon: IconlyBold.document,
-                  title: "Daily Checklist",
-                  onTap: () {
-                    Get.toNamed(RoutesName.dailyChecklistView);
-                  },
-                ),
-                const Divider(indent: 16, endIndent: 16),
-                _buildAnimatedTile(
-                  index: 6,
-                  icon: IconlyBold.logout,
-                  title: "Logout",
-                  onTap: () async {
-                    final authRepository = AuthRepository();
-                    await authRepository.logout();
-                    await TokenStorage().clearToken();
-                    Get.offAllNamed(RoutesName.loginScreen);
-                  },
-                  iconColor: AppColors.dangerButtonColor,
-                  textColor: AppColors.dangerButtonColor,
-                ),
-                const SizedBox(height: 24),
-              ],
-            ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

@@ -106,7 +106,7 @@ class DailyChecklistView extends GetView<DailyChecklistController> {
 
     return Scaffold(
       appBar: CustomAppBar(
-        title: '',
+        title: 'Daily Checklist',
         leading: Builder(
           builder: (context) => IconButton(
             icon: Icon(

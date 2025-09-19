@@ -4,7 +4,6 @@ import 'package:get/get.dart';
 import 'package:iconly/iconly.dart';
 import 'package:qr_buddy/app/core/config/token_storage.dart';
 import 'package:qr_buddy/app/core/theme/app_theme.dart';
-import 'package:qr_buddy/app/core/utils/snackbar.dart';
 import 'package:qr_buddy/app/data/repo/auth_repo.dart';
 import 'package:qr_buddy/app/routes/routes.dart';
 
@@ -97,7 +96,7 @@ class _CustomDrawerState extends State<CustomDrawer> with TickerProviderStateMix
         elevation: 6,
         backgroundColor: isDarkMode ? AppColors.darkBackgroundColor : Colors.white,
         shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.horizontal(right: Radius.circular(16)),
+          borderRadius: BorderRadius.horizontal(right: Radius.circular(1)),
         ),
         child: Column(
           children: [
@@ -105,7 +104,7 @@ class _CustomDrawerState extends State<CustomDrawer> with TickerProviderStateMix
               child: ScaleTransition(
                 scale: _logoAnimation,
                 child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                  crossAxisAlignment: CrossAxisAlignment.center,
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     ClipRRect(
@@ -125,6 +124,7 @@ class _CustomDrawerState extends State<CustomDrawer> with TickerProviderStateMix
                           ),
                     ),
                     Text(
+                      
                       'Welcome back!',
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
                             color: isDarkMode ? AppColors.backgroundColor : AppColors.iconColor,
@@ -147,23 +147,23 @@ class _CustomDrawerState extends State<CustomDrawer> with TickerProviderStateMix
                       Get.offNamed(RoutesName.ticketDashboardView); // Changed to offNamed
                     },
                   ),
-                  _buildAnimatedTile(
-                    index: 1,
-                    icon: IconlyBold.scan,
-                    title: "QR Locator",
-                    subtitle: "Search your location",
-                    onTap: () {
-                      CustomSnackbar.info("This Service is not implemented yet (Coming Soon)");
-                    },
-                  ),
-                  _buildAnimatedTile(
-                    index: 2,
-                    icon: IconlyBold.work,
-                    title: "Task Manager",
-                    onTap: () {
-                      CustomSnackbar.info("This Service is not implemented yet (Coming Soon)");
-                    },
-                  ),
+                  // _buildAnimatedTile(
+                  //   index: 1,
+                  //   icon: IconlyBold.scan,
+                  //   title: "QR Locator",
+                  //   subtitle: "Search your location",
+                  //   onTap: () {
+                  //     CustomSnackbar.info("This Service is not implemented yet (Coming Soon)");
+                  //   },
+                  // ),
+                  // _buildAnimatedTile(
+                  //   index: 2,
+                  //   icon: IconlyBold.work,
+                  //   title: "Task Manager",
+                  //   onTap: () {
+                  //     CustomSnackbar.info("This Service is not implemented yet (Coming Soon)");
+                  //   },
+                  // ),
                   _buildAnimatedTile(
                     index: 4,
                     icon: IconlyBold.plus,
@@ -235,8 +235,8 @@ class _CustomDrawerState extends State<CustomDrawer> with TickerProviderStateMix
             boxShadow: [
               BoxShadow(
                 color: isDarkMode ? AppColors.darkShadowColor : AppColors.shadowColor,
-                blurRadius: selected ? 8 : 4,
-                offset: const Offset(0, 2),
+                blurRadius: selected ? 4 : 2,
+                offset: const Offset(0, 1),
               ),
             ],
           ),

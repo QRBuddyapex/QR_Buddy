@@ -18,9 +18,9 @@ class AppColors {
   static const Color assignmentIconColor = Colors.blue;
   static const Color whatsappIconColor = Color(0xFF44a047);
   static const Color statusButtonColor = Color(0xFF006afd);
-  static const Color holdButtonColor = Color.fromARGB(255, 161, 145, 0);
+  static const Color holdButtonColor = Color(0xFFffc008);
   static const Color statusButtonColor1 = Color(0xFFffc008);
-  static const Color dangerButtonColor = Color(0xFFf44336);
+  static const Color dangerButtonColor = Color(0xFFf34236);
   static const Color blackColor = Colors.black;
   static const Color drawerBackground = Color(0xFFF5F7FA);
   static const Color drawerHeaderGradientStart = Color(0xFF006afd);

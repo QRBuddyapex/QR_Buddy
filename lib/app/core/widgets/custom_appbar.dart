@@ -79,6 +79,7 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
                           userName!,
                           style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                                 fontWeight: FontWeight.bold,
+
                               ),
                         ),
                         const SizedBox(height: 8),
@@ -129,7 +130,7 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
       title: Text(
         title,
         style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-              fontSize: 20,
+              fontSize: 15,
             ),
       ),
       actions: [

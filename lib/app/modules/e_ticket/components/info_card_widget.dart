@@ -480,6 +480,29 @@ class InfoCardContentWidget extends StatelessWidget {
           }).toList(),
         );
       } else if (controller.selectedInfoCard.value == 'Checklists') {
+          if (controller.logEntriesCount == 0) {
+          return Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Image.asset(
+                  'assets/images/no_order.png',
+                  width: size.width * 0.7,
+                  height: size.width * 0.7,
+                  fit: BoxFit.contain,
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  'No orders found',
+                  style: textTheme.bodyLarge?.copyWith(
+                    color: isDarkMode ? AppColors.darkTextColor : AppColors.textColor,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ],
+            ),
+          );
+        }
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [

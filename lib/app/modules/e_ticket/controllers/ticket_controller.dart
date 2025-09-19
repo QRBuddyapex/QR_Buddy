@@ -200,7 +200,7 @@ class TicketController extends GetxController {
       checklists.clear();
       checklists.assignAll([]);
     } catch (e) {
-      Get.snackbar('Error', 'Failed to fetch checklist log: $e');
+      // Get.snackbar('Error', 'Failed to fetch checklist log: $e');
       dailyChecklist.value = null;
       totalChecklists.value = 0;
       logEntriesCount.value = 0; // Reset log entries count on error

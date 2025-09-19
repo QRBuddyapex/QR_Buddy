@@ -77,7 +77,7 @@ class _QrScanForFoodDeliveryState extends State<QrScanForFoodDelivery>
                       print('Scanned value: $scannedValue');
 
                       String? extractedUuid;
-                      if (scannedValue.contains('https://qrbuddy.in/buddy/') &&
+                      if (scannedValue.contains('qrbuddy.in/buddy/') &&
                           scannedValue.contains('/en')) {
                         final startIndex =
                             scannedValue.indexOf('/buddy/') + '/buddy/'.length;
@@ -85,6 +85,8 @@ class _QrScanForFoodDeliveryState extends State<QrScanForFoodDelivery>
                         if (startIndex >= 0 && endIndex > startIndex) {
                           extractedUuid =
                               scannedValue.substring(startIndex, endIndex);
+                          print('Extracted UUID: $extractedUuid');
+
                         }
                       }
 

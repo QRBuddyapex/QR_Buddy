@@ -353,7 +353,7 @@ class QualityRoundsView extends GetView<QualityRoundsController> {
                   child: Container(
                     padding: const EdgeInsets.all(20.0),
                     decoration: BoxDecoration(
-                      color: AppColors.primaryColor,
+                      color: AppColors.darkHintTextColor,
                       borderRadius: BorderRadius.circular(30),
                       boxShadow: [
                         BoxShadow(
@@ -363,7 +363,7 @@ class QualityRoundsView extends GetView<QualityRoundsController> {
                         ),
                       ],
                     ),
-                    height: 80,
+                    height: 60,
                     width: 300,
                     child: Text(
                       textAlign: TextAlign.center,
@@ -371,7 +371,7 @@ class QualityRoundsView extends GetView<QualityRoundsController> {
                       style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                             color: Colors.white,
                             fontWeight: FontWeight.bold,
-                            fontSize: 20,
+                            fontSize: 15,
                           ),
                     ),
                   ),

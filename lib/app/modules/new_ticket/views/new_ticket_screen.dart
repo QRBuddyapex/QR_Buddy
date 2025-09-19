@@ -23,7 +23,7 @@ class NewETicketScreen extends StatelessWidget {
     return Scaffold(
       backgroundColor: isDarkMode ? AppColors.darkBackgroundColor : AppColors.backgroundColor,
       appBar: CustomAppBar(
-        title: '',
+        title: 'New E-Ticket',
         leading: Builder(
           builder: (context) => IconButton(
             icon: Icon(

@@ -44,7 +44,7 @@ class TicketController extends GetxController {
   var startDate = DateTime.now().subtract(const Duration(days: 7)).obs;
   var endDate = DateTime.now().obs;
   var selectedCategory = 'No Category'.obs;
-  var isLoading = false.obs;
+  var isLoading = true.obs; // Initialize as true
 
   var _orders = <Order>[].obs;
   List<Order> get orders => _orders;
@@ -54,9 +54,13 @@ class TicketController extends GetxController {
   late final DailyChecklistRepository _dailyChecklistRepository;
   late final FoodDeliveryRepository _foodDeliveryRepository;
 
+
   final remarksController = TextEditingController();
   final holdDateTimeController = TextEditingController();
   var selectedImage = Rxn<File>();
+
+  // Track completion of async operations
+  final _completedFetches = <String, bool>{}.obs;
 
   @override
   void onInit() {
@@ -77,10 +81,21 @@ class TicketController extends GetxController {
       ApiService(),
       TokenStorage(),
     );
+   
+
+    // Initialize fetch tracking
+    _completedFetches.value = {
+      'tickets': false,
+      'foodDeliveries': false,
+      'checklistLog': false,
+      'eTickets': false,
+    };
+
+    // Start all fetches
     fetchTickets();
     fetchFoodDeliveries();
     fetchChecklistLog();
-    updateTasksCount();
+    
   }
 
   @override
@@ -88,6 +103,12 @@ class TicketController extends GetxController {
     remarksController.dispose();
     holdDateTimeController.dispose();
     super.onClose();
+  }
+
+  void _checkAllFetchesComplete() {
+    if (_completedFetches.values.every((completed) => completed)) {
+      isLoading.value = false;
+    }
   }
 
   String formatDateForDisplay(DateTime date) {
@@ -117,12 +138,13 @@ class TicketController extends GetxController {
 
   Future<void> fetchChecklistLog() async {
     try {
-      isLoading.value = true;
       final hcoId = await TokenStorage().getHcoId();
       final userId = await TokenStorage().getUserId();
       const phoneUuid = '5678b6baf95911ef8b460200d429951a';
       if (hcoId == null || userId == null) {
         Get.snackbar('Error', 'HCO ID or User ID not found');
+        _completedFetches['checklistLog'] = true;
+        _checkAllFetchesComplete();
         return;
       }
 
@@ -157,8 +179,8 @@ class TicketController extends GetxController {
           for (var round in rounds) {
             final dateAndTime = '${date} ${round.timeSchedule ?? ''}';
             final parsedDate = _parseChecklistDate(dateAndTime);
-            if (parsedDate != null && 
-                parsedDate.isAfter(start.subtract(const Duration(microseconds: 1))) && 
+            if (parsedDate != null &&
+                parsedDate.isAfter(start.subtract(const Duration(microseconds: 1))) &&
                 parsedDate.isBefore(end.add(const Duration(microseconds: 1)))) {
               checklistCount += 1;
               logEntryCount += 1; // Count each round as a log entry
@@ -176,9 +198,7 @@ class TicketController extends GetxController {
       totalChecklists.value = checklistCount;
       logEntriesCount.value = logEntryCount; // Update log entries count
       checklists.clear();
-      checklists.assignAll([
-        
-      ]);
+      checklists.assignAll([]);
     } catch (e) {
       Get.snackbar('Error', 'Failed to fetch checklist log: $e');
       dailyChecklist.value = null;
@@ -186,7 +206,8 @@ class TicketController extends GetxController {
       logEntriesCount.value = 0; // Reset log entries count on error
       checklists.clear();
     } finally {
-      isLoading.value = false;
+      _completedFetches['checklistLog'] = true;
+      _checkAllFetchesComplete();
     }
   }
 
@@ -234,9 +255,34 @@ class TicketController extends GetxController {
       updateTicketList();
     } catch (e) {
       Get.snackbar('Error', 'Failed to fetch tickets: $e');
+    } finally {
+      _completedFetches['tickets'] = true;
+      _checkAllFetchesComplete();
     }
   }
 
+  Future<void> fetchFoodDeliveries() async {
+    try {
+      final userId = await TokenStorage().getUserId() ?? '2055';
+      tasks.clear();
+      tasks.assignAll(await _foodDeliveryRepository.fetchFoodDeliveries(userId: userId));
+      print('Fetched ${tasks} task groups');
+      updateTasksCount();
+    } catch (e) {
+      Get.snackbar(
+        'Error',
+        'Failed to fetch food deliveries: $e',
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Colors.red.withOpacity(0.8),
+        colorText: Colors.white,
+      );
+    } finally {
+      _completedFetches['foodDeliveries'] = true;
+      _checkAllFetchesComplete();
+    }
+  }
+
+  
   String _mapFilterToRequestStatus(String filter) {
     switch (filter) {
       case 'New':
@@ -259,23 +305,6 @@ class TicketController extends GetxController {
       case 'All':
       default:
         return 'ALL';
-    }
-  }
-
-  Future<void> fetchFoodDeliveries() async {
-    try {
-      final userId = await TokenStorage().getUserId() ?? '2055';
-      tasks.clear();
-      tasks.assignAll(await _foodDeliveryRepository.fetchFoodDeliveries(userId: userId));
-      updateTasksCount();
-    } catch (e) {
-      Get.snackbar(
-        'Error',
-        'Failed to fetch food deliveries: $e',
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Colors.red.withOpacity(0.8),
-        colorText: Colors.white,
-      );
     }
   }
 

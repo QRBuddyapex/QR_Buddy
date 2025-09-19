@@ -111,7 +111,7 @@ class _ScheduleDialogState extends State<ScheduleDialog> {
                     const SizedBox(width: 12),
                     Expanded(
                       child: CustomButton(
-                        width: double.infinity,
+                        
 
                         text: 'Send Invitation Now',
                         onPressed: widget.controller.sendInvitation,

@@ -11,45 +11,52 @@ class FoodDeliveryRepository {
 
   FoodDeliveryRepository(this._apiService, this._tokenStorage);
 
+  Future<List<Map<String, dynamic>>> fetchFoodDeliveries({
+    required String userId,
+  }) async {
+    try {
+      final queryParameters = {
+        'user_id': userId,
+      };
 
+      final response = await _apiService.get(
+        '${AppUrl.baseUrl}/checklist/batch.html',
+        queryParameters: queryParameters,
+      );
 
-Future<List<Map<String, dynamic>>> fetchFoodDeliveries({
-  required String userId,
-}) async {
-  try {
-    final queryParameters = {
-      'user_id': userId,
-    };
+      if (response.statusCode == 200) {
+        final foodDeliveryResponse = FoodDeliveryResponse.fromJson(response.data);
+        // Sort pending_rounds by id in descending order
+        final sortedRounds = foodDeliveryResponse.pendingRounds
+          ..sort((a, b) {
+            final aId = a.id ?? 0;
+            final bId = b.id ?? 0;
+            return bId.compareTo(aId);
+          });
 
-    final response = await _apiService.get(
-      '${AppUrl.baseUrl}/checklist/batch.html',
-      queryParameters: queryParameters,
-    );
+        final tasks = <Map<String, dynamic>>[];
 
-    if (response.statusCode == 200) {
-      final foodDeliveryResponse = FoodDeliveryResponse.fromJson(response.data);
-      final tasks = <Map<String, dynamic>>[];
+        tasks.add({
+          'group': 'Food Delivery Group',
+          'tasks': sortedRounds.map((round) => {
+                'roomId': round.roomId.toString(),
+                'uuid': round.uuid,
+                'room_number': round.roomNumber,
+                'category_name': round.categoryName,
+                'room_uuid': round.roomuuid,
+                'category_uuid': round.categoryUuid,
+                'id': round.id, // Include id in the task map for reference
+              }).toList(),
+        });
 
-      tasks.add({
-        'group': 'Food Delivery Group',
-        'tasks': foodDeliveryResponse.pendingRounds.map((round) => {
-              'roomId': round.roomId.toString(),
-              'uuid': round.uuid,
-              'room_number': round.roomNumber,
-              'category_name': round.categoryName,
-              'room_uuid': round.roomuuid, 
-              'category_uuid': round.categoryUuid, 
-            }).toList(),
-      });
-
-      return tasks;
-    } else {
-      throw Exception('Failed to fetch food deliveries: ${response.statusMessage}');
+        return tasks;
+      } else {
+        throw Exception('Failed to fetch food deliveries: ${response.statusMessage}');
+      }
+    } on DioException catch (e) {
+      throw ApiException.fromDioError(e);
+    } catch (e) {
+      throw Exception('Failed to fetch food deliveries: $e');
     }
-  } on DioException catch (e) {
-    throw ApiException.fromDioError(e);
-  } catch (e) {
-    throw Exception('Failed to fetch food deliveries: $e');
   }
-}
 }

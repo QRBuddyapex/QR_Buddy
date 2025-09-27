@@ -18,6 +18,7 @@ class DailyChecklistController extends GetxController {
   var selectedUsers = <User>{}.obs;
 
   var isFiltered = false.obs;
+  var isRecord = true.obs;
 
   /// Stats
   var rounds = '0'.obs;
@@ -142,10 +143,12 @@ class DailyChecklistController extends GetxController {
         selectedOption.value =
             dailyChecklist.value!.categories.first.categoryName;
       }
+      isRecord.value = response.stats.total.value > 0;
 
       CustomSnackbar.success('Data fetched successfully');
     } catch (e) {
-      CustomSnackbar.error('Error fetching data: $e');
+      isRecord.value = false;
+      CustomSnackbar.error('No Record Found');
     } finally {
       isLoading.value = false;
     }

@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:dio/dio.dart' as dio;
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -39,6 +41,7 @@ Future<void> fetchFormData() async {
 
     final userId = await _tokenStorage.getUserId();
     final hcoId = await _tokenStorage.getHcoId();
+    print('User ID: $userId, HCO ID: $hcoId');
 
     if (userId == null || hcoId == null) {
       Get.snackbar('Error', 'Authentication data missing',
@@ -59,18 +62,18 @@ Future<void> fetchFormData() async {
     if (response.statusCode == 200) {
       final data = response.data;
 
-      // rooms
-      final roomsList = (data['rooms'] as List)
-          .map((r) => r['room_number'].toString())
-          .toList();
+      /// ✅ Assign entire parsed model to formResponse
+      formResponse = NewETicketResponseModel.fromJson(data);
 
-      // services
-      final servicesList = (data['services'] as List)
-          .map((s) => s['service_name'].toString())
-          .toList();
+      /// ✅ Populate dropdown options from model
+      roomOptions.value =
+          formResponse?.rooms.map((r) => r.roomNumber).toList() ?? [];
 
-      roomOptions.value = roomsList;
-      serviceOptions.value = servicesList;
+      serviceOptions.value =
+          formResponse?.services.map((s) => s.serviceName).toList() ?? [];
+
+      print('Fetched rooms: ${roomOptions.length}');
+      print('Fetched services: ${serviceOptions.length}');
     } else {
       Get.snackbar('Error', 'Failed to fetch data',
           snackPosition: SnackPosition.BOTTOM);
@@ -82,6 +85,7 @@ Future<void> fetchFormData() async {
     isLoading.value = false;
   }
 }
+
 
   void updateRoom(String? value) => room.value = value ?? '';
   void updateServices(String? value) => services.value = value ?? '';
@@ -106,112 +110,120 @@ Future<void> fetchFormData() async {
   void removeImage(int index) {
     selectedImages.removeAt(index);
   }
-Future<void> submit() async {
-  if (!formKey.currentState!.validate()) {
-    return;
-  }
 
-  // Additional validation for room and services
-  if (room.value.isEmpty || services.value.isEmpty) {
-    Get.snackbar('Error', 'Please select a valid room and service',
-        snackPosition: SnackPosition.BOTTOM);
-    return;
-  }
-
-  try {
-    isLoading.value = true;
-
-    final userId = await _tokenStorage.getUserId();
-    final hcoId = await _tokenStorage.getHcoId();
-
-    if (userId == null || hcoId == null || formResponse == null) {
-      Get.snackbar('Error', 'Authentication data or form data missing',
-          snackPosition: SnackPosition.BOTTOM);
+  Future<void> submit() async {
+    if (!formKey.currentState!.validate()) {
       return;
     }
 
-    // Find room_uuid and service_id
-    final selectedRoom = formResponse!.rooms.firstWhereOrNull(
-      (r) => r.roomNumber == room.value, // Use room.value
-    );
-    final selectedService = formResponse!.services.firstWhereOrNull(
-      (service) => service.serviceName == services.value, // Use services.value
-    );
-
-    if (selectedRoom == null || selectedService == null) {
+    // Additional validation for room and services
+    if (room.value.isEmpty || services.value.isEmpty) {
       Get.snackbar('Error', 'Please select a valid room and service',
           snackPosition: SnackPosition.BOTTOM);
       return;
     }
 
-    // Normalize priority to match API (e.g., "Low" -> "LOW")
-    final normalizedPriority = priority.value.toUpperCase().substring(0, 3); // Convert to "LOW", "NOR", "HIG", "CRI"
+    try {
+      isLoading.value = true;
 
-    // Construct parameters as an object to match the provided payload
-    final parameters = {
-      'priority': normalizedPriority,
-      'map_long': 'undefined',
-      'map_lat': 'undefined',
-      'map_distance': 'undefined',
-    };
+      final userId = await _tokenStorage.getUserId();
+      final hcoId = await _tokenStorage.getHcoId();
+      print('User ID: $userId, HCO ID: $hcoId');
+      print('formResponse: $formResponse');
 
-    // Construct form data
-    final formData = dio.FormData.fromMap({
-      'file_count': "0",
-      'user_id': userId,
-      'room_uuid': selectedRoom.uuid,
-      'stock_uuid': 'undefined',
-      'stock_down': 'undefined',
-      'service_id': selectedService.id,
-      'parameter_category_id': '0',
-      'parameters': parameters, 
-      'source': 'WEB',
-      'request_type': ticketType.value ?? 'SER',
-      'addons[phone_number]': complainantPhone.value.isEmpty ? 'test' : complainantPhone.value,
-      'addons[full_name]': complainantName.value.isEmpty ? 'test' : complainantName.value,
-      'addons[notes]': remarks.value.isEmpty ? 'test' : remarks.value,
-    });
+      if (userId == null || hcoId == null || formResponse == null) {
+        Get.snackbar('Error', 'Authentication data or form data missing',
+            snackPosition: SnackPosition.BOTTOM);
+        return;
+      }
 
-    // Add image files
-    for (var i = 0; i < selectedImages.length; i++) {
-      final file = selectedImages[i];
-      formData.files.add(MapEntry(
-        'file$i',
-        await dio.MultipartFile.fromFile(file.path, filename: file.name),
-      ));
-    }
+      // Find room_uuid and service_id
+      final selectedRoom = formResponse!.rooms.firstWhereOrNull(
+        (r) => r.roomNumber == room.value,
+      );
+      final selectedService = formResponse!.services.firstWhereOrNull(
+        (service) => service.serviceName == services.value,
+      );
 
-    // Make API call
-    final response = await _apiService.post(
-      '/ticket/ticket.html?action=save&user_id=$userId&hco_id=$hcoId',
-      data: formData,
-    );
+      if (selectedRoom == null || selectedService == null) {
+        Get.snackbar('Error', 'Please select a valid room and service',
+            snackPosition: SnackPosition.BOTTOM);
+        return;
+      }
 
-    if (response.statusCode == 200 && response.data['status'] == 1) {
-      Get.snackbar('Success', 'Ticket saved successfully',
+      // Normalize priority to match API (e.g., "Low" -> "LOW")
+      final normalizedPriority = priority.value.toUpperCase().substring(0, 3);
+
+      // Construct parameters as an object to match the provided payload
+      final parameters = {
+        'priority': normalizedPriority,
+        'map_long': 'undefined',
+        'map_lat': 'undefined',
+        'map_distance': 'undefined',
+      };
+
+      // Construct form data
+      final formData = dio.FormData.fromMap({
+        'file_count': selectedImages.length.toString(),
+        'user_id': userId,
+        'room_uuid': selectedRoom.uuid,
+        'stock_uuid': 'undefined',
+        'stock_down': 'undefined',
+        'service_id': selectedService.id,
+        'parameter_category_id': '0',
+        'parameters': jsonEncode(parameters),
+        'source': 'WEB',
+        'request_type': ticketType.value ?? 'SER',
+        'addons[phone_number]': complainantPhone.value.isEmpty ? 'test' : complainantPhone.value,
+        'addons[full_name]': complainantName.value.isEmpty ? 'test' : complainantName.value,
+        'addons[notes]': remarks.value.isEmpty ? 'test' : remarks.value,
+      });
+
+      // Add image files
+      for (var i = 0; i < selectedImages.length; i++) {
+        final file = selectedImages[i];
+        formData.files.add(MapEntry(
+          'file$i',
+          await dio.MultipartFile.fromFile(file.path, filename: file.name),
+        ));
+      }
+
+      // Make API call
+      final response = await _apiService.post(
+        '/ticket/ticket.html?action=save&user_id=$userId&hco_id=$hcoId',
+        data: formData,
+      );
+
+      print('Submit status code: ${response.statusCode}');
+      print('Submit response data: ${response.data}');
+
+      if (response.statusCode == 200 && response.data['status'] == 1) {
+        Get.snackbar('Success', 'Ticket saved successfully',
+            snackPosition: SnackPosition.BOTTOM);
+        // Reset form
+        room.value = '';
+        services.value = '';
+        complainantName.value = '';
+        complainantPhone.value = '';
+        priority.value = 'Normal';
+        ticketType.value = null;
+        remarks.value = '';
+        selectedImages.clear();
+
+        Get.toNamed(RoutesName.ticketDashboardView);
+      } else {
+        Get.snackbar('Error', 'Failed to save ticket: ${response.data['message']}',
+            snackPosition: SnackPosition.BOTTOM);
+      }
+    } catch (e) {
+      print('Submit error: $e');
+      Get.snackbar('Error', 'Failed to save ticket: $e',
           snackPosition: SnackPosition.BOTTOM);
-      // Reset form
-      room.value = '';
-      services.value = '';
-      complainantName.value = '';
-      complainantPhone.value = '';
-      priority.value = 'Normal';
-      ticketType.value = null;
-      remarks.value = '';
-      selectedImages.clear();
-
-      Get.toNamed(RoutesName.ticketDashboardView);
-    } else {
-      Get.snackbar('Error', 'Failed to save ticket: ${response.data['message']}',
-          snackPosition: SnackPosition.BOTTOM);
+    } finally {
+      isLoading.value = false;
     }
-  } catch (e) {
-    Get.snackbar('Error', 'Failed to save ticket: $e',
-        snackPosition: SnackPosition.BOTTOM);
-  } finally {
-    isLoading.value = false;
   }
-}
+
   String? validateField(String? value) {
     if (value == null || value.isEmpty) return 'This field is required';
     return null;

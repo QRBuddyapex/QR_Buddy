@@ -96,7 +96,7 @@ class _CustomDrawerState extends State<CustomDrawer> with TickerProviderStateMix
         elevation: 6,
         backgroundColor: isDarkMode ? AppColors.darkBackgroundColor : Colors.white,
         shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.horizontal(right: Radius.circular(1)),
+          borderRadius: BorderRadius.horizontal(right: Radius.circular(16)),
         ),
         child: Column(
           children: [

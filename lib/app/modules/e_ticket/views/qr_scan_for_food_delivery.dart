@@ -86,6 +86,8 @@ class _QrScanForFoodDeliveryState extends State<QrScanForFoodDelivery>
                           extractedUuid =
                               scannedValue.substring(startIndex, endIndex);
                           print('Extracted UUID: $extractedUuid');
+                          print(
+                              'Expected UUID: $expectedRoomUuid, Extracted UUID: $extractedUuid');
 
                         }
                       }

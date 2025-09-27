@@ -1,11 +1,43 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart'; // Added for SystemNavigator.pop
+import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:iconly/iconly.dart';
 import 'package:qr_buddy/app/core/config/token_storage.dart';
 import 'package:qr_buddy/app/core/theme/app_theme.dart';
 import 'package:qr_buddy/app/data/repo/auth_repo.dart';
 import 'package:qr_buddy/app/routes/routes.dart';
+
+/// GetX controller for drawer selection
+class DrawerControllerX extends GetxController {
+  var selectedIndex = 0.obs;
+
+  @override
+  void onInit() {
+    super.onInit();
+    _updateIndexFromRoute(Get.currentRoute);
+  }
+
+  void _updateIndexFromRoute(String route) {
+    switch (route) {
+      case RoutesName.ticketDashboardView:
+        selectedIndex.value = 0;
+        break;
+      case RoutesName.newtTicketView:
+        selectedIndex.value = 4;
+        break;
+      case RoutesName.dailyChecklistView:
+        selectedIndex.value = 5;
+        break;
+      default:
+        selectedIndex.value = -1;
+    }
+  }
+
+  void setIndex(int index) {
+    selectedIndex.value = index;
+  }
+}
+
 
 class CustomDrawer extends StatefulWidget {
   const CustomDrawer({Key? key}) : super(key: key);
@@ -21,7 +53,9 @@ class _CustomDrawerState extends State<CustomDrawer> with TickerProviderStateMix
   final List<AnimationController> _itemControllers = [];
   final List<Animation<Offset>> _slideAnimations = [];
   final List<Animation<double>> _fadeAnimations = [];
-  int? _hoveredIndex;
+
+  // Initialize GetX DrawerController
+  final drawerController = Get.put(DrawerControllerX());
 
   @override
   void initState() {
@@ -88,9 +122,8 @@ class _CustomDrawerState extends State<CustomDrawer> with TickerProviderStateMix
 
     return WillPopScope(
       onWillPop: () async {
-        // Exit the app when the back button is pressed
         SystemNavigator.pop();
-        return false; // Prevent default back navigation
+        return false;
       },
       child: Drawer(
         elevation: 6,
@@ -124,7 +157,6 @@ class _CustomDrawerState extends State<CustomDrawer> with TickerProviderStateMix
                           ),
                     ),
                     Text(
-                      
                       'Welcome back!',
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
                             color: isDarkMode ? AppColors.backgroundColor : AppColors.iconColor,
@@ -144,32 +176,17 @@ class _CustomDrawerState extends State<CustomDrawer> with TickerProviderStateMix
                     icon: IconlyBold.home,
                     title: "Dashboard",
                     onTap: () {
-                      Get.offNamed(RoutesName.ticketDashboardView); // Changed to offNamed
+                      drawerController.setIndex(0);
+                      Get.offNamed(RoutesName.ticketDashboardView);
                     },
                   ),
-                  // _buildAnimatedTile(
-                  //   index: 1,
-                  //   icon: IconlyBold.scan,
-                  //   title: "QR Locator",
-                  //   subtitle: "Search your location",
-                  //   onTap: () {
-                  //     CustomSnackbar.info("This Service is not implemented yet (Coming Soon)");
-                  //   },
-                  // ),
-                  // _buildAnimatedTile(
-                  //   index: 2,
-                  //   icon: IconlyBold.work,
-                  //   title: "Task Manager",
-                  //   onTap: () {
-                  //     CustomSnackbar.info("This Service is not implemented yet (Coming Soon)");
-                  //   },
-                  // ),
                   _buildAnimatedTile(
                     index: 4,
                     icon: IconlyBold.plus,
                     title: "New eTicket",
                     onTap: () {
-                      Get.offNamed(RoutesName.newtTicketView); // Changed to offNamed
+                      drawerController.setIndex(4);
+                      Get.offNamed(RoutesName.newtTicketView);
                     },
                   ),
                   _buildAnimatedTile(
@@ -177,7 +194,8 @@ class _CustomDrawerState extends State<CustomDrawer> with TickerProviderStateMix
                     icon: IconlyBold.document,
                     title: "Daily Checklist",
                     onTap: () {
-                      Get.offNamed(RoutesName.dailyChecklistView); // Changed to offNamed
+                      drawerController.setIndex(5);
+                      Get.offNamed(RoutesName.dailyChecklistView);
                     },
                   ),
                   _buildAnimatedTile(
@@ -188,7 +206,7 @@ class _CustomDrawerState extends State<CustomDrawer> with TickerProviderStateMix
                       final authRepository = AuthRepository();
                       await authRepository.logout();
                       await TokenStorage().clearToken();
-                      Get.offAllNamed(RoutesName.loginScreen); // Kept offAllNamed for logout
+                      Get.offAllNamed(RoutesName.loginScreen);
                     },
                     iconColor: AppColors.dangerButtonColor,
                     textColor: AppColors.dangerButtonColor,
@@ -208,7 +226,6 @@ class _CustomDrawerState extends State<CustomDrawer> with TickerProviderStateMix
     required IconData icon,
     required String title,
     String? subtitle,
-    bool selected = false,
     required VoidCallback onTap,
     Widget? trailing,
     Color? tileColor,
@@ -216,60 +233,63 @@ class _CustomDrawerState extends State<CustomDrawer> with TickerProviderStateMix
     Color? textColor,
   }) {
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+    final Color selectedColor = AppColors.primaryColor;
 
-    return SlideTransition(
-      position: _slideAnimations[index],
-      child: FadeTransition(
-        opacity: _fadeAnimations[index],
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 200),
-          margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-          decoration: BoxDecoration(
-            color: tileColor ??
-                (selected
-                    ? AppColors.primaryColor.withOpacity(0.1)
-                    : (isDarkMode
-                        ? AppColors.darkCardBackgroundColor
-                        : AppColors.cardBackgroundColor)),
-            borderRadius: BorderRadius.circular(12),
-            boxShadow: [
-              BoxShadow(
-                color: isDarkMode ? AppColors.darkShadowColor : AppColors.shadowColor,
-                blurRadius: selected ? 4 : 2,
-                offset: const Offset(0, 1),
+    return Obx(() {
+      final selected = drawerController.selectedIndex.value == index;
+
+      return SlideTransition(
+        position: _slideAnimations[index],
+        child: FadeTransition(
+          opacity: _fadeAnimations[index],
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 200),
+            margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+            decoration: BoxDecoration(
+              color: tileColor ??
+                  (selected
+                      ? selectedColor.withOpacity(0.15)
+                      : (isDarkMode
+                          ? AppColors.darkCardBackgroundColor
+                          : AppColors.cardBackgroundColor)),
+              borderRadius: BorderRadius.circular(12),
+              boxShadow: [
+                BoxShadow(
+                  color: isDarkMode ? AppColors.darkShadowColor : AppColors.shadowColor,
+                  blurRadius: selected ? 4 : 2,
+                  offset: const Offset(0, 1),
+                ),
+              ],
+            ),
+            child: ListTile(
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              leading: Icon(
+                icon,
+                color: iconColor ?? (selected ? selectedColor : (isDarkMode ? AppColors.darkTextColor : AppColors.textColor)),
+                size: 26,
               ),
-            ],
-          ),
-          child: ListTile(
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            leading: Icon(
-              icon,
-              color: iconColor ??
-                  (selected ? AppColors.primaryColor : (isDarkMode ? AppColors.darkTextColor : AppColors.textColor)),
-              size: 26,
+              title: Text(
+                title,
+                style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      color: textColor ?? (selected ? selectedColor : (isDarkMode ? AppColors.darkTextColor : AppColors.textColor)),
+                      fontWeight: selected ? FontWeight.bold : FontWeight.w500,
+                    ),
+              ),
+              subtitle: subtitle != null
+                  ? Text(
+                      subtitle,
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                            color: isDarkMode ? AppColors.darkSubtitleColor : AppColors.subtitleColor,
+                          ),
+                    )
+                  : null,
+              trailing: trailing,
+              onTap: onTap,
             ),
-            title: Text(
-              title,
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    color: textColor ??
-                        (selected ? AppColors.primaryColor : (isDarkMode ? AppColors.darkTextColor : AppColors.textColor)),
-                    fontWeight: selected ? FontWeight.bold : FontWeight.w500,
-                  ),
-            ),
-            subtitle: subtitle != null
-                ? Text(
-                    subtitle,
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: isDarkMode ? AppColors.darkSubtitleColor : AppColors.subtitleColor,
-                        ),
-                  )
-                : null,
-            trailing: trailing,
-            onTap: onTap,
           ),
         ),
-      ),
-    );
+      );
+    });
   }
 }

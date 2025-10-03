@@ -123,6 +123,7 @@ class InfoCardContentWidget extends StatelessWidget {
                       arguments: {
                         'room_uuid': roomUuid,
                         'category_uuid': delivery['category_uuid'],
+                        'round_uuid': delivery['uuid'] != null ? delivery['uuid'].toString() : '',
                       },
                     );
                   } else if (scannedUuid != null) {

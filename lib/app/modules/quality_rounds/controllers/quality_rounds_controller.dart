@@ -27,6 +27,12 @@ class QualityRoundsController extends GetxController {
       if (arguments.containsKey('category_uuid')) {
         categoryUuid.value = arguments['category_uuid'];
       }
+      if (arguments.containsKey('round_uuid')) {
+        // You can use round_uuid if needed
+        final roundUuid = arguments['round_uuid'];
+        print('Received round_uuid: $roundUuid');
+        
+      }
     }
     fetchFormData();
   }
@@ -94,6 +100,7 @@ class QualityRoundsController extends GetxController {
         userId: userId,
         hcoId: hcoId,
         roomUuid: roomUuid.value,
+        roundUuid: roomUuid.value,
         parameters: formData,
         formParameters: formModel.value!.parameters,
         averageRating: averageRating.toString(),

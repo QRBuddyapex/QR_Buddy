@@ -43,8 +43,9 @@ class QualityRoundsRepository {
     required String categoryUuid,
     required String userId,
     required String hcoId,
-    required String roomUuid,
+    required String? roomUuid,
     required String averageRating,
+    required String roundUuid,
     required Map<String, dynamic> parameters,
     required List<Parameter> formParameters,
   }) async {
@@ -78,7 +79,7 @@ class QualityRoundsRepository {
             'choices': param.choices,
           };
         }).toList(),
-        'round_uuid': '-',
+        'round_uuid': roundUuid ?? '-',
         'room_uuid': roomUuid,
         'source': 'QR',
         'status_update': 'END',

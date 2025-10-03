@@ -253,13 +253,12 @@ class _CustomDrawerState extends State<CustomDrawer> with TickerProviderStateMix
                           ? AppColors.darkCardBackgroundColor
                           : AppColors.cardBackgroundColor)),
               borderRadius: BorderRadius.circular(12),
-              boxShadow: [
-                BoxShadow(
-                  color: isDarkMode ? AppColors.darkShadowColor : AppColors.shadowColor,
-                  blurRadius: selected ? 4 : 2,
-                  offset: const Offset(0, 1),
-                ),
-              ],
+              border: Border.all(
+                color: selected
+                    ? selectedColor
+                    : (isDarkMode ? AppColors.darkBorderColor : AppColors.borderColor),
+                width: selected ? 1.5 : 1,
+              ),
             ),
             child: ListTile(
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),

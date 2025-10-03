@@ -21,8 +21,10 @@ class _qrbuddyDashboardWidgetState extends State<qrbuddyDashboardWidget>
   @override
   void initState() {
     super.initState();
-    // Set default selected tab to "E-Tickets"
-    controller.setSelectedInfoCard('E-Tickets');
+    // Defer setting default selected tab to after first frame to avoid build-phase update
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      controller.setSelectedInfoCard('E-Tickets');
+    });
     _animationController = AnimationController(
       duration: const Duration(milliseconds: 1200),
       vsync: this,
@@ -100,13 +102,7 @@ class _qrbuddyDashboardWidgetState extends State<qrbuddyDashboardWidget>
                   decoration: BoxDecoration(
                     color: isDarkMode ? AppColors.darkCardBackgroundColor : AppColors.cardBackgroundColor,
                     borderRadius: BorderRadius.circular(12),
-                    boxShadow: [
-                      BoxShadow(
-                        color: isDarkMode ? AppColors.darkShadowColor : AppColors.shadowColor,
-                        blurRadius: 6,
-                        offset: const Offset(0, 3),
-                      ),
-                    ],
+                   
                   ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -211,13 +207,7 @@ class _qrbuddyDashboardWidgetState extends State<qrbuddyDashboardWidget>
       decoration: BoxDecoration(
         color: isDarkMode ? AppColors.darkCardBackgroundColor : AppColors.cardBackgroundColor,
         borderRadius: BorderRadius.circular(12),
-        boxShadow: [
-          BoxShadow(
-            color: isDarkMode ? AppColors.darkShadowColor : AppColors.shadowColor,
-            blurRadius: 6,
-            offset: const Offset(0, 3),
-          ),
-        ],
+       
       ),
       child: Obx(() {
         double statusValue = controller.todayStatus.value;
@@ -343,15 +333,7 @@ class _qrbuddyDashboardWidgetState extends State<qrbuddyDashboardWidget>
                         ? (isDarkMode ? Colors.grey[600]! : Colors.grey[400]!)
                         : AppColors.primaryColor,
                     width: 5)),
-            boxShadow: [
-              BoxShadow(
-                color: isDisabled
-                    ? (isDarkMode ? Colors.grey[800]!.withOpacity(0.1) : Colors.grey.withOpacity(0.1))
-                    : (isDarkMode ? AppColors.darkShadowColor : AppColors.shadowColor),
-                blurRadius: 8,
-                offset: const Offset(0, 4),
-              ),
-            ],
+          
           ),
           child: Stack(
             children: [

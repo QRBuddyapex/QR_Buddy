@@ -13,7 +13,9 @@ class QualityRoundsController extends GetxController {
   final RxString errorMessage = ''.obs;
   final RxBool isSubmitting = false.obs;
   final RxString roomUuid = ''.obs;
+  final RxString roundUuid = ''.obs;
   final RxString categoryUuid = ''.obs;
+  final RxDouble averageRating = 0.0.obs;
 
   @override
   void onInit() {
@@ -29,7 +31,7 @@ class QualityRoundsController extends GetxController {
       }
       if (arguments.containsKey('round_uuid')) {
         // You can use round_uuid if needed
-        final roundUuid = arguments['round_uuid'];
+        roundUuid.value = arguments['round_uuid'];
         print('Received round_uuid: $roundUuid');
         
       }
@@ -58,6 +60,8 @@ class QualityRoundsController extends GetxController {
               ? param.valueString
               : (param.valueInt != null ? param.valueInt.toString() : param.valueDefault ?? ''),
       };
+
+      _calculateAverageRating();
     } catch (e) {
       errorMessage.value = e.toString();
       Get.snackbar(
@@ -72,11 +76,38 @@ class QualityRoundsController extends GetxController {
     }
   }
 
-  void updateFormData(String key, dynamic value) {
-    formData[key] = value;
+  void _calculateAverageRating() {
+    if (formModel.value == null) {
+      averageRating.value = 0.0;
+      return;
+    }
+
+    double totalRating = 0.0;
+    int ratingCount = 0;
+    for (var param in formModel.value!.parameters) {
+      if (param.dataEntryType == 'EMJ' || param.dataEntryType == 'STR') {
+        final value = int.tryParse(formData[param.parameterName!] as String? ?? '0') ?? 0;
+        if (value > 0 && value <= 5) {
+          totalRating += value;
+          ratingCount++;
+        }
+      }
+    }
+    averageRating.value = ratingCount > 0 ? totalRating / ratingCount : 0.0;
   }
 
-  Future<void> onSubmit(double averageRating) async {
+  void updateFormData(String key, dynamic value) {
+    formData[key] = value;
+    // Recalculate average only if relevant field changed
+    if (formModel.value != null) {
+      final param = formModel.value!.parameters.firstWhereOrNull((p) => p.parameterName == key);
+      if (param != null && (param.dataEntryType == 'EMJ' || param.dataEntryType == 'STR')) {
+        _calculateAverageRating();
+      }
+    }
+  }
+
+  Future<void> onSubmit() async {
     if (formModel.value == null || roomUuid.value.isEmpty) {
       Get.snackbar(
         'Error',
@@ -100,11 +131,12 @@ class QualityRoundsController extends GetxController {
         userId: userId,
         hcoId: hcoId,
         roomUuid: roomUuid.value,
-        roundUuid: roomUuid.value,
+        roundUuid: roundUuid.value,
         parameters: formData,
         formParameters: formModel.value!.parameters,
-        averageRating: averageRating.toString(),
+        averageRating: averageRating.value.toString(),
       );
+      isSubmitting.value = false;
       Get.snackbar(
         'Success',
         'Form submitted successfully!',
@@ -114,6 +146,7 @@ class QualityRoundsController extends GetxController {
       );
       Get.offAndToNamed(RoutesName.ticketDashboardView);
     } catch (e) {
+      isSubmitting.value = false;
       errorMessage.value = e.toString();
       Get.snackbar(
         'Error',
@@ -122,8 +155,6 @@ class QualityRoundsController extends GetxController {
         backgroundColor: Colors.red.withOpacity(0.8),
         colorText: Colors.white,
       );
-    } finally {
-      isSubmitting.value = false;
     }
   }
 

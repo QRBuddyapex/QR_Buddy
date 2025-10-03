@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
 import 'package:get/get.dart';
 import 'package:qr_buddy/app/core/theme/app_theme.dart';
 import 'package:qr_buddy/app/core/widgets/custom_buttom.dart';
@@ -321,18 +322,13 @@ class QualityRoundsView extends GetView<QualityRoundsController> {
           return const Center(child: Text('No form data available'));
         }
 
-        double totalRating = 0.0;
-        int ratingCount = 0;
-        for (var param in controller.formModel.value!.parameters) {
-          if (param.dataEntryType == 'EMJ' || param.dataEntryType == 'STR') {
-            final value = int.tryParse(controller.formData[param.parameterName!] as String? ?? '0') ?? 0;
-            if (value > 0 && value <= 5) {
-              totalRating += value;
-              ratingCount++;
-            }
-          }
-        }
-        final averageRating = ratingCount > 0 ? totalRating / ratingCount : 0.0;
+        final VoidCallback onPressedCallback = controller.isSubmitting.value
+            ? () {} // No-op when submitting
+            : () {
+                SchedulerBinding.instance.addPostFrameCallback((_) {
+                  controller.onSubmit();
+                });
+              };
 
         return Padding(
           padding: const EdgeInsets.all(16.0),
@@ -367,7 +363,7 @@ class QualityRoundsView extends GetView<QualityRoundsController> {
                     width: 300,
                     child: Text(
                       textAlign: TextAlign.center,
-                      'Average Rating: ${averageRating.toStringAsFixed(1)}/5',
+                      'Average Rating: ${controller.averageRating.value.toStringAsFixed(1)}/5',
                       style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                             color: Colors.white,
                             fontWeight: FontWeight.bold,
@@ -379,9 +375,7 @@ class QualityRoundsView extends GetView<QualityRoundsController> {
                 const SizedBox(height: 16),
                 CustomButton(
                   text: controller.isSubmitting.value ? 'Submitting...' : 'Submit',
-                  onPressed: () async {
-                    await controller.onSubmit(averageRating);
-                  },
+                  onPressed: onPressedCallback,
                   color: AppColors.primaryColor,
                 ),
               ],

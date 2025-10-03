@@ -326,13 +326,7 @@ class InfoCardContentWidget extends StatelessWidget {
       decoration: BoxDecoration(
         color: isDarkMode ? AppColors.darkCardBackgroundColor : AppColors.cardBackgroundColor,
         borderRadius: BorderRadius.circular(8),
-        boxShadow: [
-          BoxShadow(
-            color: isDarkMode ? AppColors.darkShadowColor : AppColors.shadowColor,
-            spreadRadius: 1,
-            blurRadius: 4,
-          ),
-        ],
+      
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -541,13 +535,7 @@ class InfoCardContentWidget extends StatelessWidget {
                         decoration: BoxDecoration(
                           color: isDarkMode ? AppColors.darkCardBackgroundColor : AppColors.cardBackgroundColor,
                           borderRadius: BorderRadius.circular(8),
-                          boxShadow: [
-                            BoxShadow(
-                              color: isDarkMode ? AppColors.darkShadowColor : AppColors.shadowColor,
-                              spreadRadius: 1,
-                              blurRadius: 4,
-                            ),
-                          ],
+                       
                         ),
                         child: Text(
                           'No checklists available for the selected date range',
@@ -594,13 +582,7 @@ class InfoCardContentWidget extends StatelessWidget {
                         color: isDarkMode ? AppColors.darkBorderColor : AppColors.borderColor,
                       ),
                       borderRadius: BorderRadius.circular(25),
-                      boxShadow: [
-                        BoxShadow(
-                          color: isDarkMode ? AppColors.darkShadowColor : AppColors.shadowColor,
-                          spreadRadius: 1,
-                          blurRadius: 4,
-                        ),
-                      ],
+                   
                     ),
                     child: DropdownButtonHideUnderline(
                       child: Obx(() {
@@ -784,13 +766,7 @@ class InfoCardContentWidget extends StatelessWidget {
                   decoration: BoxDecoration(
                     color: isDarkMode ? AppColors.darkCardBackgroundColor : AppColors.cardBackgroundColor,
                     borderRadius: BorderRadius.circular(8),
-                    boxShadow: [
-                      BoxShadow(
-                        color: isDarkMode ? AppColors.darkShadowColor : AppColors.shadowColor,
-                        spreadRadius: 1,
-                        blurRadius: 4,
-                      ),
-                    ],
+                  
                   ),
                   child: Text(
                     'No log data available',
@@ -831,13 +807,7 @@ class InfoCardContentWidget extends StatelessWidget {
                   decoration: BoxDecoration(
                     color: isDarkMode ? AppColors.darkCardBackgroundColor : AppColors.cardBackgroundColor,
                     borderRadius: BorderRadius.circular(8),
-                    boxShadow: [
-                      BoxShadow(
-                        color: isDarkMode ? AppColors.darkShadowColor : AppColors.shadowColor,
-                        spreadRadius: 1,
-                        blurRadius: 4,
-                      ),
-                    ],
+                 
                   ),
                   child: Text(
                     'No log data available',
@@ -886,13 +856,7 @@ class InfoCardContentWidget extends StatelessWidget {
                                         ? Colors.blue.shade50
                                         : (isDarkMode ? AppColors.darkCardBackgroundColor : AppColors.cardBackgroundColor),
                                     borderRadius: BorderRadius.circular(8),
-                                    boxShadow: [
-                                      BoxShadow(
-                                        color: isDarkMode ? AppColors.darkShadowColor : AppColors.shadowColor,
-                                        spreadRadius: 1,
-                                        blurRadius: 4,
-                                      ),
-                                    ],
+                                 
                                   ),
                                   child: Text(
                                     _formatShortDate(date),
@@ -934,13 +898,7 @@ class InfoCardContentWidget extends StatelessWidget {
                         decoration: BoxDecoration(
                           color: isDarkMode ? AppColors.darkCardBackgroundColor : AppColors.cardBackgroundColor,
                           borderRadius: BorderRadius.circular(8),
-                          boxShadow: [
-                            BoxShadow(
-                              color: isDarkMode ? AppColors.darkShadowColor : AppColors.shadowColor,
-                              spreadRadius: 1,
-                              blurRadius: 4,
-                            ),
-                          ],
+                       
                         ),
                         child: Text(
                           'No log entries for this date',

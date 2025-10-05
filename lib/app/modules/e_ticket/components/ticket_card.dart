@@ -1,4 +1,3 @@
-
 import 'package:flutter/material.dart';
 import 'package:qr_buddy/app/core/theme/app_theme.dart';
 
@@ -42,7 +41,8 @@ class TicketCard extends StatefulWidget {
   State<TicketCard> createState() => _TicketCardState();
 }
 
-class _TicketCardState extends State<TicketCard> with SingleTickerProviderStateMixin {
+class _TicketCardState extends State<TicketCard>
+    with SingleTickerProviderStateMixin {
   late AnimationController _controller;
   late Animation<double> _fadeAnimation;
   late Animation<Offset> _slideAnimation;
@@ -58,7 +58,9 @@ class _TicketCardState extends State<TicketCard> with SingleTickerProviderStateM
       case 'Cancelled':
         return AppColors.dangerButtonColor;
       default:
-        return Theme.of(context).brightness == Brightness.dark ? Colors.grey[400]! : Colors.grey;
+        return Theme.of(context).brightness == Brightness.dark
+            ? Colors.grey[400]!
+            : Colors.grey;
     }
   }
 
@@ -84,7 +86,9 @@ class _TicketCardState extends State<TicketCard> with SingleTickerProviderStateM
       vsync: this,
     );
     _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(_controller);
-    _slideAnimation = Tween<Offset>(begin: const Offset(0.0, 0.1), end: Offset.zero).animate(_controller);
+    _slideAnimation =
+        Tween<Offset>(begin: const Offset(0.0, 0.1), end: Offset.zero)
+            .animate(_controller);
     _controller.forward();
   }
 
@@ -102,9 +106,11 @@ class _TicketCardState extends State<TicketCard> with SingleTickerProviderStateM
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       child: Card(
-        elevation: 4,
+        elevation: 0, // 🔥 Removed shadow
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        color: isDarkMode ? AppColors.darkCardBackgroundColor : AppColors.cardBackgroundColor,
+        color: isDarkMode
+            ? AppColors.darkCardBackgroundColor
+            : AppColors.cardBackgroundColor,
         child: InkWell(
           onTap: widget.onTap,
           borderRadius: BorderRadius.circular(16),
@@ -120,14 +126,20 @@ class _TicketCardState extends State<TicketCard> with SingleTickerProviderStateM
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
+                        /// Header Row
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             Flexible(
                               child: Text(
                                 widget.orderNumber,
-                                style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                                      color: isDarkMode ? AppColors.darkTextColor : AppColors.textColor,
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .headlineSmall
+                                    ?.copyWith(
+                                      color: isDarkMode
+                                          ? AppColors.darkTextColor
+                                          : AppColors.textColor,
                                     ),
                                 overflow: TextOverflow.ellipsis,
                               ),
@@ -135,7 +147,8 @@ class _TicketCardState extends State<TicketCard> with SingleTickerProviderStateM
                             Row(
                               children: [
                                 Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 12, vertical: 6),
                                   decoration: BoxDecoration(
                                     color: _getStatusBgColor(widget.status),
                                     borderRadius: BorderRadius.circular(20),
@@ -143,100 +156,136 @@ class _TicketCardState extends State<TicketCard> with SingleTickerProviderStateM
                                   ),
                                   child: Text(
                                     widget.status,
-                                    style: Theme.of(context).textTheme.bodySmall!.copyWith(
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .bodySmall!
+                                        .copyWith(
                                           color: _getStatusColor(widget.status),
                                           fontWeight: FontWeight.bold,
                                         ),
                                   ),
                                 ),
                                 const SizedBox(width: 8),
-                                IconButton(
-                                  icon: Icon(
-                                    Icons.qr_code,
-                                    color: AppColors.linkColor,
-                                  ),
-                                  onPressed: () {
-                                   
-                                  },
-                                ),
+                                // IconButton(
+                                //   icon: Icon(
+                                //     Icons.qr_code,
+                                //     color: AppColors.linkColor,
+                                //   ),
+                                //   onPressed: () {},
+                                // ),
                               ],
                             ),
                           ],
                         ),
+
                         const SizedBox(height: 8),
+
+                        /// Location
                         Row(
                           children: [
                             Icon(
                               Icons.location_on,
                               size: 16,
-                              color: isDarkMode ? AppColors.darkSubtitleColor : AppColors.subtitleColor,
+                              color: isDarkMode
+                                  ? AppColors.darkSubtitleColor
+                                  : AppColors.subtitleColor,
                             ),
                             const SizedBox(width: 4),
                             Expanded(
                               child: Text(
                                 widget.block,
-                                style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                      color: isDarkMode ? AppColors.darkSubtitleColor : AppColors.subtitleColor,
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .bodySmall
+                                    ?.copyWith(
+                                      color: isDarkMode
+                                          ? AppColors.darkSubtitleColor
+                                          : AppColors.subtitleColor,
                                     ),
                                 overflow: TextOverflow.ellipsis,
                               ),
                             ),
                           ],
                         ),
+
                         const SizedBox(height: 8),
+
+                        /// Assigned To
                         Text(
                           'Assigned to: ${widget.assignedTo}',
-                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                color: isDarkMode ? AppColors.darkSubtitleColor : AppColors.subtitleColor,
-                              ),
+                          style:
+                              Theme.of(context).textTheme.bodySmall?.copyWith(
+                                    color: isDarkMode
+                                        ? AppColors.darkSubtitleColor
+                                        : AppColors.subtitleColor,
+                                  ),
                         ),
+
                         const SizedBox(height: 12),
-                        // Text(
-                        //   'Purpose:',
-                        //   style: Theme.of(context).textTheme.titleSmall!.copyWith(
-                        //         fontWeight: FontWeight.bold,
-                        //         color: isDarkMode ? AppColors.darkTextColor : AppColors.textColor,
-                        //       ),
-                        // ),
-                        // const SizedBox(height: 4),
+
+                        /// Description
                         Text(
                           widget.description,
-                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                color: isDarkMode ? AppColors.darkSubtitleColor : AppColors.subtitleColor,
-                              ),
+                          style:
+                              Theme.of(context).textTheme.bodySmall?.copyWith(
+                                    color: isDarkMode
+                                        ? AppColors.darkSubtitleColor
+                                        : AppColors.subtitleColor,
+                                  ),
                           maxLines: 3,
                           overflow: TextOverflow.ellipsis,
                         ),
+
                         const SizedBox(height: 12),
+
+                        /// Date
                         Row(
                           children: [
                             Icon(
                               Icons.access_time,
                               size: 16,
-                              color: isDarkMode ? AppColors.darkSubtitleColor : AppColors.subtitleColor,
+                              color: isDarkMode
+                                  ? AppColors.darkSubtitleColor
+                                  : AppColors.subtitleColor,
                             ),
                             const SizedBox(width: 4),
                             Text(
                               widget.date,
-                              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                    color: isDarkMode ? AppColors.darkSubtitleColor : AppColors.subtitleColor,
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .bodySmall
+                                  ?.copyWith(
+                                    color: isDarkMode
+                                        ? AppColors.darkSubtitleColor
+                                        : AppColors.subtitleColor,
                                   ),
                             ),
                           ],
                         ),
+
                         const SizedBox(height: 12),
+
+                        /// Phone Number
                         Row(
                           children: [
                             Text(
                               'GDA Ref: ',
-                              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                    color: isDarkMode ? AppColors.darkSubtitleColor : AppColors.subtitleColor,
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .bodySmall
+                                  ?.copyWith(
+                                    color: isDarkMode
+                                        ? AppColors.darkSubtitleColor
+                                        : AppColors.subtitleColor,
                                   ),
                             ),
                             Expanded(
                               child: Text(
                                 widget.phoneNumber,
-                                style: Theme.of(context).textTheme.bodySmall!.copyWith(
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .bodySmall!
+                                    .copyWith(
                                       color: AppColors.linkColor,
                                     ),
                                 overflow: TextOverflow.ellipsis,
@@ -246,25 +295,39 @@ class _TicketCardState extends State<TicketCard> with SingleTickerProviderStateM
                             Icon(
                               Icons.copy,
                               size: 16,
-                              color: isDarkMode ? AppColors.darkSubtitleColor : AppColors.subtitleColor,
+                              color: isDarkMode
+                                  ? AppColors.darkSubtitleColor
+                                  : AppColors.subtitleColor,
                             ),
                           ],
                         ),
+
                         const SizedBox(height: 12),
+
+                        /// Quick Request
                         if (widget.isQuickRequest)
                           Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 12, vertical: 6),
                             decoration: BoxDecoration(
-                              color: isDarkMode ? AppColors.darkBorderColor : AppColors.borderColor,
+                              color: isDarkMode
+                                  ? AppColors.darkBorderColor
+                                  : AppColors.borderColor,
                               borderRadius: BorderRadius.circular(12),
                             ),
                             child: Text(
                               'Quick Request',
-                              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                    color: isDarkMode ? AppColors.darkTextColor : AppColors.textColor,
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .bodySmall
+                                  ?.copyWith(
+                                    color: isDarkMode
+                                        ? AppColors.darkTextColor
+                                        : AppColors.textColor,
                                   ),
                             ),
                           ),
+
                         const SizedBox(height: 16),
                         // GestureDetector(
                         //   onTap: () {},

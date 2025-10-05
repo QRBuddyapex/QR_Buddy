@@ -1,4 +1,3 @@
-
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -19,8 +18,9 @@ class AppColors {
   static const Color whatsappIconColor = Color(0xFF44a047);
   static const Color statusButtonColor = Color(0xFF006afd);
   static const Color holdButtonColor = Color(0xFFffc008);
-  static const Color statusButtonColor1 = Color(0xFFffc008);
-  static const Color dangerButtonColor = Color(0xFFf34236);
+  static const Color statusButtonColor1 = Color(0xFFffc107);
+  static const Color dangerButtonColor = Color(0xFFf44336);
+  static const Color verifyButtonColor = Color(0xFF388E3C);
   static const Color blackColor = Colors.black;
   static const Color drawerBackground = Color(0xFFF5F7FA);
   static const Color drawerHeaderGradientStart = Color(0xFF006afd);
@@ -74,7 +74,8 @@ class AppTheme {
           fontWeight: FontWeight.bold,
           color: AppColors.textColor,
         ),
-        labelLarge: GoogleFonts.poppins( // Added for CustomTextField, CustomButton, etc.
+        labelLarge: GoogleFonts.poppins(
+          // Added for CustomTextField, CustomButton, etc.
           fontSize: 14,
           fontWeight: FontWeight.w500,
           color: AppColors.textColor,
@@ -139,7 +140,8 @@ class AppTheme {
           fontWeight: FontWeight.bold,
           color: AppColors.darkTextColor,
         ),
-        labelLarge: GoogleFonts.poppins( // Added for CustomTextField, CustomButton, etc.
+        labelLarge: GoogleFonts.poppins(
+          // Added for CustomTextField, CustomButton, etc.
           fontSize: 14,
           fontWeight: FontWeight.w500,
           color: AppColors.darkTextColor,
@@ -191,7 +193,8 @@ class ThemeController extends GetxController {
   void toggleTheme() async {
     isDarkMode.value = !isDarkMode.value;
     await _tokenStorage.saveTheme(isDarkMode.value);
-    Get.changeTheme(isDarkMode.value ? AppTheme.darkTheme : AppTheme.lightTheme);
+    Get.changeTheme(
+        isDarkMode.value ? AppTheme.darkTheme : AppTheme.lightTheme);
   }
 
   void _loadTheme() async {
@@ -199,10 +202,10 @@ class ThemeController extends GetxController {
     if (savedTheme != null) {
       isDarkMode.value = savedTheme;
     } else {
-
       isDarkMode.value = false;
       await _tokenStorage.saveTheme(false);
     }
-    Get.changeTheme(isDarkMode.value ? AppTheme.darkTheme : AppTheme.lightTheme);
+    Get.changeTheme(
+        isDarkMode.value ? AppTheme.darkTheme : AppTheme.lightTheme);
   }
 }

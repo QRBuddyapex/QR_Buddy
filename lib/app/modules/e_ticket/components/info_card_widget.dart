@@ -54,7 +54,7 @@ class InfoCardContentWidget extends StatelessWidget {
         vertical: size.height * 0.01,
       ),
       child: Card(
-        elevation: 5,
+        elevation: 0,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(15),
           side: BorderSide(

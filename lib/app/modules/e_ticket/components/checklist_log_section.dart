@@ -29,13 +29,7 @@ class ChecklistLogSection extends StatelessWidget {
           decoration: BoxDecoration(
             color: Colors.white,
             borderRadius: BorderRadius.circular(8),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.grey.withOpacity(0.1),
-                spreadRadius: 1,
-                blurRadius: 4,
-              ),
-            ],
+           
           ),
           child: const Text(
             'No log data available',
@@ -159,13 +153,7 @@ class _ChecklistLogSectionContentState
                           ? Colors.blue.shade50
                           : Colors.white,
                       borderRadius: BorderRadius.circular(8),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.grey.withOpacity(0.1),
-                          spreadRadius: 1,
-                          blurRadius: 4,
-                        ),
-                      ],
+                 
                     ),
                     child: Text(
                       widget.formatShortDate != null
@@ -209,13 +197,7 @@ class _ChecklistLogSectionContentState
                 decoration: BoxDecoration(
                   color: Colors.white,
                   borderRadius: BorderRadius.circular(8),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.grey.withOpacity(0.1),
-                      spreadRadius: 1,
-                      blurRadius: 4,
-                    ),
-                  ],
+              
                 ),
                 child: const Text(
                   'No log entries for this date',

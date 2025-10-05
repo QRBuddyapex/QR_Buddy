@@ -5,6 +5,7 @@ import 'package:qr_buddy/app/core/theme/app_theme.dart';
 class TicketCard extends StatefulWidget {
   final String orderNumber;
   final String description;
+  final String? roomNumber;
   final String block;
   final String status;
   final String date;
@@ -32,6 +33,7 @@ class TicketCard extends StatefulWidget {
     this.isQuickRequest = false,
     required this.onTap,
     required this.index,
+    this.roomNumber,
     this.uuid,
     this.orderID,
   }) : super(key: key);
@@ -137,13 +139,7 @@ class _TicketCardState extends State<TicketCard> with SingleTickerProviderStateM
                                   decoration: BoxDecoration(
                                     color: _getStatusBgColor(widget.status),
                                     borderRadius: BorderRadius.circular(20),
-                                    boxShadow: [
-                                      BoxShadow(
-                                        color: isDarkMode ? AppColors.darkShadowColor : AppColors.shadowColor,
-                                        blurRadius: 4,
-                                        offset: const Offset(0, 2),
-                                      ),
-                                    ],
+                                 
                                   ),
                                   child: Text(
                                     widget.status,
@@ -270,32 +266,26 @@ class _TicketCardState extends State<TicketCard> with SingleTickerProviderStateM
                             ),
                           ),
                         const SizedBox(height: 16),
-                        GestureDetector(
-                          onTap: () {},
-                          child: Container(
-                            width: width,
-                            alignment: Alignment.center,
-                            padding: const EdgeInsets.symmetric(vertical: 12),
-                            decoration: BoxDecoration(
-                              color: AppColors.primaryColor.withOpacity(0.1),
-                              borderRadius: BorderRadius.circular(12),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: isDarkMode ? AppColors.darkShadowColor : AppColors.shadowColor,
-                                  blurRadius: 4,
-                                  offset: const Offset(0, 2),
-                                ),
-                              ],
-                            ),
-                            child: Text(
-                              'View Ticket',
-                              style: Theme.of(context).textTheme.bodyMedium!.copyWith(
-                                    color: AppColors.primaryColor,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                            ),
-                          ),
-                        ),
+                        // GestureDetector(
+                        //   onTap: () {},
+                        //   child: Container(
+                        //     width: width,
+                        //     alignment: Alignment.center,
+                        //     padding: const EdgeInsets.symmetric(vertical: 12),
+                        //     decoration: BoxDecoration(
+                        //       color: AppColors.primaryColor.withOpacity(0.1),
+                        //       borderRadius: BorderRadius.circular(12),
+                           
+                        //     ),
+                        //     child: Text(
+                        //       'View Ticket',
+                        //       style: Theme.of(context).textTheme.bodyMedium!.copyWith(
+                        //             color: AppColors.primaryColor,
+                        //             fontWeight: FontWeight.bold,
+                        //           ),
+                        //     ),
+                        //   ),
+                        // ),
                       ],
                     ),
                   ),

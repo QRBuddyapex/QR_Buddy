@@ -1,4 +1,3 @@
-
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:qr_buddy/app/core/theme/app_theme.dart';
@@ -17,10 +16,14 @@ class InfoCardContentWidget extends StatelessWidget {
     required Size size,
     required TextTheme textTheme,
   }) {
+    final hPadding = size.width * 0.04;
+    final vPadding = size.height * 0.01;
+    final fontSize = size.width * 0.05;
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
     return Padding(
       padding: EdgeInsets.symmetric(
-        vertical: size.height * 0.01,
-        horizontal: size.width * 0.04,
+        vertical: vPadding,
+        horizontal: hPadding,
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -28,11 +31,11 @@ class InfoCardContentWidget extends StatelessWidget {
           Text(
             groupName,
             style: textTheme.headlineSmall?.copyWith(
-              color: Theme.of(context).brightness == Brightness.dark
+              color: isDarkMode
                   ? AppColors.darkTextColor
                   : AppColors.textColor,
               fontWeight: FontWeight.bold,
-              fontSize: size.width * 0.05,
+              fontSize: fontSize,
             ),
           ),
         ],
@@ -47,28 +50,36 @@ class InfoCardContentWidget extends StatelessWidget {
     required Size size,
     required TextTheme textTheme,
   }) {
+    final hPaddingSmall = size.width * 0.004;
+    final vPadding = size.height * 0.01;
+    final cardPadding = size.width * 0.04;
+    final iconSize = size.width * 0.06;
+    final fontSizeLarge = size.width * 0.03;
+    final fontSizeSmall = size.width * 0.035;
+    final vSpacing = size.height * 0.005;
     final roomUuid = delivery['room_uuid']?.toString().trim();
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
     return Padding(
       padding: EdgeInsets.symmetric(
-        horizontal: size.width * 0.004,
-        vertical: size.height * 0.01,
+        horizontal: hPaddingSmall,
+        vertical: vPadding,
       ),
       child: Card(
         elevation: 0,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(15),
           side: BorderSide(
-            color: Theme.of(context).brightness == Brightness.dark
+            color: isDarkMode
                 ? AppColors.darkBorderColor
                 : AppColors.shadowColor.withOpacity(0.1),
             width: 1,
           ),
         ),
-        color: Theme.of(context).brightness == Brightness.dark
+        color: isDarkMode
             ? AppColors.darkCardBackgroundColor
             : AppColors.cardBackgroundColor,
         child: Padding(
-          padding: EdgeInsets.all(size.width * 0.04),
+          padding: EdgeInsets.all(cardPadding),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
@@ -83,23 +94,23 @@ class InfoCardContentWidget extends StatelessWidget {
                           Text(
                             "Room: ${delivery['room_number']}",
                             style: textTheme.bodyMedium?.copyWith(
-                              color: Theme.of(context).brightness == Brightness.dark
+                              color: isDarkMode
                                   ? AppColors.darkTextColor
                                   : AppColors.textColor,
                               fontWeight: FontWeight.bold,
-                              fontSize: size.width * 0.03,
+                              fontSize: fontSizeLarge,
                             ),
                             maxLines: null,
                             overflow: TextOverflow.visible,
                           ),
-                          SizedBox(height: size.height * 0.005),
+                          SizedBox(height: vSpacing),
                           Text(
                             "Category: ${delivery['category_name']}",
                             style: textTheme.bodySmall?.copyWith(
-                              color: Theme.of(context).brightness == Brightness.dark
+                              color: isDarkMode
                                   ? AppColors.darkSubtitleColor
                                   : AppColors.hintTextColor,
-                              fontSize: size.width * 0.035,
+                              fontSize: fontSizeSmall,
                             ),
                             maxLines: null,
                             overflow: TextOverflow.visible,
@@ -139,7 +150,7 @@ class InfoCardContentWidget extends StatelessWidget {
                 child: Icon(
                   Icons.qr_code,
                   color: Colors.white,
-                  size: size.width * 0.06,
+                  size: iconSize,
                 ),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.primaryColor,
@@ -162,27 +173,36 @@ class InfoCardContentWidget extends StatelessWidget {
     required Size size,
     required TextTheme textTheme,
   }) {
+    final hPadding = size.width * 0.04;
+    final vPadding = size.height * 0.01;
+    final cardPadding = size.width * 0.04;
+    final iconSize = size.width * 0.05;
+    final fontSizeLarge = size.width * 0.04;
+    final fontSizeSmall = size.width * 0.035;
+    final vSpacing = size.height * 0.015;
+    final hSpacing = size.width * 0.02;
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
     return Padding(
       padding: EdgeInsets.symmetric(
-        horizontal: size.width * 0.04,
-        vertical: size.height * 0.01,
+        horizontal: hPadding,
+        vertical: vPadding,
       ),
       child: Card(
         elevation: 5,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(15),
           side: BorderSide(
-            color: Theme.of(context).brightness == Brightness.dark
+            color: isDarkMode
                 ? AppColors.darkBorderColor
                 : AppColors.primaryColor.withOpacity(0.3),
             width: 1,
           ),
         ),
-        color: Theme.of(context).brightness == Brightness.dark
+        color: isDarkMode
             ? AppColors.darkCardBackgroundColor
             : AppColors.cardBackgroundColor,
         child: Padding(
-          padding: EdgeInsets.all(size.width * 0.04),
+          padding: EdgeInsets.all(cardPadding),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -202,19 +222,19 @@ class InfoCardContentWidget extends StatelessWidget {
                           style: textTheme.bodyMedium?.copyWith(
                             color: AppColors.primaryColor,
                             fontWeight: FontWeight.bold,
-                            fontSize: size.width * 0.04,
+                            fontSize: fontSizeLarge,
                           ),
                         ),
                       ),
-                      SizedBox(width: size.width * 0.02),
+                      SizedBox(width: hSpacing),
                       Text(
                         checklist['checklist_name'],
                         style: textTheme.bodyMedium?.copyWith(
-                          color: Theme.of(context).brightness == Brightness.dark
+                          color: isDarkMode
                               ? AppColors.darkTextColor
                               : AppColors.textColor,
                           fontWeight: FontWeight.bold,
-                          fontSize: size.width * 0.03,
+                          fontSize: fontSizeSmall,
                         ),
                       ),
                     ],
@@ -223,52 +243,52 @@ class InfoCardContentWidget extends StatelessWidget {
                     icon: Icon(
                       Icons.delete,
                       color: AppColors.dangerButtonColor,
-                      size: size.width * 0.06,
+                      size: iconSize,
                     ),
                     onPressed: () {},
                   ),
                 ],
               ),
-              SizedBox(height: size.height * 0.015),
+              SizedBox(height: vSpacing),
               Row(
                 children: [
                   Icon(
                     Icons.location_on,
                     color: AppColors.primaryColor,
-                    size: size.width * 0.05,
+                    size: iconSize,
                   ),
-                  SizedBox(width: size.width * 0.02),
+                  SizedBox(width: hSpacing),
                   Expanded(
                     child: Text(
                       "Location: ${checklist['location']}",
                       style: textTheme.bodySmall?.copyWith(
-                        color: Theme.of(context).brightness == Brightness.dark
+                        color: isDarkMode
                             ? AppColors.darkSubtitleColor
                             : AppColors.hintTextColor,
-                        fontSize: size.width * 0.035,
+                        fontSize: fontSizeSmall,
                       ),
                       overflow: TextOverflow.ellipsis,
                     ),
                   ),
                 ],
               ),
-              SizedBox(height: size.height * 0.015),
+              SizedBox(height: vSpacing),
               Row(
                 children: [
                   Icon(
                     Icons.calendar_today,
                     color: AppColors.primaryColor,
-                    size: size.width * 0.05,
+                    size: iconSize,
                   ),
-                  SizedBox(width: size.width * 0.02),
+                  SizedBox(width: hSpacing),
                   Expanded(
                     child: Text(
                       "Date & Time: ${checklist['date_and_time']}",
                       style: textTheme.bodySmall?.copyWith(
-                        color: Theme.of(context).brightness == Brightness.dark
+                        color: isDarkMode
                             ? AppColors.darkSubtitleColor
                             : AppColors.hintTextColor,
-                        fontSize: size.width * 0.035,
+                        fontSize: fontSizeSmall,
                       ),
                       overflow: TextOverflow.ellipsis,
                     ),
@@ -287,10 +307,14 @@ class InfoCardContentWidget extends StatelessWidget {
     required String label,
     required Size size,
   }) {
+    final hPadding = size.width * 0.04;
+    final vPadding = size.height * 0.01;
+    final iconSize = size.width * 0.06;
+    final fontSize = size.width * 0.04;
     return Padding(
       padding: EdgeInsets.symmetric(
-        horizontal: size.width * 0.04,
-        vertical: size.height * 0.01,
+        horizontal: hPadding,
+        vertical: vPadding,
       ),
       child: Align(
         alignment: Alignment.centerRight,
@@ -299,13 +323,13 @@ class InfoCardContentWidget extends StatelessWidget {
           icon: Icon(
             Icons.add,
             color: Colors.green,
-            size: size.width * 0.06,
+            size: iconSize,
           ),
           label: Text(
             label,
             style: TextStyle(
               color: Colors.green,
-              fontSize: size.width * 0.04,
+              fontSize: fontSize,
             ),
           ),
         ),
@@ -319,10 +343,16 @@ class InfoCardContentWidget extends StatelessWidget {
     required List<String> times,
     required TextTheme textTheme,
     required bool isDarkMode,
+    required Size size,
   }) {
+    final vMargin = size.height * 0.01;
+    final padding = size.width * 0.04;
+    final vSpacing = size.height * 0.01;
+    final hSpacing = size.width * 0.02;
+    final chipSpacing = size.width * 0.02;
     return Container(
-      margin: const EdgeInsets.symmetric(vertical: 8),
-      padding: const EdgeInsets.all(16),
+      margin: EdgeInsets.symmetric(vertical: vMargin),
+      padding: EdgeInsets.all(padding),
       decoration: BoxDecoration(
         color: isDarkMode ? AppColors.darkCardBackgroundColor : AppColors.cardBackgroundColor,
         borderRadius: BorderRadius.circular(8),
@@ -344,9 +374,9 @@ class InfoCardContentWidget extends StatelessWidget {
               color: isDarkMode ? AppColors.darkSubtitleColor : Colors.grey.shade600,
             ),
           ),
-          const SizedBox(height: 8),
+          SizedBox(height: vSpacing),
           Wrap(
-            spacing: 8,
+            spacing: chipSpacing,
             children: times
                 .map((time) => Chip(
                       label: Text(
@@ -397,6 +427,25 @@ class InfoCardContentWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
+    final width = size.width;
+    final height = size.height;
+    final hPadding = width * 0.04;
+    final vPadding = height * 0.01;
+    final vSpacingSmall = height * 0.005;
+    final vSpacingMedium = height * 0.015;
+    final vSpacingLarge = height * 0.02;
+    final imageSize = width * 0.7;
+    final fontSizeLarge = width * 0.045;
+    final fontSizeSmall = width * 0.035;
+    final hSpacing = width * 0.02;
+    final filterHSpacing = width * 0.04;
+    final filterVSpacing = height * 0.01;
+    final dropdownIconSize = width * 0.06;
+    final dateFontSize = width * 0.035;
+    final chipMarginH = width * 0.01;
+    final chipPaddingH = width * 0.04;
+    final chipPaddingV = height * 0.01;
+    final dateRowHeight = height * 0.06;
     final textTheme = Theme.of(context).textTheme;
     final controller = Get.find<TicketController>();
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
@@ -433,11 +482,11 @@ class InfoCardContentWidget extends StatelessWidget {
               children: [
                 Image.asset(
                   'assets/images/no_order.png',
-                  width: size.width * 0.7,
-                  height: size.width * 0.7,
+                  width: imageSize,
+                  height: imageSize,
                   fit: BoxFit.contain,
                 ),
-                const SizedBox(height: 16),
+                SizedBox(height: vSpacingMedium),
                 Text(
                   'No orders found',
                   style: textTheme.bodyLarge?.copyWith(
@@ -482,11 +531,11 @@ class InfoCardContentWidget extends StatelessWidget {
               children: [
                 Image.asset(
                   'assets/images/no_order.png',
-                  width: size.width * 0.7,
-                  height: size.width * 0.7,
+                  width: imageSize,
+                  height: imageSize,
                   fit: BoxFit.contain,
                 ),
-                const SizedBox(height: 16),
+                SizedBox(height: vSpacingMedium),
                 Text(
                   'No orders found',
                   style: textTheme.bodyLarge?.copyWith(
@@ -526,12 +575,12 @@ class InfoCardContentWidget extends StatelessWidget {
                   if (checklistWidgets.isEmpty)
                     Padding(
                       padding: EdgeInsets.symmetric(
-                        horizontal: size.width * 0.04,
-                        vertical: size.height * 0.01,
+                        horizontal: hPadding,
+                        vertical: vPadding,
                       ),
                       child: Container(
                         width: double.infinity,
-                        padding: const EdgeInsets.all(16),
+                        padding: EdgeInsets.all(16),
                         decoration: BoxDecoration(
                           color: isDarkMode ? AppColors.darkCardBackgroundColor : AppColors.cardBackgroundColor,
                           borderRadius: BorderRadius.circular(8),
@@ -541,7 +590,7 @@ class InfoCardContentWidget extends StatelessWidget {
                           'No checklists available for the selected date range',
                           textAlign: TextAlign.center,
                           style: textTheme.bodyMedium?.copyWith(
-                            fontSize: 14,
+                            fontSize: fontSizeSmall,
                             color: isDarkMode ? AppColors.darkSubtitleColor : AppColors.subtitleColor,
                           ),
                         ),
@@ -560,8 +609,8 @@ class InfoCardContentWidget extends StatelessWidget {
             // Filters Section
             Padding(
               padding: EdgeInsets.symmetric(
-                vertical: size.height * 0.01,
-                horizontal: size.width * 0.04,
+                vertical: vPadding,
+                horizontal: filterHSpacing,
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -573,9 +622,9 @@ class InfoCardContentWidget extends StatelessWidget {
                       color: isDarkMode ? AppColors.darkTextColor : AppColors.textColor,
                     ),
                   ),
-                  const SizedBox(height: 16),
+                  SizedBox(height: vSpacingMedium),
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12),
+                    padding: EdgeInsets.symmetric(horizontal: hPadding),
                     decoration: BoxDecoration(
                       color: isDarkMode ? AppColors.darkCardBackgroundColor : AppColors.cardBackgroundColor,
                       border: Border.all(
@@ -630,7 +679,7 @@ class InfoCardContentWidget extends StatelessWidget {
                             Icons.keyboard_arrow_down,
                             color: isDarkMode ? AppColors.darkIconColor : AppColors.iconColor,
                           ),
-                          iconSize: 24,
+                          iconSize: dropdownIconSize,
                           elevation: 0,
                           style: textTheme.bodyMedium?.copyWith(
                             color: isDarkMode ? AppColors.darkTextColor : AppColors.textColor,
@@ -652,7 +701,7 @@ class InfoCardContentWidget extends StatelessWidget {
                       }),
                     ),
                   ),
-                  const SizedBox(height: 16),
+                  SizedBox(height: vSpacingMedium),
                   Row(
                     children: [
                       Expanded(
@@ -662,29 +711,29 @@ class InfoCardContentWidget extends StatelessWidget {
                             Text(
                               'Start Date',
                               style: textTheme.bodyMedium?.copyWith(
-                                fontSize: 16,
+                                fontSize: fontSizeLarge,
                                 color: isDarkMode ? AppColors.darkTextColor : AppColors.textColor,
                               ),
                             ),
-                            const SizedBox(height: 8),
+                            SizedBox(height: vSpacingSmall),
                             CustomDateField(
                               initialDate: controller.startDate.value,
                               onDateSelected: (date) {
                                 controller.startDate.value = date;
                               },
                             ),
-                            const SizedBox(height: 8),
+                            SizedBox(height: vSpacingSmall),
                             Obx(() => Text(
                                   'Selected: ${controller.formatDateForDisplay(controller.startDate.value)}',
                                   style: textTheme.bodySmall?.copyWith(
                                     color: isDarkMode ? AppColors.darkSubtitleColor : AppColors.subtitleColor,
-                                    fontSize: 14,
+                                    fontSize: dateFontSize,
                                   ),
                                 )),
                           ],
                         ),
                       ),
-                      const SizedBox(width: 16),
+                      SizedBox(width: hSpacing),
                       Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -692,23 +741,23 @@ class InfoCardContentWidget extends StatelessWidget {
                             Text(
                               'End Date',
                               style: textTheme.bodyMedium?.copyWith(
-                                fontSize: 16,
+                                fontSize: fontSizeLarge,
                                 color: isDarkMode ? AppColors.darkTextColor : AppColors.textColor,
                               ),
                             ),
-                            const SizedBox(height: 8),
+                            SizedBox(height: vSpacingSmall),
                             CustomDateField(
                               initialDate: controller.endDate.value,
                               onDateSelected: (date) {
                                 controller.endDate.value = date;
                               },
                             ),
-                            const SizedBox(height: 8),
+                            SizedBox(height: vSpacingSmall),
                             Obx(() => Text(
                                   'Selected: ${controller.formatDateForDisplay(controller.endDate.value)}',
                                   style: textTheme.bodySmall?.copyWith(
                                     color: isDarkMode ? AppColors.darkSubtitleColor : AppColors.subtitleColor,
-                                    fontSize: 14,
+                                    fontSize: dateFontSize,
                                   ),
                                 )),
                           ],
@@ -716,7 +765,7 @@ class InfoCardContentWidget extends StatelessWidget {
                       ),
                     ],
                   ),
-                  const SizedBox(height: 16),
+                  SizedBox(height: vSpacingMedium),
                   Center(
                     child: ElevatedButton(
                       onPressed: () {
@@ -727,7 +776,7 @@ class InfoCardContentWidget extends StatelessWidget {
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(25),
                         ),
-                        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                        padding: EdgeInsets.symmetric(horizontal: hPadding, vertical: vPadding),
                       ),
                       child: Text(
                         'Filter',
@@ -744,8 +793,8 @@ class InfoCardContentWidget extends StatelessWidget {
             // Log Section
             Padding(
               padding: EdgeInsets.symmetric(
-                vertical: size.height * 0.01,
-                horizontal: size.width * 0.04,
+                vertical: vPadding,
+                horizontal: filterHSpacing,
               ),
               child: Text(
                 'Log',
@@ -755,14 +804,14 @@ class InfoCardContentWidget extends StatelessWidget {
                 ),
               ),
             ),
-            const SizedBox(height: 16),
+            SizedBox(height: vSpacingMedium),
             Obx(() {
               if (controller.dailyChecklist.value == null ||
                   controller.dailyChecklist.value!.roundData.isEmpty ||
                   controller.dailyChecklist.value!.rooms.isEmpty) {
                 return Container(
                   width: double.infinity,
-                  padding: const EdgeInsets.all(16),
+                  padding: EdgeInsets.all(16),
                   decoration: BoxDecoration(
                     color: isDarkMode ? AppColors.darkCardBackgroundColor : AppColors.cardBackgroundColor,
                     borderRadius: BorderRadius.circular(8),
@@ -772,7 +821,7 @@ class InfoCardContentWidget extends StatelessWidget {
                     'No log data available',
                     textAlign: TextAlign.center,
                     style: textTheme.bodyMedium?.copyWith(
-                      fontSize: 14,
+                      fontSize: fontSizeSmall,
                       color: isDarkMode ? AppColors.darkSubtitleColor : AppColors.subtitleColor,
                     ),
                   ),
@@ -803,7 +852,7 @@ class InfoCardContentWidget extends StatelessWidget {
               if (sortedDates.isEmpty) {
                 return Container(
                   width: double.infinity,
-                  padding: const EdgeInsets.all(16),
+                  padding: EdgeInsets.all(16),
                   decoration: BoxDecoration(
                     color: isDarkMode ? AppColors.darkCardBackgroundColor : AppColors.cardBackgroundColor,
                     borderRadius: BorderRadius.circular(8),
@@ -813,7 +862,7 @@ class InfoCardContentWidget extends StatelessWidget {
                     'No log data available',
                     textAlign: TextAlign.center,
                     style: textTheme.bodyMedium?.copyWith(
-                      fontSize: 14,
+                      fontSize: fontSizeSmall,
                       color: isDarkMode ? AppColors.darkSubtitleColor : AppColors.subtitleColor,
                     ),
                   ),
@@ -839,7 +888,7 @@ class InfoCardContentWidget extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   SizedBox(
-                    height: 50,
+                    height: dateRowHeight,
                     child: SingleChildScrollView(
                       scrollDirection: Axis.horizontal,
                       child: Row(
@@ -849,8 +898,8 @@ class InfoCardContentWidget extends StatelessWidget {
                                   selectedDate.value = date;
                                 },
                                 child: Container(
-                                  margin: const EdgeInsets.symmetric(horizontal: 4),
-                                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                                  margin: EdgeInsets.symmetric(horizontal: chipMarginH),
+                                  padding: EdgeInsets.symmetric(horizontal: chipPaddingH, vertical: chipPaddingV),
                                   decoration: BoxDecoration(
                                     color: selectedDate.value == date
                                         ? Colors.blue.shade50
@@ -861,7 +910,7 @@ class InfoCardContentWidget extends StatelessWidget {
                                   child: Text(
                                     _formatShortDate(date),
                                     style: textTheme.bodyMedium?.copyWith(
-                                      fontSize: 14,
+                                      fontSize: fontSizeSmall,
                                       fontWeight: FontWeight.w500,
                                       color: selectedDate.value == date
                                           ? Colors.blue
@@ -874,7 +923,7 @@ class InfoCardContentWidget extends StatelessWidget {
                       ),
                     ),
                   ),
-                  const SizedBox(height: 16),
+                  SizedBox(height: vSpacingMedium),
                   Obx(() {
                     final logEntries = <Widget>[];
                     roundData.forEach((roomId, dateMap) {
@@ -887,6 +936,7 @@ class InfoCardContentWidget extends StatelessWidget {
                           times: rounds.map((round) => round.timeSchedule?.toString() ?? '').toList(),
                           textTheme: textTheme,
                           isDarkMode: isDarkMode,
+                          size: size,
                         ));
                       }
                     });
@@ -894,7 +944,7 @@ class InfoCardContentWidget extends StatelessWidget {
                     if (logEntries.isEmpty) {
                       return Container(
                         width: double.infinity,
-                        padding: const EdgeInsets.all(16),
+                        padding: EdgeInsets.all(16),
                         decoration: BoxDecoration(
                           color: isDarkMode ? AppColors.darkCardBackgroundColor : AppColors.cardBackgroundColor,
                           borderRadius: BorderRadius.circular(8),
@@ -904,7 +954,7 @@ class InfoCardContentWidget extends StatelessWidget {
                           'No log entries for this date',
                           textAlign: TextAlign.center,
                           style: textTheme.bodyMedium?.copyWith(
-                            fontSize: 14,
+                            fontSize: fontSizeSmall,
                             color: isDarkMode ? AppColors.darkSubtitleColor : AppColors.subtitleColor,
                           ),
                         ),

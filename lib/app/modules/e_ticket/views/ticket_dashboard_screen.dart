@@ -1,4 +1,3 @@
-
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:qr_buddy/app/core/config/token_storage.dart';
@@ -43,8 +42,20 @@ class _TicketDashboardScreenState extends State<TicketDashboardScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final double height = MediaQuery.of(context).size.height;
-    final double width = MediaQuery.of(context).size.width;
+    final size = MediaQuery.of(context).size;
+    final double height = size.height;
+    final double width = size.width;
+    final hPadding = width * 0.04;
+    final vSpacingSmall = height * 0.01;
+    final vSpacingMedium = height * 0.015;
+    final vSpacingLarge = height * 0.02;
+    final filterPaddingH = width * 0.04;
+    final filterPaddingV = height * 0.01;
+    final skeletonHeight1 = height * 0.1;
+    final skeletonHeight2 = height * 0.18;
+    final skeletonHeight3 = height * 0.15;
+    final gridSpacing = width * 0.025;
+    final gridAspectRatio = width < 360 ? 1.8 : 2.2;
 
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
@@ -93,7 +104,7 @@ class _TicketDashboardScreenState extends State<TicketDashboardScreen> {
           child: Column(
             children: [
               if (_isLoading)
-                _buildSkeletonLayout()
+                _buildSkeletonLayout(size, hPadding, vSpacingSmall, vSpacingMedium, skeletonHeight1, skeletonHeight2, skeletonHeight3, gridSpacing, gridAspectRatio)
               else
                 qrbuddyDashboardWidget(),
               Obx(() {
@@ -103,7 +114,7 @@ class _TicketDashboardScreenState extends State<TicketDashboardScreen> {
                       if (TokenStorage().getUserType() != 'S_TEAM')
                         SingleChildScrollView(
                           scrollDirection: Axis.horizontal,
-                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                          padding: EdgeInsets.symmetric(horizontal: filterPaddingH, vertical: filterPaddingV),
                           child: Obx(() => Row(
                                 children: [
                                   FilterTab(
@@ -222,96 +233,73 @@ class _TicketDashboardScreenState extends State<TicketDashboardScreen> {
     );
   }
 
-  Widget _buildSkeletonLayout() {
+  Widget _buildSkeletonLayout(Size size, double hPadding, double vSpacingSmall, double vSpacingMedium, double skeletonHeight1, double skeletonHeight2, double skeletonHeight3, double gridSpacing, double gridAspectRatio) {
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      padding: EdgeInsets.symmetric(horizontal: hPadding * 2, vertical: vSpacingSmall),
       child: Column(
         children: [
           Shimmer.fromColors(
-            baseColor: Theme.of(context).brightness == Brightness.dark
-                ? AppColors.darkBorderColor
-                : AppColors.borderColor,
-            highlightColor: Theme.of(context).brightness == Brightness.dark
-                ? AppColors.darkCardBackgroundColor
-                : AppColors.cardBackgroundColor,
+            baseColor: isDarkMode ? AppColors.darkBorderColor : AppColors.borderColor,
+            highlightColor: isDarkMode ? AppColors.darkCardBackgroundColor : AppColors.cardBackgroundColor,
             child: Container(
-              height: 80,
+              height: skeletonHeight1,
               width: double.infinity,
               decoration: BoxDecoration(
-                color: Theme.of(context).brightness == Brightness.dark
-                    ? AppColors.darkCardBackgroundColor
-                    : AppColors.cardBackgroundColor,
+                color: isDarkMode ? AppColors.darkCardBackgroundColor : AppColors.cardBackgroundColor,
                 borderRadius: BorderRadius.circular(12),
               ),
             ),
           ),
-          const SizedBox(height: 16),
+          SizedBox(height: vSpacingMedium),
           GridView.count(
             crossAxisCount: 2,
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
-            crossAxisSpacing: 10,
-            mainAxisSpacing: 10,
-            childAspectRatio: 2.2,
+            crossAxisSpacing: gridSpacing,
+            mainAxisSpacing: gridSpacing,
+            childAspectRatio: gridAspectRatio,
             children: List.generate(
               4,
               (index) => Shimmer.fromColors(
-                baseColor: Theme.of(context).brightness == Brightness.dark
-                    ? AppColors.darkBorderColor
-                    : AppColors.borderColor,
-                highlightColor: Theme.of(context).brightness == Brightness.dark
-                    ? AppColors.darkCardBackgroundColor
-                    : AppColors.cardBackgroundColor,
+                baseColor: isDarkMode ? AppColors.darkBorderColor : AppColors.borderColor,
+                highlightColor: isDarkMode ? AppColors.darkCardBackgroundColor : AppColors.cardBackgroundColor,
                 child: Container(
                   decoration: BoxDecoration(
-                    color: Theme.of(context).brightness == Brightness.dark
-                        ? AppColors.darkCardBackgroundColor
-                        : AppColors.cardBackgroundColor,
+                    color: isDarkMode ? AppColors.darkCardBackgroundColor : AppColors.cardBackgroundColor,
                     borderRadius: BorderRadius.circular(12),
                   ),
                 ),
               ),
             ),
           ),
-          const SizedBox(height: 16),
+          SizedBox(height: vSpacingMedium),
           Shimmer.fromColors(
-            baseColor: Theme.of(context).brightness == Brightness.dark
-                ? AppColors.darkBorderColor
-                : AppColors.borderColor,
-            highlightColor: Theme.of(context).brightness == Brightness.dark
-                ? AppColors.darkCardBackgroundColor
-                : AppColors.cardBackgroundColor,
+            baseColor: isDarkMode ? AppColors.darkBorderColor : AppColors.borderColor,
+            highlightColor: isDarkMode ? AppColors.darkCardBackgroundColor : AppColors.cardBackgroundColor,
             child: Container(
-              height: 150,
+              height: skeletonHeight2,
               width: double.infinity,
               decoration: BoxDecoration(
-                color: Theme.of(context).brightness == Brightness.dark
-                    ? AppColors.darkCardBackgroundColor
-                    : AppColors.cardBackgroundColor,
+                color: isDarkMode ? AppColors.darkCardBackgroundColor : AppColors.cardBackgroundColor,
                 borderRadius: BorderRadius.circular(12),
               ),
             ),
           ),
-          const SizedBox(height: 16),
+          SizedBox(height: vSpacingMedium),
           ListView.builder(
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
             itemCount: 3,
             itemBuilder: (context, index) => Shimmer.fromColors(
-              baseColor: Theme.of(context).brightness == Brightness.dark
-                  ? AppColors.darkBorderColor
-                  : AppColors.borderColor,
-              highlightColor: Theme.of(context).brightness == Brightness.dark
-                  ? AppColors.darkCardBackgroundColor
-                  : AppColors.cardBackgroundColor,
+              baseColor: isDarkMode ? AppColors.darkBorderColor : AppColors.borderColor,
+              highlightColor: isDarkMode ? AppColors.darkCardBackgroundColor : AppColors.cardBackgroundColor,
               child: Container(
-                margin: const EdgeInsets.only(bottom: 8),
-                height: 120,
+                margin: EdgeInsets.only(bottom: vSpacingSmall),
+                height: skeletonHeight3,
                 width: double.infinity,
                 decoration: BoxDecoration(
-                  color: Theme.of(context).brightness == Brightness.dark
-                      ? AppColors.darkCardBackgroundColor
-                      : AppColors.cardBackgroundColor,
+                  color: isDarkMode ? AppColors.darkCardBackgroundColor : AppColors.cardBackgroundColor,
                   borderRadius: BorderRadius.circular(16),
                 ),
               ),

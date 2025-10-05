@@ -118,6 +118,27 @@ class _CustomDrawerState extends State<CustomDrawer> with TickerProviderStateMix
 
   @override
   Widget build(BuildContext context) {
+    final size = MediaQuery.of(context).size;
+    final width = size.width;
+    final height = size.height;
+    final headerHeight = height * 0.25;
+    final imageHeight = height * 0.09;
+    final imageWidth = width * 0.25;
+    final vSpacingSmall = height * 0.015;
+    final vSpacingMedium = height * 0.03;
+    final fontSizeLarge = width * 0.045;
+    final fontSizeSmall = width * 0.035;
+    final elevation = width * 0.015;
+    final borderRadiusRight = width * 0.04;
+    final listPaddingV = height * 0.01;
+    final listPaddingH = width * 0.03;
+    final tileMarginH = width * 0.03;
+    final tileMarginV = height * 0.008;
+    final iconSize = width * 0.065;
+    final contentPaddingH = width * 0.04;
+    final contentPaddingV = height * 0.01;
+    final borderWidth = width * 0.0025;
+    final selectedOpacity = 0.15;
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
 
     return WillPopScope(
@@ -126,10 +147,10 @@ class _CustomDrawerState extends State<CustomDrawer> with TickerProviderStateMix
         return false;
       },
       child: Drawer(
-        elevation: 6,
+        elevation: elevation,
         backgroundColor: isDarkMode ? AppColors.darkBackgroundColor : Colors.white,
-        shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.horizontal(right: Radius.circular(16)),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.horizontal(right: Radius.circular(borderRadiusRight)),
         ),
         child: Column(
           children: [
@@ -140,27 +161,40 @@ class _CustomDrawerState extends State<CustomDrawer> with TickerProviderStateMix
                   crossAxisAlignment: CrossAxisAlignment.center,
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    ClipRRect(
-                      borderRadius: BorderRadius.circular(12),
-                      child: Image.asset(
-                        'assets/images/qr_buddy_logo__1_-removebg-preview.png',
-                        height: 70,
-                        width: 100,
+                    Flexible(
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(borderRadiusRight * 0.3),
+                        child: Image.asset(
+                          'assets/images/qr_buddy_logo__1_-removebg-preview.png',
+                          height: imageHeight,
+                          width: imageWidth,
+                          fit: BoxFit.contain,
+                        ),
                       ),
                     ),
-                    const SizedBox(height: 12),
-                    Text(
-                      userName ?? 'User',
-                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                            color: isDarkMode ? AppColors.backgroundColor : AppColors.iconColor,
-                            fontWeight: FontWeight.bold,
-                          ),
+                    SizedBox(height: vSpacingSmall),
+                    Flexible(
+                      child: Text(
+                        userName ?? 'User',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                              color: isDarkMode ? AppColors.backgroundColor : AppColors.iconColor,
+                              fontWeight: FontWeight.bold,
+                              fontSize: fontSizeLarge,
+                            ),
+                      ),
                     ),
-                    Text(
-                      'Welcome back!',
-                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            color: isDarkMode ? AppColors.backgroundColor : AppColors.iconColor,
-                          ),
+                    Flexible(
+                      child: Text(
+                        'Welcome back!',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                              color: isDarkMode ? AppColors.backgroundColor : AppColors.iconColor,
+                              fontSize: fontSizeSmall,
+                            ),
+                      ),
                     ),
                   ],
                 ),
@@ -168,7 +202,7 @@ class _CustomDrawerState extends State<CustomDrawer> with TickerProviderStateMix
             ),
             Expanded(
               child: ListView(
-                padding: const EdgeInsets.symmetric(vertical: 8),
+                padding: EdgeInsets.symmetric(vertical: listPaddingV),
                 physics: const BouncingScrollPhysics(),
                 children: [
                   _buildAnimatedTile(
@@ -211,7 +245,7 @@ class _CustomDrawerState extends State<CustomDrawer> with TickerProviderStateMix
                     iconColor: AppColors.dangerButtonColor,
                     textColor: AppColors.dangerButtonColor,
                   ),
-                  const SizedBox(height: 24),
+                  SizedBox(height: vSpacingMedium * 2),
                 ],
               ),
             ),
@@ -232,8 +266,19 @@ class _CustomDrawerState extends State<CustomDrawer> with TickerProviderStateMix
     Color? iconColor,
     Color? textColor,
   }) {
+    final size = MediaQuery.of(context).size;
+    final width = size.width;
+    final height = size.height;
+    final tileMarginH = width * 0.03;
+    final tileMarginV = height * 0.008;
+    final borderRadius = width * 0.03;
+    final iconSize = width * 0.065;
+    final contentPaddingH = width * 0.04;
+    final contentPaddingV = height * 0.01;
+    final borderWidthSelected = width * 0.00375;
+    final borderWidthNormal = width * 0.0025;
+    final selectedColor = AppColors.primaryColor;
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
-    final Color selectedColor = AppColors.primaryColor;
 
     return Obx(() {
       final selected = drawerController.selectedIndex.value == index;
@@ -244,7 +289,7 @@ class _CustomDrawerState extends State<CustomDrawer> with TickerProviderStateMix
           opacity: _fadeAnimations[index],
           child: AnimatedContainer(
             duration: const Duration(milliseconds: 200),
-            margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+            margin: EdgeInsets.symmetric(horizontal: tileMarginH, vertical: tileMarginV),
             decoration: BoxDecoration(
               color: tileColor ??
                   (selected
@@ -252,21 +297,21 @@ class _CustomDrawerState extends State<CustomDrawer> with TickerProviderStateMix
                       : (isDarkMode
                           ? AppColors.darkCardBackgroundColor
                           : AppColors.cardBackgroundColor)),
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(borderRadius),
               border: Border.all(
                 color: selected
                     ? selectedColor
                     : (isDarkMode ? AppColors.darkBorderColor : AppColors.borderColor),
-                width: selected ? 1.5 : 1,
+                width: selected ? borderWidthSelected : borderWidthNormal,
               ),
             ),
             child: ListTile(
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-              contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(borderRadius)),
+              contentPadding: EdgeInsets.symmetric(horizontal: contentPaddingH, vertical: contentPaddingV),
               leading: Icon(
                 icon,
                 color: iconColor ?? (selected ? selectedColor : (isDarkMode ? AppColors.darkTextColor : AppColors.textColor)),
-                size: 26,
+                size: iconSize,
               ),
               title: Text(
                 title,

@@ -405,6 +405,10 @@ class TicketController extends GetxController {
   }
 
   Future<void> pickDateTime(BuildContext context) async {
+    final size = MediaQuery.of(context).size;
+    final width = size.width;
+    final height = size.height;
+
     final DateTime? pickedDate = await showDatePicker(
       context: context,
       initialDate: DateTime.now(),
@@ -505,38 +509,74 @@ class TicketController extends GetxController {
   }
 
   void showConfirmationDialog(BuildContext context, String action, Function onConfirm) {
+    final size = MediaQuery.of(context).size;
+    final width = size.width;
+    final height = size.height;
+    final hPadding = width * 0.04;
+    final vPadding = height * 0.01;
+    final fontSize = width * 0.045;
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+
     showDialog(
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
           backgroundColor: AppColors.cardBackgroundColor,
-          title: Text(
-            'Confirm $action',
-            style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                  color: AppColors.textColor,
-                  fontWeight: FontWeight.bold,
-                ),
+          title: Padding(
+            padding: EdgeInsets.all(hPadding),
+            child: Text(
+              'Confirm $action',
+              style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                    color: AppColors.textColor,
+                    fontWeight: FontWeight.bold,
+                    fontSize: fontSize,
+                  ),
+            ),
           ),
-          content: Text(
-            'Do you want to $action this request?',
-            style: Theme.of(context).textTheme.bodyMedium,
+          content: Padding(
+            padding: EdgeInsets.symmetric(horizontal: hPadding),
+            child: Text(
+              'Do you want to $action this request?',
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    fontSize: fontSize * 0.8,
+                  ),
+            ),
           ),
           actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: Text(
-                'No',
-                style: TextStyle(color: AppColors.dangerButtonColor),
-              ),
-            ),
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-                onConfirm();
-              },
-              child: Text(
-                'Yes',
-                style: TextStyle(color: AppColors.primaryColor),
+            Padding(
+              padding: EdgeInsets.symmetric(horizontal: hPadding, vertical: vPadding),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  Expanded(
+                    child: TextButton(
+                      onPressed: () => Navigator.of(context).pop(),
+                      child: Text(
+                        'No',
+                        style: TextStyle(
+                          color: AppColors.dangerButtonColor,
+                          fontSize: fontSize * 0.9,
+                        ),
+                      ),
+                    ),
+                  ),
+                  SizedBox(width: hPadding),
+                  Expanded(
+                    child: TextButton(
+                      onPressed: () {
+                        Navigator.of(context).pop();
+                        onConfirm();
+                      },
+                      child: Text(
+                        'Yes',
+                        style: TextStyle(
+                          color: AppColors.primaryColor,
+                          fontSize: fontSize * 0.9,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ),
           ],
@@ -547,36 +587,59 @@ class TicketController extends GetxController {
 
   void showActionFormDialog(BuildContext context, String action, String orderNumber, String serviceLabel, String orderId,
       {Function(Map<String, dynamic>)? onSuccess}) {
+    final size = MediaQuery.of(context).size;
+    final width = size.width;
+    final height = size.height;
+    final hPadding = width * 0.04;
+    final vPadding = height * 0.01;
+    final vSpacingSmall = height * 0.012;
+    final vSpacingMedium = height * 0.025;
+    final fontSizeLarge = width * 0.045;
+    final fontSizeSmall = width * 0.035;
+    final imageSize = width * 0.25;
+    final imagePadding = width * 0.05;
+    final buttonHeight = height * 0.055;
+    final borderRadius = width * 0.025;
+    final iconSize = width * 0.05;
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+
     showDialog(
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
           backgroundColor: AppColors.cardBackgroundColor,
-          title: Column(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                orderNumber,
-                style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                      color: AppColors.textColor,
-                      fontWeight: FontWeight.bold,
-                    ),
-              ),
-              Text(
-                serviceLabel,
-                style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                      color: AppColors.textColor,
-                      fontWeight: FontWeight.bold,
-                    ),
-              ),
-              IconButton(
-                icon: const Icon(Icons.close, color: AppColors.hintTextColor),
-                onPressed: () {
-                  clearDialogFields();
-                  Navigator.of(context).pop();
-                },
-              ),
-            ],
+          title: Padding(
+            padding: EdgeInsets.all(hPadding),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  orderNumber,
+                  style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                        color: AppColors.textColor,
+                        fontWeight: FontWeight.bold,
+                        fontSize: fontSizeLarge,
+                      ),
+                ),
+                SizedBox(height: vSpacingSmall),
+                Text(
+                  serviceLabel,
+                  style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                        color: AppColors.textColor,
+                        fontWeight: FontWeight.bold,
+                        fontSize: fontSizeLarge,
+                      ),
+                ),
+                SizedBox(height: vSpacingSmall),
+                IconButton(
+                  icon: Icon(Icons.close, color: AppColors.hintTextColor, size: iconSize),
+                  onPressed: () {
+                    clearDialogFields();
+                    Navigator.of(context).pop();
+                  },
+                ),
+              ],
+            ),
           ),
           content: SingleChildScrollView(
             child: Column(
@@ -584,61 +647,77 @@ class TicketController extends GetxController {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 if (action == 'Hold') ...[
-                  Text(
-                    'For how long do you want to hold this request?',
-                    style: Theme.of(context).textTheme.bodyMedium,
+                  Padding(
+                    padding: EdgeInsets.symmetric(horizontal: hPadding),
+                    child: Text(
+                      'For how long do you want to hold this request?',
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                            fontSize: fontSizeSmall,
+                          ),
+                    ),
                   ),
-                  const SizedBox(height: 10),
-                  TextField(
-                    controller: holdDateTimeController,
-                    readOnly: true,
-                    onTap: () => pickDateTime(context),
+                  SizedBox(height: vSpacingSmall),
+                  Padding(
+                    padding: EdgeInsets.symmetric(horizontal: hPadding),
+                    child: TextField(
+                      controller: holdDateTimeController,
+                      readOnly: true,
+                      onTap: () => pickDateTime(context),
+                      decoration: InputDecoration(
+                        hintText: 'dd-mm-yyyy --:--',
+                        hintStyle: TextStyle(color: AppColors.hintTextColor, fontSize: fontSizeSmall),
+                        suffixIcon: Icon(Icons.calendar_today, color: AppColors.hintTextColor, size: iconSize),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(borderRadius),
+                          borderSide: BorderSide(color: AppColors.borderColor),
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(borderRadius),
+                          borderSide: BorderSide(color: AppColors.borderColor),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(borderRadius),
+                          borderSide: BorderSide(color: AppColors.primaryColor),
+                        ),
+                      ),
+                    ),
+                  ),
+                  SizedBox(height: vSpacingSmall),
+                ],
+                Padding(
+                  padding: EdgeInsets.symmetric(horizontal: hPadding),
+                  child: Text(
+                    'Comment on your contribution to the request process',
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                          fontSize: fontSizeSmall,
+                        ),
+                  ),
+                ),
+                SizedBox(height: vSpacingSmall),
+                Padding(
+                  padding: EdgeInsets.symmetric(horizontal: hPadding),
+                  child: TextField(
+                    controller: remarksController,
+                    maxLines: 5,
                     decoration: InputDecoration(
-                      hintText: 'dd-mm-yyyy --:--',
-                      hintStyle: TextStyle(color: AppColors.hintTextColor),
-                      suffixIcon: const Icon(Icons.calendar_today, color: AppColors.hintTextColor),
+                      hintText: 'Enter remarks',
+                      hintStyle: TextStyle(color: AppColors.hintTextColor, fontSize: fontSizeSmall),
                       border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(10),
+                        borderRadius: BorderRadius.circular(borderRadius),
                         borderSide: BorderSide(color: AppColors.borderColor),
                       ),
                       enabledBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(10),
+                        borderRadius: BorderRadius.circular(borderRadius),
                         borderSide: BorderSide(color: AppColors.borderColor),
                       ),
                       focusedBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(10),
+                        borderRadius: BorderRadius.circular(borderRadius),
                         borderSide: BorderSide(color: AppColors.primaryColor),
                       ),
                     ),
                   ),
-                  const SizedBox(height: 10),
-                ],
-                Text(
-                  'Comment on your contribution to the request process',
-                  style: Theme.of(context).textTheme.bodyMedium,
                 ),
-                const SizedBox(height: 10),
-                TextField(
-                  controller: remarksController,
-                  maxLines: 5,
-                  decoration: InputDecoration(
-                    hintText: 'Enter remarks',
-                    hintStyle: TextStyle(color: AppColors.hintTextColor),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(10),
-                      borderSide: BorderSide(color: AppColors.borderColor),
-                    ),
-                    enabledBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(10),
-                      borderSide: BorderSide(color: AppColors.borderColor),
-                    ),
-                    focusedBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(10),
-                      borderSide: BorderSide(color: AppColors.primaryColor),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 20),
+                SizedBox(height: vSpacingMedium),
                 Obx(() => Center(
                       child: GestureDetector(
                         onTap: () {
@@ -646,15 +725,23 @@ class TicketController extends GetxController {
                             context: context,
                             backgroundColor: AppColors.cardBackgroundColor,
                             builder: (BuildContext context) {
+                              final bottomSheetSize = MediaQuery.of(context).size;
+                              final bottomSheetWidth = bottomSheetSize.width;
+                              final bottomSheetHeight = bottomSheetSize.height;
+                              final bottomSheetHPadding = bottomSheetWidth * 0.04;
+                              final bottomSheetIconSize = bottomSheetWidth * 0.05;
+                              final bottomSheetFontSize = bottomSheetWidth * 0.04;
                               return SafeArea(
                                 child: Column(
                                   mainAxisSize: MainAxisSize.min,
                                   children: [
                                     ListTile(
-                                      leading: const Icon(Icons.camera_alt, color: AppColors.hintTextColor),
+                                      leading: Icon(Icons.camera_alt, color: AppColors.hintTextColor, size: bottomSheetIconSize),
                                       title: Text(
                                         'Take a Photo',
-                                        style: Theme.of(context).textTheme.bodyMedium,
+                                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                              fontSize: bottomSheetFontSize,
+                                            ),
                                       ),
                                       onTap: () {
                                         pickImage(ImageSource.camera);
@@ -663,11 +750,12 @@ class TicketController extends GetxController {
                                     ),
                                     if (selectedImage.value != null)
                                       ListTile(
-                                        leading: const Icon(Icons.delete, color: AppColors.dangerButtonColor),
+                                        leading: Icon(Icons.delete, color: AppColors.dangerButtonColor, size: bottomSheetIconSize),
                                         title: Text(
                                           'Remove Image',
                                           style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                                                 color: AppColors.dangerButtonColor,
+                                                fontSize: bottomSheetFontSize,
                                               ),
                                         ),
                                         onTap: () {
@@ -682,23 +770,23 @@ class TicketController extends GetxController {
                           );
                         },
                         child: Container(
-                          padding: const EdgeInsets.all(20),
+                          padding: EdgeInsets.all(imagePadding),
                           decoration: BoxDecoration(
                             color: AppColors.primaryColor.withOpacity(0.1),
-                            borderRadius: BorderRadius.circular(10),
+                            borderRadius: BorderRadius.circular(borderRadius),
                           ),
                           child: selectedImage.value == null
-                              ? const Icon(
+                              ? Icon(
                                   Icons.camera_alt,
                                   color: AppColors.primaryColor,
-                                  size: 40,
+                                  size: imageSize * 0.8,
                                 )
                               : ClipRRect(
-                                  borderRadius: BorderRadius.circular(10),
+                                  borderRadius: BorderRadius.circular(borderRadius),
                                   child: Image.file(
                                     selectedImage.value!,
-                                    width: 100,
-                                    height: 100,
+                                    width: imageSize,
+                                    height: imageSize,
                                     fit: BoxFit.cover,
                                   ),
                                 ),
@@ -726,14 +814,16 @@ class TicketController extends GetxController {
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.primaryColor,
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(20),
+                    borderRadius: BorderRadius.circular(borderRadius * 1.5),
                   ),
+                  minimumSize: Size(double.infinity, buttonHeight),
                 ),
                 child: Text(
                   'Submit',
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                         color: Colors.white,
                         fontWeight: FontWeight.bold,
+                        fontSize: fontSizeSmall,
                       ),
                 ),
               ),

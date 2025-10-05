@@ -97,12 +97,11 @@ class _qrbuddyDashboardWidgetState extends State<qrbuddyDashboardWidget>
                 final String status = getRatingName(controller.averageRating.value);
 
                 return Container(
-                  padding: const EdgeInsets.all(16.0),
-                  margin: const EdgeInsets.only(top: 12.0),
+                  padding: EdgeInsets.all(size.width * 0.04),
+                  margin: EdgeInsets.only(top: size.height * 0.015),
                   decoration: BoxDecoration(
                     color: isDarkMode ? AppColors.darkCardBackgroundColor : AppColors.cardBackgroundColor,
                     borderRadius: BorderRadius.circular(12),
-                   
                   ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -118,26 +117,26 @@ class _qrbuddyDashboardWidgetState extends State<qrbuddyDashboardWidget>
                         color: isDarkMode ? AppColors.darkBorderColor : AppColors.borderColor,
                         thickness: 1,
                       ),
-                      const SizedBox(height: 10),
+                      SizedBox(height: size.height * 0.012),
                       Row(
                         children: List.generate(5, (index) {
                           if (index < fullStars) {
-                            return const Icon(Icons.star, color: Colors.orange, size: 24);
+                            return Icon(Icons.star, color: Colors.orange, size: size.width * 0.065);
                           } else if (index == fullStars && hasHalfStar) {
-                            return const Icon(Icons.star_half, color: Colors.orange, size: 24);
+                            return Icon(Icons.star_half, color: Colors.orange, size: size.width * 0.065);
                           } else {
-                            return const Icon(Icons.star_border, color: Colors.orange, size: 24);
+                            return Icon(Icons.star_border, color: Colors.orange, size: size.width * 0.065);
                           }
                         }),
                       ),
-                      const SizedBox(height: 8),
+                      SizedBox(height: size.height * 0.01),
                       Text(
                         '${controller.averageRating.value.toStringAsFixed(1)} star',
                         style: textTheme.headlineSmall?.copyWith(
                               color: isDarkMode ? AppColors.darkTextColor : AppColors.textColor,
                             ),
                       ),
-                      const SizedBox(height: 8),
+                      SizedBox(height: size.height * 0.01),
                       Text(
                         'Status: $status',
                         style: textTheme.bodyLarge?.copyWith(
@@ -145,7 +144,7 @@ class _qrbuddyDashboardWidgetState extends State<qrbuddyDashboardWidget>
                               fontWeight: FontWeight.bold,
                             ),
                       ),
-                      const SizedBox(height: 16),
+                      SizedBox(height: size.height * 0.02),
                       Text(
                         'Details:',
                         style: textTheme.bodyLarge?.copyWith(
@@ -153,7 +152,7 @@ class _qrbuddyDashboardWidgetState extends State<qrbuddyDashboardWidget>
                               color: isDarkMode ? AppColors.darkTextColor : AppColors.textColor,
                             ),
                       ),
-                      const SizedBox(height: 8),
+                      SizedBox(height: size.height * 0.01),
                       Text(
                         '5 - Champion',
                         style: textTheme.bodyMedium?.copyWith(
@@ -207,7 +206,6 @@ class _qrbuddyDashboardWidgetState extends State<qrbuddyDashboardWidget>
       decoration: BoxDecoration(
         color: isDarkMode ? AppColors.darkCardBackgroundColor : AppColors.cardBackgroundColor,
         borderRadius: BorderRadius.circular(12),
-       
       ),
       child: Obx(() {
         double statusValue = controller.todayStatus.value;
@@ -241,7 +239,7 @@ class _qrbuddyDashboardWidgetState extends State<qrbuddyDashboardWidget>
                   borderRadius: BorderRadius.circular(8),
                   child: LinearProgressIndicator(
                     value: (statusValue / 100) * _progressAnimation.value,
-                    minHeight: 6,
+                    minHeight: size.height * 0.008,
                     valueColor: AlwaysStoppedAnimation<Color>(_getStatusColor(statusValue)),
                     backgroundColor: isDarkMode
                         ? AppColors.darkBackgroundColor.withOpacity(0.3)
@@ -258,13 +256,14 @@ class _qrbuddyDashboardWidgetState extends State<qrbuddyDashboardWidget>
 
   Widget _buildInfoGrid(Size size, TextTheme textTheme) {
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+    final double childAspectRatio = size.width < 360 ? 1.8 : 2.2;
     return Obx(() => GridView.count(
           crossAxisCount: 2,
           shrinkWrap: true,
           physics: const NeverScrollableScrollPhysics(),
           crossAxisSpacing: size.width * 0.03,
           mainAxisSpacing: size.height * 0.012,
-          childAspectRatio: 2.2,
+          childAspectRatio: childAspectRatio,
           children: [
             _infoCard(
               "Food Delivery",
@@ -333,7 +332,6 @@ class _qrbuddyDashboardWidgetState extends State<qrbuddyDashboardWidget>
                         ? (isDarkMode ? Colors.grey[600]! : Colors.grey[400]!)
                         : AppColors.primaryColor,
                     width: 5)),
-          
           ),
           child: Stack(
             children: [

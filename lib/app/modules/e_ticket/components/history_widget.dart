@@ -48,6 +48,27 @@ class _HistoryListWidgetState extends State<HistoryListWidget> with TickerProvid
 
   @override
   Widget build(BuildContext context) {
+    final size = MediaQuery.of(context).size;
+    final width = size.width;
+    final height = size.height;
+    final avatarRadius = width * 0.045;
+    final containerWidth = width * 0.12;
+    final lineHeight = height * 0.09;
+    final iconSizeLarge = width * 0.06;
+    final iconSizeSmall = width * 0.05;
+    final vSpacingSmall = height * 0.008;
+    final vSpacingMedium = height * 0.03;
+    final hSpacingSmall = width * 0.02;
+    final borderWidth = 1.0;
+    final lineOpacity = 0.3;
+    final marginBottom = height * 0.03;
+    final paddingLeft = width * 0.02;
+    final animationDuration = const Duration(milliseconds: 400);
+    final animationCurve = Curves.easeInOut;
+    final buttonIconSize = width * 0.055;
+    final buttonPaddingH = width * 0.02;
+    final buttonPaddingV = height * 0.008;
+
     final Map<String, ({IconData icon, Color color})> historyIconMap = {
       'ESC': (icon: IconlyBold.danger, color: AppColors.escalationIconColor),
       'ASI': (icon: IconlyBold.user_3, color: AppColors.assignmentIconColor),
@@ -68,8 +89,8 @@ class _HistoryListWidgetState extends State<HistoryListWidget> with TickerProvid
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         AnimatedSize(
-          duration: const Duration(milliseconds: 400),
-          curve: Curves.easeInOut,
+          duration: animationDuration,
+          curve: animationCurve,
           child: ListView.builder(
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
@@ -86,19 +107,19 @@ class _HistoryListWidgetState extends State<HistoryListWidget> with TickerProvid
                   children: [
              
                     Container(
-                      width: 48,
+                      width: containerWidth,
                       child: Column(
                         children: [
                           CircleAvatar(
-                            radius: 18,
+                            radius: avatarRadius,
                             backgroundColor: iconData.color.withOpacity(0.15),
-                            child: Icon(iconData.icon, color: iconData.color, size: 24),
+                            child: Icon(iconData.icon, color: iconData.color, size: iconSizeLarge),
                           ),
                           if (index != historyToShow.length - 1)
                             Container(
-                              height: 72,
-                              width: 2,
-                              color: Colors.grey.withOpacity(0.3),
+                              height: lineHeight,
+                              width: borderWidth,
+                              color: Colors.grey.withOpacity(lineOpacity),
                             ),
                         ],
                       ),
@@ -107,11 +128,11 @@ class _HistoryListWidgetState extends State<HistoryListWidget> with TickerProvid
                
                     Expanded(
                       child: Container(
-                        margin: const EdgeInsets.only(bottom: 24),
-                        padding: const EdgeInsets.only(left: 8),
+                        margin: EdgeInsets.only(bottom: marginBottom),
+                        padding: EdgeInsets.only(left: paddingLeft),
                         decoration: BoxDecoration(
                           border: Border(
-                            left: BorderSide(width: 0.75, color: Colors.grey.withOpacity(0.2)),
+                            left: BorderSide(width: borderWidth * 0.75, color: Colors.grey.withOpacity(0.2)),
                           ),
                         ),
                         child: Column(
@@ -124,7 +145,7 @@ class _HistoryListWidgetState extends State<HistoryListWidget> with TickerProvid
                                   .bodySmall
                                   ?.copyWith(fontWeight: FontWeight.w600),
                             ),
-                            const SizedBox(height: 6),
+                            SizedBox(height: vSpacingSmall),
                             Row(
                               children: [
                                 Expanded(
@@ -136,9 +157,9 @@ class _HistoryListWidgetState extends State<HistoryListWidget> with TickerProvid
                                 ),
                                 if (history.statusWhatsapp == '1')
                                   Padding(
-                                    padding: const EdgeInsets.only(left: 8.0),
+                                    padding: EdgeInsets.only(left: hSpacingSmall),
                                     child: Icon(IconlyBold.tick_square,
-                                        color: AppColors.whatsappIconColor, size: 20),
+                                        color: AppColors.whatsappIconColor, size: iconSizeSmall),
                                   ),
                               ],
                             ),
@@ -156,12 +177,15 @@ class _HistoryListWidgetState extends State<HistoryListWidget> with TickerProvid
           Center(
             child: TextButton.icon(
               onPressed: () => setState(() => _expanded = !_expanded),
-              icon: Icon(_expanded ? IconlyBold.arrow_up_2 : IconlyBold.arrow_down_2),
+              icon: Icon(_expanded ? IconlyBold.arrow_up_2 : IconlyBold.arrow_down_2, size: buttonIconSize),
               label: Text(_expanded ? 'Show Less' : 'Show More' ,
               style: Theme.of(context)
                                   .textTheme
                                   .bodyLarge
                                   ?.copyWith(fontWeight: FontWeight.w600),),
+              style: TextButton.styleFrom(
+                padding: EdgeInsets.symmetric(horizontal: buttonPaddingH, vertical: buttonPaddingV),
+              ),
             ),
           ),
       ],

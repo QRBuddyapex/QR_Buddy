@@ -101,10 +101,22 @@ class _TicketCardState extends State<TicketCard>
   @override
   Widget build(BuildContext context) {
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
-    final width = MediaQuery.of(context).size.width;
+    final size = MediaQuery.of(context).size;
+    final width = size.width;
+    final height = size.height;
+    final hPadding = width * 0.02;
+    final vSpacingSmall = height * 0.008;
+    final vSpacingMedium = height * 0.012;
+    final vSpacingLarge = height * 0.02;
+    final iconSize = width * 0.04;
+    final textPaddingH = width * 0.03;
+    final textPaddingV = height * 0.008;
+    final statusPaddingH = width * 0.035;
+    final statusPaddingV = height * 0.008;
+    final cardPadding = width * 0.045;
 
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      padding: EdgeInsets.symmetric(horizontal: hPadding * 2, vertical: vSpacingSmall),
       child: Card(
         elevation: 0, // 🔥 Removed shadow
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
@@ -122,7 +134,7 @@ class _TicketCardState extends State<TicketCard>
                 child: SlideTransition(
                   position: _slideAnimation,
                   child: Padding(
-                    padding: const EdgeInsets.all(16),
+                    padding: EdgeInsets.all(cardPadding),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -147,12 +159,11 @@ class _TicketCardState extends State<TicketCard>
                             Row(
                               children: [
                                 Container(
-                                  padding: const EdgeInsets.symmetric(
-                                      horizontal: 12, vertical: 6),
+                                  padding: EdgeInsets.symmetric(
+                                      horizontal: statusPaddingH, vertical: statusPaddingV),
                                   decoration: BoxDecoration(
                                     color: _getStatusBgColor(widget.status),
                                     borderRadius: BorderRadius.circular(20),
-                                 
                                   ),
                                   child: Text(
                                     widget.status,
@@ -165,7 +176,7 @@ class _TicketCardState extends State<TicketCard>
                                         ),
                                   ),
                                 ),
-                                const SizedBox(width: 8),
+                                SizedBox(width: hPadding),
                                 // IconButton(
                                 //   icon: Icon(
                                 //     Icons.qr_code,
@@ -178,19 +189,19 @@ class _TicketCardState extends State<TicketCard>
                           ],
                         ),
 
-                        const SizedBox(height: 8),
+                        SizedBox(height: vSpacingSmall),
 
                         /// Location
                         Row(
                           children: [
                             Icon(
                               Icons.location_on,
-                              size: 16,
+                              size: iconSize,
                               color: isDarkMode
                                   ? AppColors.darkSubtitleColor
                                   : AppColors.subtitleColor,
                             ),
-                            const SizedBox(width: 4),
+                            SizedBox(width: hPadding / 2),
                             Expanded(
                               child: Text(
                                 widget.block,
@@ -208,7 +219,7 @@ class _TicketCardState extends State<TicketCard>
                           ],
                         ),
 
-                        const SizedBox(height: 8),
+                        SizedBox(height: vSpacingSmall),
 
                         /// Assigned To
                         Text(
@@ -221,7 +232,7 @@ class _TicketCardState extends State<TicketCard>
                                   ),
                         ),
 
-                        const SizedBox(height: 12),
+                        SizedBox(height: vSpacingMedium),
 
                         /// Description
                         Text(
@@ -236,19 +247,19 @@ class _TicketCardState extends State<TicketCard>
                           overflow: TextOverflow.ellipsis,
                         ),
 
-                        const SizedBox(height: 12),
+                        SizedBox(height: vSpacingMedium),
 
                         /// Date
                         Row(
                           children: [
                             Icon(
                               Icons.access_time,
-                              size: 16,
+                              size: iconSize,
                               color: isDarkMode
                                   ? AppColors.darkSubtitleColor
                                   : AppColors.subtitleColor,
                             ),
-                            const SizedBox(width: 4),
+                            SizedBox(width: hPadding / 2),
                             Text(
                               widget.date,
                               style: Theme.of(context)
@@ -263,7 +274,7 @@ class _TicketCardState extends State<TicketCard>
                           ],
                         ),
 
-                        const SizedBox(height: 12),
+                        SizedBox(height: vSpacingMedium),
 
                         /// Phone Number
                         Row(
@@ -291,10 +302,10 @@ class _TicketCardState extends State<TicketCard>
                                 overflow: TextOverflow.ellipsis,
                               ),
                             ),
-                            const SizedBox(width: 4),
+                            SizedBox(width: hPadding / 2),
                             Icon(
                               Icons.copy,
-                              size: 16,
+                              size: iconSize,
                               color: isDarkMode
                                   ? AppColors.darkSubtitleColor
                                   : AppColors.subtitleColor,
@@ -302,13 +313,13 @@ class _TicketCardState extends State<TicketCard>
                           ],
                         ),
 
-                        const SizedBox(height: 12),
+                        SizedBox(height: vSpacingMedium),
 
                         /// Quick Request
                         if (widget.isQuickRequest)
                           Container(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 12, vertical: 6),
+                            padding: EdgeInsets.symmetric(
+                                horizontal: statusPaddingH, vertical: statusPaddingV),
                             decoration: BoxDecoration(
                               color: isDarkMode
                                   ? AppColors.darkBorderColor
@@ -328,17 +339,16 @@ class _TicketCardState extends State<TicketCard>
                             ),
                           ),
 
-                        const SizedBox(height: 16),
+                        SizedBox(height: vSpacingLarge),
                         // GestureDetector(
                         //   onTap: () {},
                         //   child: Container(
                         //     width: width,
                         //     alignment: Alignment.center,
-                        //     padding: const EdgeInsets.symmetric(vertical: 12),
+                        //     padding: EdgeInsets.symmetric(vertical: textPaddingV * 1.5),
                         //     decoration: BoxDecoration(
                         //       color: AppColors.primaryColor.withOpacity(0.1),
                         //       borderRadius: BorderRadius.circular(12),
-                           
                         //     ),
                         //     child: Text(
                         //       'View Ticket',

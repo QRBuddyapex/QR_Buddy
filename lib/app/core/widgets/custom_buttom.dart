@@ -1,4 +1,3 @@
-
 import 'package:flutter/material.dart';
 import 'package:qr_buddy/app/core/theme/app_theme.dart';
 
@@ -26,24 +25,32 @@ class _CustomButtonState extends State<CustomButton> {
 
   @override
   Widget build(BuildContext context) {
+    final size = MediaQuery.of(context).size;
+    final width = size.width;
+    final height = size.height;
+    final vPadding = height * 0.02;
+    final buttonWidth = widget.width ?? (width * 0.4);
+    final buttonHeight = widget.height ?? (height * 0.06);
+    final borderRadius = width * 0.075;
+    final fontSize = width * 0.04;
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
   
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 16.0),
+      padding: EdgeInsets.symmetric(vertical: vPadding),
       child: ElevatedButton(
         style: ElevatedButton.styleFrom(
           backgroundColor: widget.color ?? AppColors.primaryColor,
           foregroundColor: isDarkMode ? AppColors.darkTextColor : Colors.white,
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(30),
+            borderRadius: BorderRadius.circular(borderRadius),
           ),
-          minimumSize: Size(widget.width ?? 150, widget.height ?? 50),
+          minimumSize: Size(buttonWidth, buttonHeight),
         ),
         onPressed: widget.onPressed,
         child: Text(
           widget.text,
           style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                fontSize: 16,
+                fontSize: fontSize,
                 fontWeight: FontWeight.bold,
                 color: isDarkMode ? AppColors.darkTextColor : Colors.white,
               ),

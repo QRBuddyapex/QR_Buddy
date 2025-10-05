@@ -95,6 +95,16 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
 
   void _showActiveUserDialog(
       BuildContext context, Map<String, String> activeUser) {
+    final size = MediaQuery.of(context).size;
+    final width = size.width;
+    final height = size.height;
+    final hPadding = width * 0.04;
+    final vSpacingSmall = height * 0.008;
+    final vSpacingMedium = height * 0.012;
+    final vSpacingLarge = height * 0.02;
+    final buttonWidth = width * 0.25;
+    final iconSize = width * 0.08;
+    final textSize = width * 0.04;
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
     final username = activeUser['username'] ?? 'Unknown';
     final shiftStatus = activeUser['shift_status'] ?? 'END';
@@ -144,7 +154,7 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
                             .bodyMedium
                             ?.copyWith(color: Colors.green),
                       ),
-                      const SizedBox(width: 10),
+                      SizedBox(width: hPadding),
                       Text(
                         shiftStatus == 'END' ? 'Not Available' : 'Available',
                         style: Theme.of(context).textTheme.bodyMedium?.copyWith(
@@ -156,7 +166,7 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
                       ),
                     ],
                   ),
-                  const SizedBox(height: 20),
+                  SizedBox(height: vSpacingLarge),
                   Text(
                     'Do you want to assign\nthis task to:\n$username',
                     style: Theme.of(context).textTheme.bodyLarge?.copyWith(
@@ -166,7 +176,7 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
                         ),
                     textAlign: TextAlign.center,
                   ),
-                  const SizedBox(height: 20),
+                  SizedBox(height: vSpacingLarge),
                   if (isUserAvailable) ...[
                     Column(
                       mainAxisAlignment: MainAxisAlignment.center,
@@ -175,7 +185,7 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
                             SizedBox(
-                              width: 100,
+                              width: buttonWidth,
                               child: ElevatedButton(
                                 onPressed: () async {
                                   try {
@@ -222,9 +232,9 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
                                 ),
                               ),
                             ),
-                            const SizedBox(width: 10),
+                            SizedBox(width: hPadding),
                             SizedBox(
-                              width: 100,
+                              width: buttonWidth,
                               child: ElevatedButton(
                                 onPressed: () => _launchPhone(phoneNumber),
                                 style: ElevatedButton.styleFrom(
@@ -266,7 +276,7 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
                                   mainAxisAlignment: MainAxisAlignment.center,
                                   children: [
                                     Icon(Icons.close,
-                                        color: Colors.red, size: 40),
+                                        color: Colors.red, size: iconSize),
                                   ],
                                 ),
                                 content: Text(
@@ -338,6 +348,19 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final size = MediaQuery.of(context).size;
+    final width = size.width;
+    final height = size.height;
+    final hPadding = width * 0.04;
+    final vSpacingSmall = height * 0.005;
+    final vSpacingMedium = height * 0.01;
+    final vSpacingLarge = height * 0.02;
+    final containerHeight1 = height * 0.15;
+    final containerHeight2 = height * 0.25;
+    final containerHeight3 = height * 0.1;
+    final containerHeight4 = height * 0.15;
+    final iconSize = width * 0.045;
+    final textSpacingH = width * 0.038;
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
@@ -366,12 +389,12 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
                   : Colors.grey[100]!,
               child: SingleChildScrollView(
                 padding:
-                    EdgeInsets.all(MediaQuery.of(context).size.width * 0.04),
+                    EdgeInsets.all(hPadding),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Container(
-                      height: MediaQuery.of(context).size.height * 0.15,
+                      height: containerHeight1,
                       decoration: BoxDecoration(
                         color: isDarkMode
                             ? AppColors.darkCardBackgroundColor
@@ -379,9 +402,9 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
                         borderRadius: BorderRadius.circular(12),
                       ),
                     ),
-                    SizedBox(height: MediaQuery.of(context).size.height * 0.02),
+                    SizedBox(height: vSpacingLarge),
                     Container(
-                      height: MediaQuery.of(context).size.height * 0.25,
+                      height: containerHeight2,
                       decoration: BoxDecoration(
                         color: isDarkMode
                             ? AppColors.darkCardBackgroundColor
@@ -389,9 +412,9 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
                         borderRadius: BorderRadius.circular(12),
                       ),
                     ),
-                    SizedBox(height: MediaQuery.of(context).size.height * 0.02),
+                    SizedBox(height: vSpacingLarge),
                     Container(
-                      height: MediaQuery.of(context).size.height * 0.1,
+                      height: containerHeight3,
                       decoration: BoxDecoration(
                         color: isDarkMode
                             ? AppColors.darkCardBackgroundColor
@@ -399,9 +422,9 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
                         borderRadius: BorderRadius.circular(12),
                       ),
                     ),
-                    SizedBox(height: MediaQuery.of(context).size.height * 0.02),
+                    SizedBox(height: vSpacingLarge),
                     Container(
-                      height: MediaQuery.of(context).size.height * 0.15,
+                      height: containerHeight4,
                       decoration: BoxDecoration(
                         color: isDarkMode
                             ? AppColors.darkCardBackgroundColor
@@ -420,10 +443,10 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
                   color: AppColors.primaryColor,
                   child: SingleChildScrollView(
                     padding: EdgeInsets.all(
-                        MediaQuery.of(context).size.width * 0.04),
+                        hPadding),
                     child: ConstrainedBox(
                       constraints: BoxConstraints(
-                        maxWidth: MediaQuery.of(context).size.width,
+                        maxWidth: width,
                       ),
                       child: _buildOrderDetailContent(context),
                     ),
@@ -433,6 +456,17 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
   }
 
   Widget _buildOrderDetailContent(BuildContext context) {
+    final size = MediaQuery.of(context).size;
+    final width = size.width;
+    final height = size.height;
+    final hPadding = width * 0.04;
+    final vSpacingSmall = height * 0.005;
+    final vSpacingMedium = height * 0.01;
+    final vSpacingLarge = height * 0.02;
+    final iconSize = width * 0.045;
+    final textSpacingH = width * 0.038;
+    final buttonWidth = width * 0.9;
+    final buttonHeight = height * 0.06;
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
     final order = _orderDetailResponse!.order;
     final isAssigned = order?.requestStatus == 'ASI';
@@ -443,7 +477,7 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Container(
-          padding: EdgeInsets.all(MediaQuery.of(context).size.width * 0.04),
+          padding: EdgeInsets.all(hPadding),
           decoration: BoxDecoration(
             color: isDarkMode
                 ? AppColors.darkCardBackgroundColor
@@ -473,30 +507,30 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
                   _buildPriorityBadge(order?.priority ?? ''),
                 ],
               ),
-              SizedBox(height: MediaQuery.of(context).size.height * 0.01),
+              SizedBox(height: vSpacingMedium),
               Row(
                 children: [
                   Icon(
                     Icons.location_on,
-                    size: 18,
+                    size: iconSize,
                     color: Theme.of(context).iconTheme.color,
                   ),
-                  SizedBox(width: MediaQuery.of(context).size.width * 0.015),
+                  SizedBox(width: textSpacingH),
                   Text(
                     '${order?.roomNumber ?? ''}/${order?.floorName ?? ''}',
                     style: Theme.of(context).textTheme.bodyMedium,
                   ),
                 ],
               ),
-              SizedBox(height: MediaQuery.of(context).size.height * 0.005),
+              SizedBox(height: vSpacingSmall),
               Row(
                 children: [
                   Icon(
                     Icons.access_time,
-                    size: 18,
+                    size: iconSize,
                     color: Theme.of(context).iconTheme.color,
                   ),
-                  SizedBox(width: MediaQuery.of(context).size.width * 0.015),
+                  SizedBox(width: textSpacingH),
                   Text(
                     '${order?.createdAtDate ?? ''} ${order?.createdAt ?? ''}',
                     style: Theme.of(context).textTheme.bodyMedium,
@@ -506,9 +540,9 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
             ],
           ),
         ),
-        SizedBox(height: MediaQuery.of(context).size.height * 0.02),
+        SizedBox(height: vSpacingLarge),
         Container(
-          padding: EdgeInsets.all(MediaQuery.of(context).size.width * 0.04),
+          padding: EdgeInsets.all(hPadding),
           decoration: BoxDecoration(
             color: isDarkMode
                 ? AppColors.darkCardBackgroundColor
@@ -531,32 +565,32 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
                     .titleMedium
                     ?.copyWith(fontWeight: FontWeight.bold),
               ),
-              SizedBox(height: MediaQuery.of(context).size.height * 0.01),
+              SizedBox(height: vSpacingMedium),
               _buildInfoTextRow('Department', order?.departmentName ?? ''),
-              SizedBox(height: MediaQuery.of(context).size.height * 0.01),
+              SizedBox(height: vSpacingMedium),
               _buildPhoneRow(order?.phoneNumber ?? ''),
-              SizedBox(height: MediaQuery.of(context).size.height * 0.01),
+              SizedBox(height: vSpacingMedium),
               _buildInfoTextRow('Location', '${order?.roomNumber ?? ''}/${order?.floorName ?? ''}'),
-              SizedBox(height: MediaQuery.of(context).size.height * 0.01),
+              SizedBox(height: vSpacingMedium),
               _buildInfoTextRow('Assigned to', order?.assignedToUsername ?? ''),
             ],
           ),
         ),
-        SizedBox(height: MediaQuery.of(context).size.height * 0.02),
+        SizedBox(height: vSpacingLarge),
         if (_showInitialButtons) ...[
           if (isAssigned && !isAccepted) ...[
             Padding(
               padding: EdgeInsets.symmetric(
-                  horizontal: MediaQuery.of(context).size.width * 0.04),
+                  horizontal: hPadding),
               child: _buildMainButton(context, 'Accept', Colors.blue, () {
                 Get.toNamed(RoutesName.acceptTicketScreen,
                     arguments: widget.ticket);
               }),
             ),
-            SizedBox(height: MediaQuery.of(context).size.height * 0.01),
+            SizedBox(height: vSpacingMedium),
             Padding(
               padding: EdgeInsets.symmetric(
-                  horizontal: MediaQuery.of(context).size.width * 0.04),
+                  horizontal: hPadding),
               child: _buildMainButton(
                   context, 'Complete Task', AppColors.statusButtonColor, () {
                 ticketController.showConfirmationDialog(
@@ -574,10 +608,10 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
                 );
               }),
             ),
-            SizedBox(height: MediaQuery.of(context).size.height * 0.01),
+            SizedBox(height: vSpacingMedium),
             Padding(
               padding: EdgeInsets.symmetric(
-                  horizontal: MediaQuery.of(context).size.width * 0.04),
+                  horizontal: hPadding),
               child: _buildMainButton(
                   context, 'Hold Task', AppColors.holdButtonColor, () {
                 ticketController.showConfirmationDialog(
@@ -595,10 +629,10 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
                 );
               }),
             ),
-            SizedBox(height: MediaQuery.of(context).size.height * 0.01),
+            SizedBox(height: vSpacingMedium),
             Padding(
               padding: EdgeInsets.symmetric(
-                  horizontal: MediaQuery.of(context).size.width * 0.04),
+                  horizontal: hPadding),
               child: _buildMainButton(
                   context, 'Cancel Task', AppColors.dangerButtonColor, () {
                 ticketController.showConfirmationDialog(
@@ -619,7 +653,7 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
           ] else ...[
             Padding(
               padding: EdgeInsets.symmetric(
-                  horizontal: MediaQuery.of(context).size.width * 0.04),
+                  horizontal: hPadding),
               child: _buildMainButton(
                   context, 'Complete Task', AppColors.statusButtonColor, () {
                 ticketController.showConfirmationDialog(
@@ -637,10 +671,10 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
                 );
               }),
             ),
-            SizedBox(height: MediaQuery.of(context).size.height * 0.01),
+            SizedBox(height: vSpacingMedium),
             Padding(
               padding: EdgeInsets.symmetric(
-                  horizontal: MediaQuery.of(context).size.width * 0.04),
+                  horizontal: hPadding),
               child: _buildMainButton(
                   context, 'Hold Task', AppColors.holdButtonColor, () {
                 ticketController.showConfirmationDialog(
@@ -658,10 +692,10 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
                 );
               }),
             ),
-            SizedBox(height: MediaQuery.of(context).size.height * 0.01),
+            SizedBox(height: vSpacingMedium),
             Padding(
               padding: EdgeInsets.symmetric(
-                  horizontal: MediaQuery.of(context).size.width * 0.04),
+                  horizontal: hPadding),
               child: _buildMainButton(
                   context, 'Cancel Task', AppColors.dangerButtonColor, () {
                 ticketController.showConfirmationDialog(
@@ -683,7 +717,7 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
         ] else ...[
           Padding(
             padding: EdgeInsets.symmetric(
-                horizontal: MediaQuery.of(context).size.width * 0.04),
+                horizontal: hPadding),
             child: _buildMainButton(
                 context, 'Reopen', AppColors.statusButtonColor1, () {
               ticketController.showConfirmationDialog(
@@ -701,10 +735,10 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
               );
             }),
           ),
-          SizedBox(height: MediaQuery.of(context).size.height * 0.01),
+          SizedBox(height: vSpacingMedium),
           Padding(
             padding: EdgeInsets.symmetric(
-                horizontal: MediaQuery.of(context).size.width * 0.04),
+                horizontal: hPadding),
             child: _buildMainButton(
                 context, 'Verify', AppColors.verifyButtonColor, () {
               ticketController.showConfirmationDialog(
@@ -723,7 +757,7 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
             }),
           ),
         ],
-        SizedBox(height: MediaQuery.of(context).size.height * 0.02),
+        SizedBox(height: vSpacingLarge),
         Text(
           'Assign Tasks to:',
           style: Theme.of(context)
@@ -731,9 +765,9 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
               .titleMedium
               ?.copyWith(fontWeight: FontWeight.bold),
         ),
-        SizedBox(height: MediaQuery.of(context).size.height * 0.01),
+        SizedBox(height: vSpacingMedium),
         buildAssignTaskSection(context),
-        SizedBox(height: MediaQuery.of(context).size.height * 0.01),
+        SizedBox(height: vSpacingMedium),
         Text(
           'Activity History',
           style: Theme.of(context)
@@ -741,9 +775,9 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
               .titleMedium
               ?.copyWith(fontWeight: FontWeight.bold),
         ),
-        SizedBox(height: MediaQuery.of(context).size.height * 0.01),
+        SizedBox(height: vSpacingMedium),
         HistoryListWidget(history: _orderDetailResponse!.history),
-        SizedBox(height: MediaQuery.of(context).size.height * 0.02),
+        SizedBox(height: vSpacingLarge),
         if (_orderDetailResponse!.feedback.isNotEmpty) ...[
           Text(
             'Feedback/Checklist',
@@ -752,19 +786,26 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
                 .titleMedium
                 ?.copyWith(fontWeight: FontWeight.bold),
           ),
-          SizedBox(height: MediaQuery.of(context).size.height * 0.01),
+          SizedBox(height: vSpacingMedium),
           _buildFeedbackSection(context),
         ],
-        SizedBox(height: MediaQuery.of(context).size.height * 0.02),
+        SizedBox(height: vSpacingLarge),
       ],
     );
   }
 
   Widget _buildFeedbackSection(BuildContext context) {
+    final size = MediaQuery.of(context).size;
+    final width = size.width;
+    final height = size.height;
+    final hPadding = width * 0.04;
+    final vSpacingSmall = height * 0.008;
+    final vSpacingMedium = height * 0.012;
+    final dividerHeight = height * 0.02;
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
 
   return Container(
-    padding: EdgeInsets.all(MediaQuery.of(context).size.width * 0.04),
+    padding: EdgeInsets.all(hPadding),
     decoration: BoxDecoration(
       color: isDarkMode
           ? AppColors.darkCardBackgroundColor
@@ -788,14 +829,14 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
                 fontWeight: FontWeight.bold,
               ),
         ),
-        const SizedBox(height: 12),
+        SizedBox(height: vSpacingMedium),
         ListView.separated(
           shrinkWrap: true,
           physics: const NeverScrollableScrollPhysics(),
           itemCount: _orderDetailResponse!.feedback.length,
           separatorBuilder: (_, __) => Divider(
             color: isDarkMode ? Colors.white10 : Colors.grey.shade300,
-            height: 16,
+            height: dividerHeight,
           ),
           itemBuilder: (context, index) {
             final feedbackItem = _orderDetailResponse!.feedback[index];
@@ -829,7 +870,7 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
                           ),
                     ),
                   ),
-                  const SizedBox(width: 8),
+                  SizedBox(width: hPadding / 2),
                   Expanded(
                     flex: 1,
                     child: Text(
@@ -857,11 +898,16 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
   }
 
   Widget _buildPriorityBadge(String priority) {
+    final size = MediaQuery.of(context).size;
+    final width = size.width;
+    final height = size.height;
+    final hPadding = width * 0.025;
+    final vPadding = height * 0.01;
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
     return Container(
       padding: EdgeInsets.symmetric(
-        horizontal: MediaQuery.of(context).size.width * 0.025,
-        vertical: MediaQuery.of(context).size.height * 0.01,
+        horizontal: hPadding,
+        vertical: vPadding,
       ),
       decoration: BoxDecoration(
         color: isDarkMode ? Colors.blue[900] : Colors.blue[50],
@@ -879,9 +925,14 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
 
   Widget _buildMainButton(
       BuildContext context, String text, Color color, VoidCallback onPressed) {
+    final size = MediaQuery.of(context).size;
+    final width = size.width;
+    final height = size.height;
+    final buttonWidth = width * 0.9;
+    final buttonHeight = height * 0.06;
     return SizedBox(
-      width: MediaQuery.of(context).size.width * 0.9,
-      height: MediaQuery.of(context).size.height * 0.06,
+      width: buttonWidth,
+      height: buttonHeight,
       child: ElevatedButton(
         onPressed: onPressed,
         style: ElevatedButton.styleFrom(
@@ -901,6 +952,9 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
   }
 
   Widget _buildPhoneRow(String phoneNumber) {
+    final size = MediaQuery.of(context).size;
+    final width = size.width;
+    final fontSize = width * 0.04;
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
     return Row(
       children: [
@@ -915,7 +969,7 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
             phoneNumber,
             style: TextStyle(
               color: AppColors.linkColor,
-              fontSize: 16,
+              fontSize: fontSize,
               fontFamily: GoogleFonts.poppins().fontFamily,
             ),
           ),
@@ -941,16 +995,20 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
   }
 
   Widget buildAssignTaskSection(BuildContext context) {
+    final size = MediaQuery.of(context).size;
+    final height = size.height;
+    final vSpacingSmall = height * 0.015;
+    final vPadding = height * 0.01;
     final activeUsers = _orderDetailResponse?.activeUsers ?? [];
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const SizedBox(height: 12),
+        SizedBox(height: vSpacingSmall),
         if (activeUsers.isEmpty)
           Padding(
-            padding: const EdgeInsets.all(8.0),
+            padding: EdgeInsets.all(vPadding),
             child: Text(
               'No available users',
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
@@ -967,7 +1025,7 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
               children: List.generate(
                 activeUsers.length,
                 (index) => Padding(
-                  padding: const EdgeInsets.only(bottom: 12.0),
+                  padding: EdgeInsets.only(bottom: vSpacingSmall),
                   child: _buildActiveUserCard(context, activeUsers[index]),
                 ),
               ),
@@ -979,6 +1037,14 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
 
   Widget _buildActiveUserCard(
       BuildContext context, Map<String, String> activeUser) {
+    final size = MediaQuery.of(context).size;
+    final width = size.width;
+    final height = size.height;
+    final hPadding = width * 0.04;
+    final vPadding = height * 0.02;
+    final vSpacingSmall = height * 0.005;
+    final avatarRadius = width * 0.06;
+    final iconSize = width * 0.05;
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
     final isAvailable = activeUser['shift_status'] != 'END';
     final username = activeUser['username']?.split('@').first ?? 'Unknown';
@@ -987,7 +1053,7 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
     return GestureDetector(
       onTap: () => _showActiveUserDialog(context, activeUser),
       child: Container(
-        padding: const EdgeInsets.all(16),
+        padding: EdgeInsets.all(hPadding),
         decoration: BoxDecoration(
           color: isDarkMode
               ? AppColors.darkCardBackgroundColor
@@ -1007,16 +1073,17 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
         child: Row(
           children: [
             CircleAvatar(
-              radius: 24,
+              radius: avatarRadius,
               backgroundColor: isAvailable
                   ? Colors.green.withOpacity(0.1)
                   : Colors.red.withOpacity(0.1),
               child: Icon(
                 Icons.person,
                 color: isAvailable ? Colors.green : Colors.red,
+                size: iconSize,
               ),
             ),
-            const SizedBox(width: 16),
+            SizedBox(width: hPadding),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -1028,7 +1095,7 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
                         ),
                     overflow: TextOverflow.ellipsis,
                   ),
-                  const SizedBox(height: 4),
+                  SizedBox(height: vSpacingSmall),
                   Text(
                     isAvailable ? 'Available' : 'Not Available',
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
@@ -1039,7 +1106,7 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
               ),
             ),
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+              padding: EdgeInsets.symmetric(horizontal: hPadding / 2, vertical: vPadding / 2),
               decoration: BoxDecoration(
                 color: Colors.green.withOpacity(0.1),
                 borderRadius: BorderRadius.circular(12),

@@ -59,7 +59,8 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
       setState(() {
         _orderDetailResponse = response;
         _isLoading = false;
-        _showInitialButtons = response.order?.requestStatus != 'CAN';
+        final status = response.order?.requestStatus ?? '';
+        _showInitialButtons = !['CAN', 'COMP', 'VER'].contains(status);
       });
     } catch (e) {
       setState(() {
@@ -200,10 +201,14 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
                                     _fetchOrderDetails();
                                   } catch (e) {
                                     Navigator.of(context).pop();
+<<<<<<< HEAD
                                     CustomSnackbar.success(
                                         'Task assigned successfully to $username');
                                     _fetchOrderDetails();
                                     // CustomSnackbar.error('Failed to assign task: $e');
+=======
+                                    CustomSnackbar.error('Failed to assign task: $e');
+>>>>>>> origin/main
                                   }
                                 },
                                 style: ElevatedButton.styleFrom(
@@ -451,6 +456,7 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
                 ? AppColors.darkCardBackgroundColor
                 : AppColors.cardBackgroundColor,
             borderRadius: BorderRadius.circular(12),
+<<<<<<< HEAD
             boxShadow: [
               BoxShadow(
                 color: isDarkMode
@@ -459,6 +465,14 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
                 blurRadius: 6,
               ),
             ],
+=======
+            // boxShadow: [
+            //   BoxShadow(
+            //     color: isDarkMode ? AppColors.darkShadowColor : AppColors.shadowColor,
+            //     blurRadius: 6,
+            //   ),
+            // ],
+>>>>>>> origin/main
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -487,7 +501,7 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
                   ),
                   SizedBox(width: MediaQuery.of(context).size.width * 0.015),
                   Text(
-                    '${order?.blockName ?? ''}/${order?.floorName ?? ''}',
+                    '${order?.roomNumber ?? ''}/${order?.floorName ?? ''}',
                     style: Theme.of(context).textTheme.bodyMedium,
                   ),
                 ],
@@ -518,6 +532,7 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
                 ? AppColors.darkCardBackgroundColor
                 : AppColors.cardBackgroundColor,
             borderRadius: BorderRadius.circular(12),
+<<<<<<< HEAD
             boxShadow: [
               BoxShadow(
                 color: isDarkMode
@@ -526,6 +541,14 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
                 blurRadius: 6,
               ),
             ],
+=======
+            // boxShadow: [
+            //   BoxShadow(
+            //     color: isDarkMode ? AppColors.darkShadowColor : AppColors.shadowColor,
+            //     blurRadius: 6,
+            //   ),
+            // ],
+>>>>>>> origin/main
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -542,8 +565,12 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
               SizedBox(height: MediaQuery.of(context).size.height * 0.01),
               _buildPhoneRow(order?.phoneNumber ?? ''),
               SizedBox(height: MediaQuery.of(context).size.height * 0.01),
+<<<<<<< HEAD
               _buildInfoTextRow('Location',
                   '${order?.blockName ?? ''}/${order?.floorName ?? ''}'),
+=======
+              _buildInfoTextRow('Location', '${order?.roomNumber ?? ''}/${order?.floorName ?? ''}'),
+>>>>>>> origin/main
               SizedBox(height: MediaQuery.of(context).size.height * 0.01),
               _buildInfoTextRow('Assigned to', order?.assignedToUsername ?? ''),
             ],
@@ -770,6 +797,7 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
   Widget _buildFeedbackSection(BuildContext context) {
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
 
+<<<<<<< HEAD
     return Container(
       padding: EdgeInsets.all(MediaQuery.of(context).size.width * 0.04),
       decoration: BoxDecoration(
@@ -783,6 +811,41 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
                 isDarkMode ? AppColors.darkShadowColor : AppColors.shadowColor,
             blurRadius: 6,
             offset: const Offset(0, 2),
+=======
+  return Container(
+    padding: EdgeInsets.all(MediaQuery.of(context).size.width * 0.04),
+    decoration: BoxDecoration(
+      color: isDarkMode
+          ? AppColors.darkCardBackgroundColor
+          : AppColors.cardBackgroundColor,
+      borderRadius: BorderRadius.circular(12),
+      // boxShadow: [
+      //   BoxShadow(
+      //     color:
+      //         isDarkMode ? AppColors.darkShadowColor : AppColors.shadowColor,
+      //     blurRadius: 6,
+      //     offset: const Offset(0, 2),
+      //   ),
+      // ],
+    ),
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          "Feedback Summary",
+          style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                fontWeight: FontWeight.bold,
+              ),
+        ),
+        const SizedBox(height: 12),
+        ListView.separated(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          itemCount: _orderDetailResponse!.feedback.length,
+          separatorBuilder: (_, __) => Divider(
+            color: isDarkMode ? Colors.white10 : Colors.grey.shade300,
+            height: 16,
+>>>>>>> origin/main
           ),
         ],
       ),
@@ -1001,14 +1064,14 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
               : AppColors.cardBackgroundColor,
           borderRadius: BorderRadius.circular(16),
           boxShadow: [
-            BoxShadow(
-              color: (isDarkMode
-                      ? AppColors.darkShadowColor
-                      : AppColors.shadowColor)
-                  .withOpacity(0.25),
-              blurRadius: 6,
-              offset: const Offset(0, 3),
-            ),
+            // BoxShadow(
+            //   color: (isDarkMode
+            //           ? AppColors.darkShadowColor
+            //           : AppColors.shadowColor)
+            //       .withOpacity(0.25),
+            //   blurRadius: 6,
+            //   offset: const Offset(0, 3),
+            // ),
           ],
         ),
         child: Row(

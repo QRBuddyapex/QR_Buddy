@@ -38,7 +38,7 @@ class LoginController extends GetxController {
       final response = await _authRepository.login(email.value, password.value);
 
       if (response["status"] == 1) {
-        CustomSnackbar.success("Login successful!");
+        // CustomSnackbar.success("Login successful!");
 
         await _notificationServices.playLoginRinger();
         final userId = response["user"]["id"].toString();

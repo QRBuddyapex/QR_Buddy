@@ -2,6 +2,7 @@ plugins {
     id 'com.android.application'
     id 'org.jetbrains.kotlin.android'
     id 'dev.flutter.flutter-gradle-plugin'
+    id 'com.google.gms.google-services'   // ✅ must be last plugin
 }
 
 def keystoreProperties = new Properties()
@@ -15,11 +16,10 @@ android {
     compileSdk flutter.compileSdkVersion
     ndkVersion flutter.ndkVersion
 
-    // ✅ Java + desugaring
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_17
         targetCompatibility JavaVersion.VERSION_17
-        coreLibraryDesugaringEnabled true   // 🔥 fix for flutter_local_notifications
+        coreLibraryDesugaringEnabled true
     }
 
     kotlinOptions {
@@ -46,7 +46,7 @@ android {
 
     buildTypes {
         release {
-            // signingConfig signingConfigs.release   // enable only if you have release keys set
+            // signingConfig signingConfigs.release   // enable only if keystore is ready
             minifyEnabled false
             shrinkResources false
             debuggable false
@@ -64,6 +64,6 @@ dependencies {
     implementation 'com.google.firebase:firebase-messaging'
     implementation 'androidx.multidex:multidex:2.0.1'
 
-    // ✅ required for flutter_local_notifications
+    // ✅ Required for flutter_local_notifications
     coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:2.1.5'
 }

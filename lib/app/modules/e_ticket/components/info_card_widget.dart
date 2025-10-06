@@ -460,6 +460,7 @@ class InfoCardContentWidget extends StatelessWidget {
             final ticket = controller.filteredTickets[index];
             return TicketCard(
               index: index,
+              source: ticket.source,
               orderNumber: ticket.orderNumber,
               description: ticket.description,
               block: ticket.block,
@@ -537,7 +538,7 @@ class InfoCardContentWidget extends StatelessWidget {
                 ),
                 SizedBox(height: vSpacingMedium),
                 Text(
-                  'No orders found',
+                  'No Checklists found',
                   style: textTheme.bodyLarge?.copyWith(
                     color: isDarkMode ? AppColors.darkTextColor : AppColors.textColor,
                     fontWeight: FontWeight.w500,

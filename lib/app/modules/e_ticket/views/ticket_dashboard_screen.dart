@@ -206,6 +206,8 @@ class _TicketDashboardScreenState extends State<TicketDashboardScreen> {
                               final ticket = controller.filteredTickets[index];
                               return TicketCard(
                                 index: index,
+                                source: ticket.source,
+                                roomNumber: ticket.roomNumber,
                                 orderNumber: ticket.orderNumber,
                                 description: ticket.description,
                                 block: ticket.block,

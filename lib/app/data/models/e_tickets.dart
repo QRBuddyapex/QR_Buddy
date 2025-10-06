@@ -195,6 +195,8 @@ class Order {
   Ticket toTicket() {
     return Ticket(
       orderNumber: requestNumber,
+      source: source,
+      roomNumber: roomNumber,
       description: notes.isNotEmpty ? notes : serviceName,
       block: '$blockName/$floorName'.trim(),
       status: _mapStatus(requestStatus),

@@ -20,20 +20,18 @@ class QualityRoundsController extends GetxController {
   @override
   void onInit() {
     super.onInit();
-    // Get room_uuid and category_uuid from route arguments
     final arguments = Get.arguments as Map<String, dynamic>?;
     if (arguments != null) {
       if (arguments.containsKey('room_uuid')) {
-        roomUuid.value = arguments['room_uuid'];
+        final arg = arguments['room_uuid'];
+        roomUuid.value = arg is List ? arg.first : arg.toString();
       }
       if (arguments.containsKey('category_uuid')) {
         categoryUuid.value = arguments['category_uuid'];
       }
       if (arguments.containsKey('round_uuid')) {
-        // You can use round_uuid if needed
         roundUuid.value = arguments['round_uuid'];
         print('Received round_uuid: $roundUuid');
-        
       }
     }
     fetchFormData();
@@ -48,7 +46,7 @@ class QualityRoundsController extends GetxController {
       final form = await _repo.fetchParameters(
         categoryUuid: categoryUuid.value.isNotEmpty
             ? categoryUuid.value
-            : 'e1643e28404611ef99170200d429951a', 
+            : 'e1643e28404611ef99170200d429951a',
         userId: userId,
         hcoId: hcoId,
       );
@@ -56,9 +54,7 @@ class QualityRoundsController extends GetxController {
 
       formData.value = {
         for (var param in form.parameters)
-          param.parameterName!: param.valueString!.isNotEmpty
-              ? param.valueString
-              : (param.valueInt != null ? param.valueInt.toString() : param.valueDefault ?? ''),
+          param.parameterName!: _parseParameterValue(param),
       };
 
       _calculateAverageRating();
@@ -76,6 +72,33 @@ class QualityRoundsController extends GetxController {
     }
   }
 
+  /// 🧩 Safely parses parameter value by its dataEntryType
+  dynamic _parseParameterValue(Parameter param) {
+    final type = param.dataEntryType;
+    final valueString = param.valueString;
+
+    if (type == 'MCHK') {
+      // Multi-checkbox: stored as comma-separated string or list
+      if (valueString != null && valueString.contains(',')) {
+        return valueString.split(',').map((e) => e.trim()).toList();
+      } else if (valueString != null && valueString.isNotEmpty) {
+        return [valueString];
+      } else {
+        return <String>[]; // empty list
+      }
+    } else if (type == 'CHK') {
+      // Single checkbox field
+      return valueString == 'true' || valueString == '1';
+    } else {
+      // Other input types (text, emoji, numeric, etc.)
+      return valueString?.isNotEmpty == true
+          ? valueString
+          : (param.valueInt != null
+              ? param.valueInt.toString()
+              : param.valueDefault ?? '');
+    }
+  }
+
   void _calculateAverageRating() {
     if (formModel.value == null) {
       averageRating.value = 0.0;
@@ -86,7 +109,8 @@ class QualityRoundsController extends GetxController {
     int ratingCount = 0;
     for (var param in formModel.value!.parameters) {
       if (param.dataEntryType == 'EMJ' || param.dataEntryType == 'STR') {
-        final value = int.tryParse(formData[param.parameterName!] as String? ?? '0') ?? 0;
+        final value =
+            int.tryParse(formData[param.parameterName!] as String? ?? '0') ?? 0;
         if (value > 0 && value <= 5) {
           totalRating += value;
           ratingCount++;
@@ -98,10 +122,13 @@ class QualityRoundsController extends GetxController {
 
   void updateFormData(String key, dynamic value) {
     formData[key] = value;
-    // Recalculate average only if relevant field changed
+    formData.refresh(); // ensures GetX rebuilds UI when list data changes
+
     if (formModel.value != null) {
-      final param = formModel.value!.parameters.firstWhereOrNull((p) => p.parameterName == key);
-      if (param != null && (param.dataEntryType == 'EMJ' || param.dataEntryType == 'STR')) {
+      final param = formModel.value!.parameters
+          .firstWhereOrNull((p) => p.parameterName == key);
+      if (param != null &&
+          (param.dataEntryType == 'EMJ' || param.dataEntryType == 'STR')) {
         _calculateAverageRating();
       }
     }
@@ -127,7 +154,7 @@ class QualityRoundsController extends GetxController {
       await _repo.saveFormData(
         categoryUuid: categoryUuid.value.isNotEmpty
             ? categoryUuid.value
-            : 'e1643e28404611ef99170200d429951a', 
+            : 'e1643e28404611ef99170200d429951a',
         userId: userId,
         hcoId: hcoId,
         roomUuid: roomUuid.value,

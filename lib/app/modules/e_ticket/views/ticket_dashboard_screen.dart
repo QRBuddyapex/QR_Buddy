@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:qr_buddy/app/core/config/token_storage.dart';
@@ -22,11 +23,24 @@ class TicketDashboardScreen extends StatefulWidget {
 class _TicketDashboardScreenState extends State<TicketDashboardScreen> {
   final TicketController controller = Get.put(TicketController());
   bool _isLoading = true;
+  Timer? _refreshTimer; // 🔹 Timer reference
 
   @override
   void initState() {
     super.initState();
     _loadData();
+
+    // 🔁 Auto-refresh Food Deliveries every 10 seconds
+    _refreshTimer = Timer.periodic(const Duration(seconds: 10), (timer) async {
+      if (mounted) {
+        try {
+          await controller.fetchFoodDeliveries();
+          debugPrint("✅ Food deliveries auto-refreshed");
+        } catch (e) {
+          debugPrint("⚠️ Auto-refresh error: $e");
+        }
+      }
+    });
   }
 
   Future<void> _loadData() async {
@@ -34,10 +48,15 @@ class _TicketDashboardScreenState extends State<TicketDashboardScreen> {
     try {
       await controller.fetchTickets();
       await controller.fetchFoodDeliveries();
-     
     } finally {
-      setState(() => _isLoading = false);
+      if (mounted) setState(() => _isLoading = false);
     }
+  }
+
+  @override
+  void dispose() {
+    _refreshTimer?.cancel(); // 🧹 Stop timer when leaving screen
+    super.dispose();
   }
 
   @override
@@ -104,125 +123,193 @@ class _TicketDashboardScreenState extends State<TicketDashboardScreen> {
           child: Column(
             children: [
               if (_isLoading)
-                _buildSkeletonLayout(size, hPadding, vSpacingSmall, vSpacingMedium, skeletonHeight1, skeletonHeight2, skeletonHeight3, gridSpacing, gridAspectRatio)
+                _buildSkeletonLayout(
+                  size,
+                  hPadding,
+                  vSpacingSmall,
+                  vSpacingMedium,
+                  skeletonHeight1,
+                  skeletonHeight2,
+                  skeletonHeight3,
+                  gridSpacing,
+                  gridAspectRatio,
+                )
               else
                 qrbuddyDashboardWidget(),
               Obx(() {
-                if (controller.selectedInfoCard.value == 'E-Tickets' && !_isLoading) {
+                if (controller.selectedInfoCard.value == 'E-Tickets' &&
+                    !_isLoading) {
                   return Column(
                     children: [
                       if (TokenStorage().getUserType() != 'S_TEAM')
                         SingleChildScrollView(
                           scrollDirection: Axis.horizontal,
-                          padding: EdgeInsets.symmetric(horizontal: filterPaddingH, vertical: filterPaddingV),
-                          child: Obx(() => Row(
-                                children: [
-                                  FilterTab(
-                                    label: 'All',
-                                    count: controller.tickets.length,
-                                    isSelected: controller.selectedFilter.value == 'All',
-                                    onTap: () => controller.setFilter('All'),
-                                  ),
-                                  FilterTab(
-                                    label: 'New',
-                                    count: controller.links.firstWhere(
-                                          (link) => link.type == 'NEW',
-                                          orElse: () => Link(type: 'NEW', title: 'New', count: 0),
-                                    ).count,
-                                    isSelected: controller.selectedFilter.value == 'New',
-                                    onTap: () => controller.setFilter('New'),
-                                  ),
-                                  FilterTab(
-                                    label: 'Assigned',
-                                    count: controller.links.firstWhere(
-                                          (link) => link.type == 'ASI',
-                                          orElse: () => Link(type: 'ASI', title: 'Assigned', count: 0),
-                                    ).count,
-                                    isSelected: controller.selectedFilter.value == 'Assigned',
-                                    onTap: () => controller.setFilter('Assigned'),
-                                  ),
-                                  FilterTab(
-                                    label: 'Accepted',
-                                    count: controller.links.firstWhere(
-                                          (link) => link.type == 'ACC',
-                                          orElse: () => Link(type: 'ACC', title: 'Accepted', count: 0),
-                                    ).count,
-                                    isSelected: controller.selectedFilter.value == 'Accepted',
-                                    onTap: () => controller.setFilter('Accepted'),
-                                  ),
-                                  FilterTab(
-                                    label: 'Completed',
-                                    count: controller.links.firstWhere(
-                                          (link) => link.type == 'COMP',
-                                          orElse: () => Link(type: 'COMP', title: 'Completed', count: 0),
-                                    ).count,
-                                    isSelected: controller.selectedFilter.value == 'Completed',
-                                    onTap: () => controller.setFilter('Completed'),
-                                  ),
-                                  FilterTab(
-                                    label: 'Verified',
-                                    count: controller.links.firstWhere(
-                                          (link) => link.type == 'VER',
-                                          orElse: () => Link(type: 'VER', title: 'Verified', count: 0),
-                                    ).count,
-                                    isSelected: controller.selectedFilter.value == 'Verified',
-                                    onTap: () => controller.setFilter('Verified'),
-                                  ),
-                                  FilterTab(
-                                    label: 'On Hold',
-                                    count: controller.links.firstWhere(
-                                          (link) => link.type == 'HOLD',
-                                          orElse: () => Link(type: 'HOLD', title: 'On-Hold', count: 0),
-                                    ).count,
-                                    isSelected: controller.selectedFilter.value == 'On Hold',
-                                    onTap: () => controller.setFilter('On Hold'),
-                                  ),
-                                  FilterTab(
-                                    label: 'Re-Open',
-                                    count: controller.links.firstWhere(
-                                          (link) => link.type == 'REO',
-                                          orElse: () => Link(type: 'REO', title: 'Re-Open', count: 0),
-                                    ).count,
-                                    isSelected: controller.selectedFilter.value == 'Re-Open',
-                                    onTap: () => controller.setFilter('Re-Open'),
-                                  ),
-                                  FilterTab(
-                                    label: 'Cancelled',
-                                    count: controller.links.firstWhere(
-                                          (link) => link.type == 'CAN',
-                                          orElse: () => Link(type: 'CAN', title: 'Canceled', count: 0),
-                                    ).count,
-                                    isSelected: controller.selectedFilter.value == 'Cancelled',
-                                    onTap: () => controller.setFilter('Cancelled'),
-                                  ),
-                                ],
-                              )),
+                          padding: EdgeInsets.symmetric(
+                              horizontal: filterPaddingH,
+                              vertical: filterPaddingV),
+                          child: Obx(
+                            () => Row(
+                              children: [
+                                FilterTab(
+                                  label: 'All',
+                                  count: controller.tickets.length,
+                                  isSelected:
+                                      controller.selectedFilter.value == 'All',
+                                  onTap: () => controller.setFilter('All'),
+                                ),
+                                FilterTab(
+                                  label: 'New',
+                                  count: controller.links
+                                      .firstWhere(
+                                        (link) => link.type == 'NEW',
+                                        orElse: () => Link(
+                                            type: 'NEW',
+                                            title: 'New',
+                                            count: 0),
+                                      )
+                                      .count,
+                                  isSelected:
+                                      controller.selectedFilter.value == 'New',
+                                  onTap: () => controller.setFilter('New'),
+                                ),
+                                FilterTab(
+                                  label: 'Assigned',
+                                  count: controller.links
+                                      .firstWhere(
+                                        (link) => link.type == 'ASI',
+                                        orElse: () => Link(
+                                            type: 'ASI',
+                                            title: 'Assigned',
+                                            count: 0),
+                                      )
+                                      .count,
+                                  isSelected: controller.selectedFilter.value ==
+                                      'Assigned',
+                                  onTap: () => controller.setFilter('Assigned'),
+                                ),
+                                FilterTab(
+                                  label: 'Accepted',
+                                  count: controller.links
+                                      .firstWhere(
+                                        (link) => link.type == 'ACC',
+                                        orElse: () => Link(
+                                            type: 'ACC',
+                                            title: 'Accepted',
+                                            count: 0),
+                                      )
+                                      .count,
+                                  isSelected: controller.selectedFilter.value ==
+                                      'Accepted',
+                                  onTap: () => controller.setFilter('Accepted'),
+                                ),
+                                FilterTab(
+                                  label: 'Completed',
+                                  count: controller.links
+                                      .firstWhere(
+                                        (link) => link.type == 'COMP',
+                                        orElse: () => Link(
+                                            type: 'COMP',
+                                            title: 'Completed',
+                                            count: 0),
+                                      )
+                                      .count,
+                                  isSelected: controller.selectedFilter.value ==
+                                      'Completed',
+                                  onTap: () =>
+                                      controller.setFilter('Completed'),
+                                ),
+                                FilterTab(
+                                  label: 'Verified',
+                                  count: controller.links
+                                      .firstWhere(
+                                        (link) => link.type == 'VER',
+                                        orElse: () => Link(
+                                            type: 'VER',
+                                            title: 'Verified',
+                                            count: 0),
+                                      )
+                                      .count,
+                                  isSelected: controller.selectedFilter.value ==
+                                      'Verified',
+                                  onTap: () => controller.setFilter('Verified'),
+                                ),
+                                FilterTab(
+                                  label: 'On Hold',
+                                  count: controller.links
+                                      .firstWhere(
+                                        (link) => link.type == 'HOLD',
+                                        orElse: () => Link(
+                                            type: 'HOLD',
+                                            title: 'On-Hold',
+                                            count: 0),
+                                      )
+                                      .count,
+                                  isSelected: controller.selectedFilter.value ==
+                                      'On Hold',
+                                  onTap: () => controller.setFilter('On Hold'),
+                                ),
+                                FilterTab(
+                                  label: 'Re-Open',
+                                  count: controller.links
+                                      .firstWhere(
+                                        (link) => link.type == 'REO',
+                                        orElse: () => Link(
+                                            type: 'REO',
+                                            title: 'Re-Open',
+                                            count: 0),
+                                      )
+                                      .count,
+                                  isSelected: controller.selectedFilter.value ==
+                                      'Re-Open',
+                                  onTap: () => controller.setFilter('Re-Open'),
+                                ),
+                                FilterTab(
+                                  label: 'Cancelled',
+                                  count: controller.links
+                                      .firstWhere(
+                                        (link) => link.type == 'CAN',
+                                        orElse: () => Link(
+                                            type: 'CAN',
+                                            title: 'Canceled',
+                                            count: 0),
+                                      )
+                                      .count,
+                                  isSelected: controller.selectedFilter.value ==
+                                      'Cancelled',
+                                  onTap: () =>
+                                      controller.setFilter('Cancelled'),
+                                ),
+                              ],
+                            ),
+                          ),
                         ),
-                      Obx(() => ListView.builder(
-                            shrinkWrap: true,
-                            physics: const NeverScrollableScrollPhysics(),
-                            itemCount: controller.filteredTickets.length,
-                            itemBuilder: (context, index) {
-                              final ticket = controller.filteredTickets[index];
-                              return TicketCard(
-                                index: index,
-                                source: ticket.source,
-                                roomNumber: ticket.roomNumber,
-                                orderNumber: ticket.orderNumber,
-                                description: ticket.description,
-                                block: ticket.block,
-                                status: ticket.status,
-                                date: ticket.date,
-                                department: ticket.department,
-                                phoneNumber: ticket.phoneNumber,
-                                assignedTo: ticket.assignedTo,
-                                serviceLabel: ticket.serviceLabel,
-                                isQuickRequest: ticket.isQuickRequest ?? false,
-                                uuid: ticket.uuid,
-                                onTap: () => controller.navigateToDetail(ticket),
-                              );
-                            },
-                          )),
+                      Obx(
+                        () => ListView.builder(
+                          shrinkWrap: true,
+                          physics: const NeverScrollableScrollPhysics(),
+                          itemCount: controller.filteredTickets.length,
+                          itemBuilder: (context, index) {
+                            final ticket = controller.filteredTickets[index];
+                            return TicketCard(
+                              index: index,
+                              source: ticket.source,
+                              roomNumber: ticket.roomNumber,
+                              orderNumber: ticket.orderNumber,
+                              description: ticket.description,
+                              block: ticket.block,
+                              status: ticket.status,
+                              date: ticket.date,
+                              department: ticket.department,
+                              phoneNumber: ticket.phoneNumber,
+                              assignedTo: ticket.assignedTo,
+                              serviceLabel: ticket.serviceLabel,
+                              isQuickRequest: ticket.isQuickRequest ?? false,
+                              uuid: ticket.uuid,
+                              onTap: () => controller.navigateToDetail(ticket),
+                            );
+                          },
+                        ),
+                      ),
                     ],
                   );
                 }
@@ -235,20 +322,36 @@ class _TicketDashboardScreenState extends State<TicketDashboardScreen> {
     );
   }
 
-  Widget _buildSkeletonLayout(Size size, double hPadding, double vSpacingSmall, double vSpacingMedium, double skeletonHeight1, double skeletonHeight2, double skeletonHeight3, double gridSpacing, double gridAspectRatio) {
+  Widget _buildSkeletonLayout(
+    Size size,
+    double hPadding,
+    double vSpacingSmall,
+    double vSpacingMedium,
+    double skeletonHeight1,
+    double skeletonHeight2,
+    double skeletonHeight3,
+    double gridSpacing,
+    double gridAspectRatio,
+  ) {
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
     return Padding(
-      padding: EdgeInsets.symmetric(horizontal: hPadding * 2, vertical: vSpacingSmall),
+      padding: EdgeInsets.symmetric(
+          horizontal: hPadding * 2, vertical: vSpacingSmall),
       child: Column(
         children: [
           Shimmer.fromColors(
-            baseColor: isDarkMode ? AppColors.darkBorderColor : AppColors.borderColor,
-            highlightColor: isDarkMode ? AppColors.darkCardBackgroundColor : AppColors.cardBackgroundColor,
+            baseColor:
+                isDarkMode ? AppColors.darkBorderColor : AppColors.borderColor,
+            highlightColor: isDarkMode
+                ? AppColors.darkCardBackgroundColor
+                : AppColors.cardBackgroundColor,
             child: Container(
               height: skeletonHeight1,
               width: double.infinity,
               decoration: BoxDecoration(
-                color: isDarkMode ? AppColors.darkCardBackgroundColor : AppColors.cardBackgroundColor,
+                color: isDarkMode
+                    ? AppColors.darkCardBackgroundColor
+                    : AppColors.cardBackgroundColor,
                 borderRadius: BorderRadius.circular(12),
               ),
             ),
@@ -264,45 +367,19 @@ class _TicketDashboardScreenState extends State<TicketDashboardScreen> {
             children: List.generate(
               4,
               (index) => Shimmer.fromColors(
-                baseColor: isDarkMode ? AppColors.darkBorderColor : AppColors.borderColor,
-                highlightColor: isDarkMode ? AppColors.darkCardBackgroundColor : AppColors.cardBackgroundColor,
+                baseColor: isDarkMode
+                    ? AppColors.darkBorderColor
+                    : AppColors.borderColor,
+                highlightColor: isDarkMode
+                    ? AppColors.darkCardBackgroundColor
+                    : AppColors.cardBackgroundColor,
                 child: Container(
                   decoration: BoxDecoration(
-                    color: isDarkMode ? AppColors.darkCardBackgroundColor : AppColors.cardBackgroundColor,
+                    color: isDarkMode
+                        ? AppColors.darkCardBackgroundColor
+                        : AppColors.cardBackgroundColor,
                     borderRadius: BorderRadius.circular(12),
                   ),
-                ),
-              ),
-            ),
-          ),
-          SizedBox(height: vSpacingMedium),
-          Shimmer.fromColors(
-            baseColor: isDarkMode ? AppColors.darkBorderColor : AppColors.borderColor,
-            highlightColor: isDarkMode ? AppColors.darkCardBackgroundColor : AppColors.cardBackgroundColor,
-            child: Container(
-              height: skeletonHeight2,
-              width: double.infinity,
-              decoration: BoxDecoration(
-                color: isDarkMode ? AppColors.darkCardBackgroundColor : AppColors.cardBackgroundColor,
-                borderRadius: BorderRadius.circular(12),
-              ),
-            ),
-          ),
-          SizedBox(height: vSpacingMedium),
-          ListView.builder(
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            itemCount: 3,
-            itemBuilder: (context, index) => Shimmer.fromColors(
-              baseColor: isDarkMode ? AppColors.darkBorderColor : AppColors.borderColor,
-              highlightColor: isDarkMode ? AppColors.darkCardBackgroundColor : AppColors.cardBackgroundColor,
-              child: Container(
-                margin: EdgeInsets.only(bottom: vSpacingSmall),
-                height: skeletonHeight3,
-                width: double.infinity,
-                decoration: BoxDecoration(
-                  color: isDarkMode ? AppColors.darkCardBackgroundColor : AppColors.cardBackgroundColor,
-                  borderRadius: BorderRadius.circular(16),
                 ),
               ),
             ),

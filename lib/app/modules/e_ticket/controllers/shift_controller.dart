@@ -4,6 +4,7 @@ import 'package:get/get.dart';
 import 'package:qr_buddy/app/core/config/api_config.dart';
 import 'package:qr_buddy/app/core/config/token_storage.dart';
 import 'package:qr_buddy/app/core/services/api_service.dart';
+import 'package:qr_buddy/app/modules/e_ticket/controllers/location_dialog.dart';
 
 class ShiftController extends GetxController {
   final ApiService _apiService = ApiService();
@@ -13,6 +14,7 @@ class ShiftController extends GetxController {
   @override
   void onInit() {
     super.onInit();
+    Get.put(LocationDialogController(), permanent: true);
     _fetchCurrentShiftStatus();
   }
 
@@ -42,6 +44,15 @@ class ShiftController extends GetxController {
     } catch (e) {
       print('Error fetching shift status: $e');
     }
+  }
+
+  Future<void> startShift() async {
+    final locationController = Get.find<LocationDialogController>();
+    locationController.onSaveSuccess.value = () => updateShiftStatus('START');
+    Get.dialog(
+      const LocationDialog(),
+      barrierDismissible: false,
+    );
   }
 
   Future<void> updateShiftStatus(String status) async {

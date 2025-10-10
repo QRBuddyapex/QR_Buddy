@@ -1,4 +1,5 @@
 import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:qr_buddy/app/core/config/token_storage.dart';
@@ -7,9 +8,9 @@ import 'package:qr_buddy/app/core/widgets/custom_appbar.dart';
 import 'package:qr_buddy/app/core/widgets/custom_drawer.dart';
 import 'package:qr_buddy/app/data/models/e_tickets.dart';
 import 'package:qr_buddy/app/modules/e_ticket/components/filter_tab.dart';
-import 'package:qr_buddy/app/modules/e_ticket/components/location_dialog.dart';
 import 'package:qr_buddy/app/modules/e_ticket/components/qrbuddy_dashboard_widget.dart';
 import 'package:qr_buddy/app/modules/e_ticket/components/ticket_card.dart';
+import 'package:qr_buddy/app/modules/e_ticket/controllers/location_dialog.dart';
 import 'package:qr_buddy/app/modules/e_ticket/controllers/ticket_controller.dart';
 import 'package:shimmer/shimmer.dart';
 
@@ -23,11 +24,13 @@ class TicketDashboardScreen extends StatefulWidget {
 class _TicketDashboardScreenState extends State<TicketDashboardScreen> {
   final TicketController controller = Get.put(TicketController());
   bool _isLoading = true;
+  bool _isSTeam = false;
   Timer? _refreshTimer; // 🔹 Timer reference
 
   @override
   void initState() {
     super.initState();
+    _initializeUserType();
     _loadData();
 
     // 🔁 Auto-refresh Food Deliveries every 10 seconds
@@ -41,6 +44,15 @@ class _TicketDashboardScreenState extends State<TicketDashboardScreen> {
         }
       }
     });
+  }
+
+  Future<void> _initializeUserType() async {
+    final userType = await TokenStorage().getUserType();
+    if (mounted) {
+      setState(() {
+        _isSTeam = userType == 'S_TEAM';
+      });
+    }
   }
 
   Future<void> _loadData() async {
@@ -141,7 +153,7 @@ class _TicketDashboardScreenState extends State<TicketDashboardScreen> {
                     !_isLoading) {
                   return Column(
                     children: [
-                      if (TokenStorage().getUserType() != 'S_TEAM')
+                      if (!_isSTeam)
                         SingleChildScrollView(
                           scrollDirection: Axis.horizontal,
                           padding: EdgeInsets.symmetric(

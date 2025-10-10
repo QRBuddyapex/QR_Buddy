@@ -8,7 +8,7 @@ import 'package:qr_buddy/app/core/widgets/custom_buttom.dart';
 import 'package:qr_buddy/app/core/widgets/custom_drawer.dart';
 import 'package:qr_buddy/app/core/widgets/custom_dropdown.dart';
 import 'package:qr_buddy/app/core/widgets/custom_textfield.dart';
-import 'package:qr_buddy/app/modules/e_ticket/components/location_dialog.dart';
+import 'package:qr_buddy/app/modules/e_ticket/controllers/location_dialog.dart';
 import 'package:qr_buddy/app/modules/new_ticket/components/custom_choice_chip.dart';
 import 'package:qr_buddy/app/modules/new_ticket/controllers/new_ticket_controller.dart';
 

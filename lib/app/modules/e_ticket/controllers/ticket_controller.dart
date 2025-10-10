@@ -2,9 +2,9 @@ import 'dart:io';
 
 import 'package:dio/dio.dart' as dio;
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:intl/intl.dart';
 import 'package:qr_buddy/app/core/config/token_storage.dart';
 import 'package:qr_buddy/app/core/services/api_service.dart';
 import 'package:qr_buddy/app/core/theme/app_theme.dart';
@@ -44,6 +44,7 @@ class TicketController extends GetxController {
   var startDate = DateTime.now().subtract(const Duration(days: 7)).obs;
   var endDate = DateTime.now().obs;
   var selectedCategory = 'No Category'.obs;
+  var selectedLogDate = ''.obs;
   var isLoading = true.obs; // Initialize as true
 
   var _orders = <Order>[].obs;
@@ -125,15 +126,89 @@ class TicketController extends GetxController {
     return '$year-$month-$day';
   }
 
-  DateTime? _parseChecklistDate(String dateAndTime) {
-    try {
-      // Expected format: "DD-MMM-YYYY HH:MM" (e.g., "17-Sep-2025 14:30")
-      final formatter = DateFormat('dd-MMM-yyyy HH:mm');
-      return formatter.parse(dateAndTime);
-    } catch (e) {
-      print('Error parsing date: $dateAndTime, $e');
-      return null;
+  DateTime? _parseChecklistDate(String dateStr, String timeStr) {
+    final dateTime = _parseShortDate(dateStr);
+    final timeParts = timeStr.split(':');
+    int hour = 0;
+    int minute = 0;
+    if (timeParts.isNotEmpty) {
+      hour = int.tryParse(timeParts[0]) ?? 0;
     }
+    if (timeParts.length > 1) {
+      minute = int.tryParse(timeParts[1]) ?? 0;
+    }
+    return DateTime(dateTime.year, dateTime.month, dateTime.day, hour, minute);
+  }
+
+  DateTime _parseShortDate(String dateStr) {
+    final parts = dateStr.trim().split(' ');
+    if (parts.length != 2) {
+      return DateTime.now();
+    }
+
+    final day = int.tryParse(parts[0]) ?? 1;
+    const monthMap = {
+      'Jan': 1,
+      'Feb': 2,
+      'Mar': 3,
+      'Apr': 4,
+      'May': 5,
+      'Jun': 6,
+      'Jul': 7,
+      'Aug': 8,
+      'Sep': 9,
+      'Oct': 10,
+      'Nov': 11,
+      'Dec': 12,
+    };
+
+    final month = monthMap[parts[1]] ?? 1;
+    return DateTime(2025, month, day);
+  }
+
+  void updateFilteredChecklists() {
+    if (dailyChecklist.value == null) return;
+
+    int checklistCount = 0;
+    final filteredChecklistsTemp = <Map<String, dynamic>>[];
+    DateTime filterStart, filterEnd;
+    if (selectedLogDate.value.isNotEmpty) {
+      final parsed = _parseShortDate(selectedLogDate.value);
+      filterStart = DateTime(parsed.year, parsed.month, parsed.day);
+      filterEnd = filterStart.add(const Duration(days: 1)).subtract(const Duration(microseconds: 1));
+    } else {
+      filterStart = DateTime(startDate.value.year, startDate.value.month, startDate.value.day);
+      filterEnd = DateTime(endDate.value.year, endDate.value.month, endDate.value.day, 23, 59, 59);
+    }
+
+    dailyChecklist.value!.roundData.forEach((roomId, dateMap) {
+      dateMap.forEach((dateKey, rounds) {
+        for (var round in rounds) {
+          final timeStr = round.timeSchedule ?? '00:00';
+          final fullDateTime = _parseChecklistDate(dateKey, timeStr);
+          if (fullDateTime != null &&
+              fullDateTime.isAfter(filterStart.subtract(const Duration(microseconds: 1))) &&
+              fullDateTime.isBefore(filterEnd.add(const Duration(microseconds: 1)))) {
+            checklistCount += 1;
+            final room = dailyChecklist.value!.rooms[roomId];
+            filteredChecklistsTemp.add({
+              'checklist_name': round.itemName ?? 'Checklist',
+              'location': '${room?.blockName ?? 'Unknown'} - ${room?.floorName ?? 'Unknown'}',
+              'date_and_time': '${dateKey} $timeStr',
+            });
+          }
+        }
+      });
+    });
+
+    checklists.value = [
+      {
+        'group': 'All Checklists',
+        'checklists': filteredChecklistsTemp,
+      }
+    ];
+    totalChecklists.value = checklistCount;
+    logEntriesCount.value = checklistCount;
   }
 
   Future<void> fetchChecklistLog() async {
@@ -164,47 +239,24 @@ class TicketController extends GetxController {
         dateTo: _formatDateForApi(endDate.value),
         categoryId: categoryId,
       );
+      // Copy checklist log to clipboard
+  
+      await Clipboard.setData(ClipboardData(text: response.toString()));
+      print('Checklist log copied to clipboard');
 
       dailyChecklist.value = response;
 
-      // Calculate total checklists and log entries, filter by date range
-      int checklistCount = 0;
-      int logEntryCount = 0;
-      final filteredChecklists = <Map<String, dynamic>>[];
-      final start = DateTime(startDate.value.year, startDate.value.month, startDate.value.day);
-      final end = DateTime(endDate.value.year, endDate.value.month, endDate.value.day, 23, 59, 59);
+      selectedLogDate.value = '';
+      updateFilteredChecklists();
 
-      response.roundData.forEach((roomId, dateMap) {
-        dateMap.forEach((date, rounds) {
-          for (var round in rounds) {
-            final dateAndTime = '${date} ${round.timeSchedule ?? ''}';
-            final parsedDate = _parseChecklistDate(dateAndTime);
-            if (parsedDate != null &&
-                parsedDate.isAfter(start.subtract(const Duration(microseconds: 1))) &&
-                parsedDate.isBefore(end.add(const Duration(microseconds: 1)))) {
-              checklistCount += 1;
-              logEntryCount += 1; // Count each round as a log entry
-              final room = response.rooms[roomId];
-              filteredChecklists.add({
-                'checklist_name': round.itemName ?? 'Checklist',
-                'location': '${room?.blockName ?? 'Unknown'} - ${room?.floorName ?? 'Unknown'}',
-                'date_and_time': dateAndTime,
-              });
-            }
-          }
-        });
-      });
-
-      totalChecklists.value = checklistCount;
-      logEntriesCount.value = logEntryCount; // Update log entries count
-      checklists.clear();
-      checklists.assignAll([]);
+      print('Fetched ${logEntriesCount.value} log entries and ${totalChecklists.value} checklists');
     } catch (e) {
       // Get.snackbar('Error', 'Failed to fetch checklist log: $e');
       dailyChecklist.value = null;
       totalChecklists.value = 0;
       logEntriesCount.value = 0; // Reset log entries count on error
-      checklists.clear();
+      checklists.value = [];
+      print('Error in fetchChecklistLog: $e');
     } finally {
       _completedFetches['checklistLog'] = true;
       _checkAllFetchesComplete();
@@ -264,10 +316,39 @@ class TicketController extends GetxController {
   Future<void> fetchFoodDeliveries() async {
     try {
       final userId = await TokenStorage().getUserId() ?? '2055';
-      tasks.clear();
-      tasks.assignAll(await _foodDeliveryRepository.fetchFoodDeliveries(userId: userId));
-      print('Fetched ${tasks} task groups');
-      updateTasksCount();
+      final newTasksData = await _foodDeliveryRepository.fetchFoodDeliveries(userId: userId);
+      
+      // Collect old UUIDs
+      final Set<String> oldUuids = {};
+      for (final group in tasks) {
+        for (final task in (group['tasks'] as List)) {
+          final uuid = task['uuid']?.toString() ?? '';
+          if (uuid.isNotEmpty) oldUuids.add(uuid);
+        }
+      }
+      
+      // Collect new UUIDs
+      final Set<String> newUuids = {};
+      bool hasNew = false;
+      for (final group in newTasksData) {
+        for (final task in (group['tasks'] as List)) {
+          final uuid = task['uuid']?.toString() ?? '';
+          if (uuid.isNotEmpty) {
+            newUuids.add(uuid);
+            if (!oldUuids.contains(uuid)) {
+              hasNew = true;
+            }
+          }
+        }
+      }
+      
+      if (hasNew) {
+        tasks.assignAll(newTasksData);
+        print('Fetched ${tasks.length} task groups with new items');
+        updateTasksCount();
+      } else {
+        print('No new food deliveries');
+      }
     } catch (e) {
       Get.snackbar(
         'Error',

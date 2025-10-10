@@ -16,6 +16,7 @@ class LocationDialogController extends GetxController {
   var floors = <Floor>[].obs;
   var rooms = <Room>[].obs;
   var selectedRooms = <String>{}.obs; // Store room IDs
+  var onSaveSuccess = Rxn<Function>();
 
   @override
   void onInit() {
@@ -63,6 +64,10 @@ class LocationDialogController extends GetxController {
       );
 
       CustomSnackbar.success('Rooms updated: ${response.rooms}');
+      if (onSaveSuccess.value != null) {
+        onSaveSuccess.value!();
+        onSaveSuccess.value = null;
+      }
     } catch (e) {
       CustomSnackbar.error('Failed to save rooms: $e');
     } finally {
@@ -76,7 +81,7 @@ class LocationDialog extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final controller = Get.put(LocationDialogController());
+    final controller = Get.find<LocationDialogController>();
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
 
     return Dialog(

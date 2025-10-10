@@ -26,8 +26,8 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
   Widget build(BuildContext context) {
     final TokenStorage tokenStorage = TokenStorage();
     final AuthRepository authRepository = AuthRepository();
-    final ShiftController shiftController = Get.put(ShiftController());
-    final ThemeController themeController = Get.put(ThemeController());
+    final ShiftController shiftController = Get.put(ShiftController(), permanent: true);
+    final ThemeController themeController = Get.put(ThemeController(), permanent: true);
 
     void showProfileDialog() async {
       final String? userName = await tokenStorage.getUserName() ?? 'User';
@@ -149,7 +149,7 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
                 ),
               if (shiftController.shiftStatus.value == 'END' || shiftController.shiftStatus.value == 'BREAK')
                 ElevatedButton(
-                  onPressed: () => shiftController.updateShiftStatus('START'),
+                  onPressed: () => shiftController.startShift(),
                   style: Theme.of(context).elevatedButtonTheme.style?.copyWith(
                         padding: WidgetStateProperty.all(const EdgeInsets.symmetric(horizontal: 16, vertical: 8)),
                       ),

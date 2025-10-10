@@ -7,7 +7,7 @@ import 'package:qr_buddy/app/core/widgets/custom_buttom.dart';
 import 'package:qr_buddy/app/core/widgets/custom_date_field.dart';
 import 'package:qr_buddy/app/core/widgets/custom_drawer.dart';
 import 'package:qr_buddy/app/data/models/daily_checklist_model.dart';
-import 'package:qr_buddy/app/modules/e_ticket/components/location_dialog.dart';
+import 'package:qr_buddy/app/modules/e_ticket/controllers/location_dialog.dart';
 
 import '../controllers/daily_checklist_controller.dart';
 

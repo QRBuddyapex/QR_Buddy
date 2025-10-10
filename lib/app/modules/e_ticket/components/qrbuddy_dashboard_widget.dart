@@ -67,14 +67,27 @@ class _qrbuddyDashboardWidgetState extends State<qrbuddyDashboardWidget>
     return 'Poor';
   }
 
+  bool _isSmallScreen(BuildContext context) {
+    return MediaQuery.of(context).size.width < 360;
+  }
+
+  double _getScaledValue(double baseValue, {double smallScreenMultiplier = 0.8}) {
+    final width = MediaQuery.of(context).size.width;
+    return width < 360 ? baseValue * smallScreenMultiplier : baseValue;
+  }
+
   @override
   Widget build(BuildContext context) {
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
     final size = MediaQuery.of(context).size;
     final textTheme = Theme.of(context).textTheme;
+    final bool isSmall = _isSmallScreen(context);
 
-    final double horizontalPadding = size.width * 0.04;
-    final double verticalPadding = size.height * 0.01;
+    final double horizontalPadding = _getScaledValue(size.width * 0.04);
+    final double verticalPadding = _getScaledValue(size.height * 0.01);
+
+    final double smallFontScale = isSmall ? 0.85 : 1.0;
+    final double smallIconScale = isSmall ? 0.9 : 1.0;
 
     return Container(
       color: isDarkMode ? AppColors.darkBackgroundColor : AppColors.backgroundColor,
@@ -85,9 +98,9 @@ class _qrbuddyDashboardWidgetState extends State<qrbuddyDashboardWidget>
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _buildTodaysStatusSection(size, textTheme),
+            _buildTodaysStatusSection(size, textTheme, isSmall, smallFontScale),
             SizedBox(height: verticalPadding * 2),
-            _buildInfoGrid(size, textTheme),
+            _buildInfoGrid(size, textTheme, isSmall, smallIconScale),
             Obx(() {
               if (controller.selectedInfoCard.value == 'Rating') {
                 final double avgRating = controller.getAverageRatingForCompleted();
@@ -97,8 +110,8 @@ class _qrbuddyDashboardWidgetState extends State<qrbuddyDashboardWidget>
                 final String status = getRatingName(controller.averageRating.value);
 
                 return Container(
-                  padding: EdgeInsets.all(size.width * 0.04),
-                  margin: EdgeInsets.only(top: size.height * 0.015),
+                  padding: EdgeInsets.all(_getScaledValue(size.width * 0.04)),
+                  margin: EdgeInsets.only(top: _getScaledValue(size.height * 0.015)),
                   decoration: BoxDecoration(
                     color: isDarkMode ? AppColors.darkCardBackgroundColor : AppColors.cardBackgroundColor,
                     borderRadius: BorderRadius.circular(12),
@@ -111,78 +124,58 @@ class _qrbuddyDashboardWidgetState extends State<qrbuddyDashboardWidget>
                         style: textTheme.titleSmall?.copyWith(
                               fontWeight: FontWeight.w600,
                               color: isDarkMode ? AppColors.darkTextColor : AppColors.textColor,
+                              fontSize: (textTheme.titleSmall?.fontSize ?? 16) * smallFontScale,
                             ),
                       ),
                       Divider(
                         color: isDarkMode ? AppColors.darkBorderColor : AppColors.borderColor,
                         thickness: 1,
                       ),
-                      SizedBox(height: size.height * 0.012),
+                      SizedBox(height: _getScaledValue(size.height * 0.012)),
                       Row(
+                        mainAxisSize: MainAxisSize.min,
                         children: List.generate(5, (index) {
                           if (index < fullStars) {
-                            return Icon(Icons.star, color: Colors.orange, size: size.width * 0.065);
+                            return Icon(Icons.star, color: Colors.orange, size: _getScaledValue(size.width * 0.065));
                           } else if (index == fullStars && hasHalfStar) {
-                            return Icon(Icons.star_half, color: Colors.orange, size: size.width * 0.065);
+                            return Icon(Icons.star_half, color: Colors.orange, size: _getScaledValue(size.width * 0.065));
                           } else {
-                            return Icon(Icons.star_border, color: Colors.orange, size: size.width * 0.065);
+                            return Icon(Icons.star_border, color: Colors.orange, size: _getScaledValue(size.width * 0.065));
                           }
                         }),
                       ),
-                      SizedBox(height: size.height * 0.01),
+                      SizedBox(height: _getScaledValue(size.height * 0.01)),
                       Text(
                         '${controller.averageRating.value.toStringAsFixed(1)} star',
                         style: textTheme.headlineSmall?.copyWith(
                               color: isDarkMode ? AppColors.darkTextColor : AppColors.textColor,
+                              fontSize: (textTheme.headlineSmall?.fontSize ?? 24) * smallFontScale,
                             ),
                       ),
-                      SizedBox(height: size.height * 0.01),
+                      SizedBox(height: _getScaledValue(size.height * 0.01)),
                       Text(
                         'Status: $status',
                         style: textTheme.bodyLarge?.copyWith(
                               color: _getStatusColor(controller.averageRating.value * 20),
                               fontWeight: FontWeight.bold,
+                              fontSize: (textTheme.bodyLarge?.fontSize ?? 16) * smallFontScale,
                             ),
                       ),
-                      SizedBox(height: size.height * 0.02),
+                      SizedBox(height: _getScaledValue(size.height * 0.02)),
                       Text(
                         'Details:',
                         style: textTheme.bodyLarge?.copyWith(
                               fontWeight: FontWeight.bold,
                               color: isDarkMode ? AppColors.darkTextColor : AppColors.textColor,
+                              fontSize: (textTheme.bodyLarge?.fontSize ?? 16) * smallFontScale,
                             ),
                       ),
-                      SizedBox(height: size.height * 0.01),
-                      Text(
-                        '5 - Champion',
-                        style: textTheme.bodyMedium?.copyWith(
-                              color: isDarkMode ? AppColors.darkSubtitleColor : AppColors.subtitleColor,
-                            ),
-                      ),
-                      Text(
-                        '4.5 - 4.9  → Super Hero',
-                        style: textTheme.bodyMedium?.copyWith(
-                              color: isDarkMode ? AppColors.darkSubtitleColor : AppColors.subtitleColor,
-                            ),
-                      ),
-                      Text(
-                        '4 - 4.5   → Hero',
-                        style: textTheme.bodyMedium?.copyWith(
-                              color: isDarkMode ? AppColors.darkSubtitleColor : AppColors.subtitleColor,
-                            ),
-                      ),
-                      Text(
-                        '3 - 4     → General',
-                        style: textTheme.bodyMedium?.copyWith(
-                              color: isDarkMode ? AppColors.darkSubtitleColor : AppColors.subtitleColor,
-                            ),
-                      ),
-                      Text(
-                        '1 - 3     → Beginner',
-                        style: textTheme.bodyMedium?.copyWith(
-                              color: isDarkMode ? AppColors.darkSubtitleColor : AppColors.subtitleColor,
-                            ),
-                      ),
+                      SizedBox(height: _getScaledValue(size.height * 0.01)),
+                      _buildRatingDetailRow('5 - Champion', textTheme, isDarkMode, smallFontScale),
+                      _buildRatingDetailRow('4.5 - 4.9  → Super Hero', textTheme, isDarkMode, smallFontScale),
+                      _buildRatingDetailRow('4 - 4.5   → Hero', textTheme, isDarkMode, smallFontScale),
+                      _buildRatingDetailRow('3 - 4     → General', textTheme, isDarkMode, smallFontScale),
+                      _buildRatingDetailRow('1 - 3     → Beginner', textTheme, isDarkMode, smallFontScale),
                     ],
                   ),
                 );
@@ -198,11 +191,24 @@ class _qrbuddyDashboardWidgetState extends State<qrbuddyDashboardWidget>
     );
   }
 
-  Widget _buildTodaysStatusSection(Size size, TextTheme textTheme) {
+  Widget _buildRatingDetailRow(String text, TextTheme textTheme, bool isDarkMode, double smallFontScale) {
+    return Padding(
+      padding: EdgeInsets.only(bottom: _getScaledValue(MediaQuery.of(context).size.height * 0.005)),
+      child: Text(
+        text,
+        style: textTheme.bodyMedium?.copyWith(
+              color: isDarkMode ? AppColors.darkSubtitleColor : AppColors.subtitleColor,
+              fontSize: (textTheme.bodyMedium?.fontSize ?? 14) * smallFontScale,
+            ),
+      ),
+    );
+  }
+
+  Widget _buildTodaysStatusSection(Size size, TextTheme textTheme, bool isSmall, double smallFontScale) {
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
     return Container(
       padding: EdgeInsets.symmetric(
-          horizontal: size.width * 0.04, vertical: size.height * 0.015),
+          horizontal: _getScaledValue(size.width * 0.04), vertical: _getScaledValue(size.height * 0.015)),
       decoration: BoxDecoration(
         color: isDarkMode ? AppColors.darkCardBackgroundColor : AppColors.cardBackgroundColor,
         borderRadius: BorderRadius.circular(12),
@@ -220,6 +226,7 @@ class _qrbuddyDashboardWidgetState extends State<qrbuddyDashboardWidget>
                   style: textTheme.titleMedium?.copyWith(
                     fontWeight: FontWeight.w600,
                     color: isDarkMode ? AppColors.darkTextColor : AppColors.textColor,
+                    fontSize: (textTheme.titleMedium?.fontSize ?? 18) * smallFontScale,
                   ),
                 ),
                 Text(
@@ -227,11 +234,12 @@ class _qrbuddyDashboardWidgetState extends State<qrbuddyDashboardWidget>
                   style: textTheme.titleMedium?.copyWith(
                     color: _getStatusColor(statusValue),
                     fontWeight: FontWeight.bold,
+                    fontSize: (textTheme.titleMedium?.fontSize ?? 18) * smallFontScale,
                   ),
                 ),
               ],
             ),
-            SizedBox(height: size.height * 0.008),
+            SizedBox(height: _getScaledValue(size.height * 0.008)),
             AnimatedBuilder(
               animation: _progressAnimation,
               builder: (context, child) {
@@ -239,7 +247,7 @@ class _qrbuddyDashboardWidgetState extends State<qrbuddyDashboardWidget>
                   borderRadius: BorderRadius.circular(8),
                   child: LinearProgressIndicator(
                     value: (statusValue / 100) * _progressAnimation.value,
-                    minHeight: size.height * 0.008,
+                    minHeight: _getScaledValue(size.height * 0.008),
                     valueColor: AlwaysStoppedAnimation<Color>(_getStatusColor(statusValue)),
                     backgroundColor: isDarkMode
                         ? AppColors.darkBackgroundColor.withOpacity(0.3)
@@ -254,15 +262,17 @@ class _qrbuddyDashboardWidgetState extends State<qrbuddyDashboardWidget>
     );
   }
 
-  Widget _buildInfoGrid(Size size, TextTheme textTheme) {
+  Widget _buildInfoGrid(Size size, TextTheme textTheme, bool isSmall, double smallIconScale) {
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
-    final double childAspectRatio = size.width < 360 ? 1.8 : 2.2;
+    final double childAspectRatio = isSmall ? 1.5 : (size.width < 360 ? 1.8 : 2.2);
+    final double crossSpacing = _getScaledValue(size.width * 0.03);
+    final double mainSpacing = _getScaledValue(size.height * 0.012);
     return Obx(() => GridView.count(
           crossAxisCount: 2,
           shrinkWrap: true,
           physics: const NeverScrollableScrollPhysics(),
-          crossAxisSpacing: size.width * 0.03,
-          mainAxisSpacing: size.height * 0.012,
+          crossAxisSpacing: crossSpacing,
+          mainAxisSpacing: mainSpacing,
           childAspectRatio: childAspectRatio,
           children: [
             _infoCard(
@@ -272,6 +282,8 @@ class _qrbuddyDashboardWidgetState extends State<qrbuddyDashboardWidget>
               size,
               textTheme,
               _getLineColor(controller.tasksCount.value),
+              isSmall: isSmall,
+              smallIconScale: smallIconScale,
             ),
             _infoCard(
               "E-Tickets",
@@ -280,14 +292,18 @@ class _qrbuddyDashboardWidgetState extends State<qrbuddyDashboardWidget>
               size,
               textTheme,
               _getLineColor(controller.tickets.length),
+              isSmall: isSmall,
+              smallIconScale: smallIconScale,
             ),
             _infoCard(
               "Checklists",
-              controller.totalChecklists.value.toString(),
+              controller.logEntriesCount.value.toString(),
               Icons.checklist_rtl_outlined,
               size,
               textTheme,
               _getLineColor(controller.logEntriesCount.value),
+              isSmall: isSmall,
+              smallIconScale: smallIconScale,
             ),
             _infoCard(
               "Rating",
@@ -296,6 +312,8 @@ class _qrbuddyDashboardWidgetState extends State<qrbuddyDashboardWidget>
               size,
               textTheme,
               _getLineColor(controller.averageRating.value.toInt()),
+              isSmall: isSmall,
+              smallIconScale: smallIconScale,
             ),
           ],
         ));
@@ -303,8 +321,13 @@ class _qrbuddyDashboardWidgetState extends State<qrbuddyDashboardWidget>
 
   Widget _infoCard(
       String title, String count, IconData icon, Size size, TextTheme textTheme, Color accentColor,
-      {bool isDisabled = false}) {
+      {bool isDisabled = false, required bool isSmall, required double smallIconScale}) {
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+    final double cardHorizontalPadding = _getScaledValue(size.width * 0.03);
+    final double cardVerticalPadding = _getScaledValue(size.height * 0.005);
+    final double countFontSize = _getScaledValue((textTheme.headlineSmall?.fontSize ?? 24) * 0.9);
+    final double iconSizeValue = _getScaledValue(size.width * 0.05 * smallIconScale);
+    final double titleFontSize = _getScaledValue((textTheme.bodyMedium?.fontSize ?? 14));
     return Obx(() {
       bool isSelected = controller.selectedInfoCard.value == title;
       return GestureDetector(
@@ -318,7 +341,7 @@ class _qrbuddyDashboardWidgetState extends State<qrbuddyDashboardWidget>
               },
         child: Container(
           padding: EdgeInsets.symmetric(
-              horizontal: size.width * 0.03, vertical: size.height * 0.005),
+              horizontal: cardHorizontalPadding, vertical: cardVerticalPadding),
           decoration: BoxDecoration(
             color: isDisabled
                 ? (isDarkMode ? Colors.grey[700] : Colors.grey[300])
@@ -343,20 +366,24 @@ class _qrbuddyDashboardWidgetState extends State<qrbuddyDashboardWidget>
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
-                      Text(
-                        count,
-                        style: textTheme.headlineSmall?.copyWith(
-                          fontSize: (textTheme.headlineSmall?.fontSize ?? 24) * 0.9,
-                          color: isDisabled
-                              ? (isDarkMode ? Colors.grey[400] : Colors.grey[500])
-                              : isSelected
-                                  ? AppColors.primaryColor
-                                  : (isDarkMode ? AppColors.darkTextColor : AppColors.textColor),
-                          fontWeight: FontWeight.bold,
+                      Flexible(
+                        child: Text(
+                          count,
+                          style: textTheme.headlineSmall?.copyWith(
+                            fontSize: countFontSize,
+                            color: isDisabled
+                                ? (isDarkMode ? Colors.grey[400] : Colors.grey[500])
+                                : isSelected
+                                    ? AppColors.primaryColor
+                                    : (isDarkMode ? AppColors.darkTextColor : AppColors.textColor),
+                            fontWeight: FontWeight.bold,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                         ),
                       ),
                       Padding(
-                        padding: EdgeInsets.only(top: size.height * 0.03),
+                        padding: EdgeInsets.only(top: _getScaledValue(size.height * 0.03)),
                         child: Icon(
                           icon,
                           color: isDisabled
@@ -364,12 +391,12 @@ class _qrbuddyDashboardWidgetState extends State<qrbuddyDashboardWidget>
                               : isSelected
                                   ? AppColors.primaryColor
                                   : (isDarkMode ? AppColors.darkTextColor : AppColors.textColor),
-                          size: size.width * 0.05,
+                          size: iconSizeValue,
                         ),
                       ),
                     ],
                   ),
-                  SizedBox(height: size.height * 0.003),
+                  SizedBox(height: _getScaledValue(size.height * 0.003)),
                   Text(
                     title,
                     style: textTheme.bodyMedium?.copyWith(
@@ -379,6 +406,7 @@ class _qrbuddyDashboardWidgetState extends State<qrbuddyDashboardWidget>
                               ? AppColors.primaryColor
                               : (isDarkMode ? AppColors.darkSubtitleColor : AppColors.subtitleColor),
                       fontWeight: FontWeight.w500,
+                      fontSize: titleFontSize,
                     ),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
@@ -390,14 +418,14 @@ class _qrbuddyDashboardWidgetState extends State<qrbuddyDashboardWidget>
                   top: 0,
                   right: 0,
                   child: Container(
-                    padding: EdgeInsets.all(size.width * 0.01),
+                    padding: EdgeInsets.all(_getScaledValue(size.width * 0.01)),
                     decoration: BoxDecoration(
                       color: isDarkMode ? Colors.grey[600] : Colors.grey[400],
                       shape: BoxShape.circle,
                     ),
                     child: Icon(
                       Icons.lock,
-                      size: size.width * 0.04,
+                      size: _getScaledValue(size.width * 0.04),
                       color: Colors.white,
                     ),
                   ),
@@ -412,8 +440,12 @@ class _qrbuddyDashboardWidgetState extends State<qrbuddyDashboardWidget>
   Widget _bottomTabItem(String count, String title, int index, Size size, TextTheme textTheme) {
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
     bool isActive = _selectedBottomTabIndex == index;
+    final double tabPaddingH = _getScaledValue(size.width * 0.015);
+    final double tabPaddingV = _getScaledValue(size.height * 0.005);
+    final double tabFontSize = _getScaledValue((textTheme.bodySmall?.fontSize ?? 12));
+    final double countFontSize = _getScaledValue((textTheme.bodyMedium?.fontSize ?? 14));
     return Padding(
-      padding: EdgeInsets.symmetric(horizontal: size.width * 0.015),
+      padding: EdgeInsets.symmetric(horizontal: tabPaddingH),
       child: InkWell(
         onTap: () {
           setState(() {
@@ -427,7 +459,7 @@ class _qrbuddyDashboardWidgetState extends State<qrbuddyDashboardWidget>
               ? AppColors.primaryColor.withOpacity(0.15)
               : (isDarkMode ? AppColors.darkCardBackgroundColor : AppColors.cardBackgroundColor),
           padding: EdgeInsets.symmetric(
-              horizontal: size.width * 0.02, vertical: size.height * 0.005),
+              horizontal: _getScaledValue(size.width * 0.02), vertical: tabPaddingV),
           label: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.center,
@@ -439,11 +471,12 @@ class _qrbuddyDashboardWidgetState extends State<qrbuddyDashboardWidget>
                       ? AppColors.primaryColor
                       : (isDarkMode ? AppColors.darkSubtitleColor : AppColors.subtitleColor),
                   fontWeight: isActive ? FontWeight.bold : FontWeight.normal,
+                  fontSize: tabFontSize,
                 ),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
               ),
-              SizedBox(height: size.height * 0.003),
+              SizedBox(height: _getScaledValue(size.height * 0.003)),
               Text(
                 count,
                 style: textTheme.bodyMedium?.copyWith(
@@ -451,6 +484,7 @@ class _qrbuddyDashboardWidgetState extends State<qrbuddyDashboardWidget>
                       ? AppColors.primaryColor
                       : (isDarkMode ? AppColors.darkSubtitleColor : AppColors.subtitleColor),
                   fontWeight: isActive ? FontWeight.bold : FontWeight.normal,
+                  fontSize: countFontSize,
                 ),
               ),
             ],

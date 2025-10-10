@@ -103,8 +103,11 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
     final vSpacingMedium = height * 0.012;
     final vSpacingLarge = height * 0.02;
     final buttonWidth = width * 0.25;
+    final buttonHeight = height * 0.055;
     final iconSize = width * 0.08;
     final textSize = width * 0.04;
+    final buttonFontSize = width * 0.035;
+    final dialogTextSize = width * 0.045;
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
     final username = activeUser['username'] ?? 'Unknown';
     final shiftStatus = activeUser['shift_status'] ?? 'END';
@@ -127,6 +130,7 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
                 username,
                 style: Theme.of(context).textTheme.titleSmall?.copyWith(
                       fontWeight: FontWeight.bold,
+                      fontSize: dialogTextSize,
                     ),
               ),
               IconButton(
@@ -152,7 +156,7 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
                         style: Theme.of(context)
                             .textTheme
                             .bodyMedium
-                            ?.copyWith(color: Colors.green),
+                            ?.copyWith(color: Colors.green, fontSize: textSize),
                       ),
                       SizedBox(width: hPadding),
                       Text(
@@ -162,6 +166,7 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
                                   ? Colors.red
                                   : Colors.green,
                               fontWeight: FontWeight.bold,
+                              fontSize: textSize,
                             ),
                       ),
                     ],
@@ -173,6 +178,7 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
                           color: isDarkMode
                               ? AppColors.darkTextColor
                               : AppColors.textColor,
+                          fontSize: dialogTextSize,
                         ),
                     textAlign: TextAlign.center,
                   ),
@@ -186,6 +192,7 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
                           children: [
                             SizedBox(
                               width: buttonWidth,
+                              height: buttonHeight,
                               child: ElevatedButton(
                                 onPressed: () async {
                                   try {
@@ -219,8 +226,14 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
                                   shape: RoundedRectangleBorder(
                                     borderRadius: BorderRadius.circular(20),
                                   ),
+                                  minimumSize: Size(buttonWidth, buttonHeight),
+                                  padding: EdgeInsets.symmetric(
+                                    horizontal: hPadding,
+                                    vertical: vSpacingSmall,
+                                  ),
                                 ),
                                 child: Text(
+                                  textAlign: TextAlign.center,
                                   'Assign Task',
                                   style: Theme.of(context)
                                       .textTheme
@@ -228,6 +241,7 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
                                       ?.copyWith(
                                         color: Colors.white,
                                         fontWeight: FontWeight.bold,
+                                        fontSize: buttonFontSize,
                                       ),
                                 ),
                               ),
@@ -235,12 +249,18 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
                             SizedBox(width: hPadding),
                             SizedBox(
                               width: buttonWidth,
+                              height: buttonHeight,
                               child: ElevatedButton(
                                 onPressed: () => _launchPhone(phoneNumber),
                                 style: ElevatedButton.styleFrom(
                                   backgroundColor: Colors.red,
                                   shape: RoundedRectangleBorder(
                                     borderRadius: BorderRadius.circular(20),
+                                  ),
+                                  minimumSize: Size(buttonWidth, buttonHeight),
+                                  padding: EdgeInsets.symmetric(
+                                    horizontal: hPadding,
+                                    vertical: vSpacingSmall,
                                   ),
                                 ),
                                 child: Text(
@@ -251,7 +271,9 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
                                       ?.copyWith(
                                         color: Colors.white,
                                         fontWeight: FontWeight.bold,
+                                        fontSize: buttonFontSize,
                                       ),
+                                  textAlign: TextAlign.center,
                                 ),
                               ),
                             ),
@@ -268,6 +290,15 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
                           showDialog(
                             context: context,
                             builder: (BuildContext context) {
+                              final innerSize = MediaQuery.of(context).size;
+                              final innerWidth = innerSize.width;
+                              final innerHeight = innerSize.height;
+                              final innerHPadding = innerWidth * 0.04;
+                              final innerVSpacingSmall = innerHeight * 0.008;
+                              final innerIconSize = innerWidth * 0.08;
+                              final innerTextSize = innerWidth * 0.045;
+                              final innerButtonFontSize = innerWidth * 0.04;
+                              final innerButtonHeight = innerHeight * 0.055;
                               return AlertDialog(
                                 backgroundColor: isDarkMode
                                     ? AppColors.darkCardBackgroundColor
@@ -276,7 +307,7 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
                                   mainAxisAlignment: MainAxisAlignment.center,
                                   children: [
                                     Icon(Icons.close,
-                                        color: Colors.red, size: iconSize),
+                                        color: Colors.red, size: innerIconSize),
                                   ],
                                 ),
                                 content: Text(
@@ -287,30 +318,41 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
                                       ?.copyWith(
                                         color: Colors.red,
                                         fontWeight: FontWeight.bold,
+                                        fontSize: innerTextSize,
                                       ),
                                   textAlign: TextAlign.center,
                                 ),
                                 actions: [
                                   Center(
-                                    child: ElevatedButton(
-                                      onPressed: () =>
-                                          Navigator.of(context).pop(),
-                                      style: ElevatedButton.styleFrom(
-                                        backgroundColor: AppColors.primaryColor,
-                                        shape: RoundedRectangleBorder(
-                                          borderRadius:
-                                              BorderRadius.circular(20),
+                                    child: SizedBox(
+                                      width: double.infinity,
+                                      height: innerButtonHeight,
+                                      child: ElevatedButton(
+                                        onPressed: () =>
+                                            Navigator.of(context).pop(),
+                                        style: ElevatedButton.styleFrom(
+                                          backgroundColor: AppColors.primaryColor,
+                                          shape: RoundedRectangleBorder(
+                                            borderRadius:
+                                                BorderRadius.circular(20),
+                                          ),
+                                          minimumSize: Size.fromHeight(innerButtonHeight),
+                                          padding: EdgeInsets.symmetric(
+                                            horizontal: innerHPadding,
+                                            vertical: innerVSpacingSmall,
+                                          ),
                                         ),
-                                      ),
-                                      child: Text(
-                                        'OK',
-                                        style: Theme.of(context)
-                                            .textTheme
-                                            .bodyMedium
-                                            ?.copyWith(
-                                              color: Colors.white,
-                                              fontWeight: FontWeight.bold,
-                                            ),
+                                        child: Text(
+                                          'OK',
+                                          style: Theme.of(context)
+                                              .textTheme
+                                              .bodyMedium
+                                              ?.copyWith(
+                                                color: Colors.white,
+                                                fontWeight: FontWeight.bold,
+                                                fontSize: innerButtonFontSize,
+                                              ),
+                                        ),
                                       ),
                                     ),
                                   ),
@@ -325,6 +367,10 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(20),
                           ),
+                          padding: EdgeInsets.symmetric(
+                            horizontal: hPadding,
+                            vertical: vSpacingSmall,
+                          ),
                         ),
                         child: Text(
                           'Assign Task (Unavailable)',
@@ -332,6 +378,7 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
                               Theme.of(context).textTheme.bodyMedium?.copyWith(
                                     color: Colors.white,
                                     fontWeight: FontWeight.bold,
+                                    fontSize: buttonFontSize,
                                   ),
                         ),
                       ),
@@ -930,6 +977,7 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
     final height = size.height;
     final buttonWidth = width * 0.9;
     final buttonHeight = height * 0.06;
+    final buttonFontSize = width * 0.04;
     return SizedBox(
       width: buttonWidth,
       height: buttonHeight,
@@ -939,12 +987,17 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
           backgroundColor: color,
           shape:
               RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          padding: EdgeInsets.symmetric(
+            horizontal: width * 0.05,
+            vertical: height * 0.01,
+          ),
         ),
         child: Text(
           text,
           style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                 color: Colors.white,
                 fontWeight: FontWeight.bold,
+                fontSize: buttonFontSize,
               ),
         ),
       ),

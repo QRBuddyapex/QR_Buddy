@@ -506,7 +506,7 @@ class InfoCardContentWidget extends StatelessWidget {
               children: [
                 _buildGroupHeader(
                   context: context,
-                  groupName: group['group'],
+                  groupName: 'Qik Tasks',
                   onRefresh: () => controller.fetchFoodDeliveries(),
                   size: size,
                   textTheme: textTheme,
@@ -525,7 +525,7 @@ class InfoCardContentWidget extends StatelessWidget {
           }).toList(),
         );
       } else if (controller.selectedInfoCard.value == 'Checklists') {
-          if (controller.logEntriesCount == 0) {
+          if (controller.checklists.isEmpty  ) {
           return Center(
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
@@ -566,44 +566,17 @@ class InfoCardContentWidget extends StatelessWidget {
               return Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  _buildGroupHeader(
-                    context: context,
-                    groupName: group['group'],
-                    onRefresh: () => controller.fetchChecklistLog(),
-                    size: size,
-                    textTheme: textTheme,
-                  ),
-                  if (checklistWidgets.isEmpty)
-                    Padding(
-                      padding: EdgeInsets.symmetric(
-                        horizontal: hPadding,
-                        vertical: vPadding,
-                      ),
-                      child: Container(
-                        width: double.infinity,
-                        padding: EdgeInsets.all(16),
-                        decoration: BoxDecoration(
-                          color: isDarkMode ? AppColors.darkCardBackgroundColor : AppColors.cardBackgroundColor,
-                          borderRadius: BorderRadius.circular(8),
-                       
-                        ),
-                        child: Text(
-                          'No checklists available for the selected date range',
-                          textAlign: TextAlign.center,
-                          style: textTheme.bodyMedium?.copyWith(
-                            fontSize: fontSizeSmall,
-                            color: isDarkMode ? AppColors.darkSubtitleColor : AppColors.subtitleColor,
-                          ),
-                        ),
-                      ),
-                    )
-                  else
-                    ...checklistWidgets,
-                  _buildAddButton(
-                    context: context,
-                    label: 'Add Checklist',
-                    size: size,
-                  ),
+                  // _buildGroupHeader(
+                  //   context: context,
+                  //   groupName: group['group'],
+                  //   onRefresh: () => controller.fetchChecklistLog(),
+                  //   size: size,
+                  //   textTheme: textTheme,
+                  // ),
+                 
+              
+                    // ...checklistWidgets,
+                 
                 ],
               );
             }).toList(),
@@ -624,84 +597,84 @@ class InfoCardContentWidget extends StatelessWidget {
                     ),
                   ),
                   SizedBox(height: vSpacingMedium),
-                  Container(
-                    padding: EdgeInsets.symmetric(horizontal: hPadding),
-                    decoration: BoxDecoration(
-                      color: isDarkMode ? AppColors.darkCardBackgroundColor : AppColors.cardBackgroundColor,
-                      border: Border.all(
-                        color: isDarkMode ? AppColors.darkBorderColor : AppColors.borderColor,
-                      ),
-                      borderRadius: BorderRadius.circular(25),
+                  // Container(
+                  //   padding: EdgeInsets.symmetric(horizontal: hPadding),
+                  //   decoration: BoxDecoration(
+                  //     color: isDarkMode ? AppColors.darkCardBackgroundColor : AppColors.cardBackgroundColor,
+                  //     border: Border.all(
+                  //       color: isDarkMode ? AppColors.darkBorderColor : AppColors.borderColor,
+                  //     ),
+                  //     borderRadius: BorderRadius.circular(25),
                    
-                    ),
-                    child: DropdownButtonHideUnderline(
-                      child: Obx(() {
-                        final categories = controller.dailyChecklist.value?.categories ?? [];
-                        const noCategoryOption = 'No Category';
+                  //   ),
+                  //   child: DropdownButtonHideUnderline(
+                  //     child: Obx(() {
+                  //       final categories = controller.dailyChecklist.value?.categories ?? [];
+                  //       const noCategoryOption = 'No Category';
 
-                        final dropdownItems = [
-                          DropdownMenuItem<String>(
-                            value: noCategoryOption,
-                            child: Text(
-                              noCategoryOption,
-                              style: textTheme.bodyMedium?.copyWith(
-                                color: isDarkMode ? AppColors.darkTextColor : AppColors.textColor,
-                              ),
-                            ),
-                          ),
-                          ...categories.map((category) {
-                            return DropdownMenuItem<String>(
-                              value: category.categoryName,
-                              child: Text(
-                                category.categoryName,
-                                style: textTheme.bodyMedium?.copyWith(
-                                  color: isDarkMode ? AppColors.darkTextColor : AppColors.textColor,
-                                ),
-                              ),
-                            );
-                          }).toList(),
-                        ];
+                  //       final dropdownItems = [
+                  //         DropdownMenuItem<String>(
+                  //           value: noCategoryOption,
+                  //           child: Text(
+                  //             noCategoryOption,
+                  //             style: textTheme.bodyMedium?.copyWith(
+                  //               color: isDarkMode ? AppColors.darkTextColor : AppColors.textColor,
+                  //             ),
+                  //           ),
+                  //         ),
+                  //         ...categories.map((category) {
+                  //           return DropdownMenuItem<String>(
+                  //             value: category.categoryName,
+                  //             child: Text(
+                  //               category.categoryName,
+                  //               style: textTheme.bodyMedium?.copyWith(
+                  //                 color: isDarkMode ? AppColors.darkTextColor : AppColors.textColor,
+                  //               ),
+                  //             ),
+                  //           );
+                  //         }).toList(),
+                  //       ];
 
-                        String defaultValue;
-                        if (categories.isEmpty) {
-                          defaultValue = noCategoryOption;
-                        } else if (controller.selectedCategory.value.isNotEmpty &&
-                            (controller.selectedCategory.value == noCategoryOption ||
-                                categories.any((cat) => cat.categoryName == controller.selectedCategory.value))) {
-                          defaultValue = controller.selectedCategory.value;
-                        } else {
-                          defaultValue = noCategoryOption;
-                        }
+                  //       String defaultValue;
+                  //       if (categories.isEmpty) {
+                  //         defaultValue = noCategoryOption;
+                  //       } else if (controller.selectedCategory.value.isNotEmpty &&
+                  //           (controller.selectedCategory.value == noCategoryOption ||
+                  //               categories.any((cat) => cat.categoryName == controller.selectedCategory.value))) {
+                  //         defaultValue = controller.selectedCategory.value;
+                  //       } else {
+                  //         defaultValue = noCategoryOption;
+                  //       }
 
-                        return DropdownButton<String>(
-                          value: defaultValue,
-                          isExpanded: true,
-                          icon: Icon(
-                            Icons.keyboard_arrow_down,
-                            color: isDarkMode ? AppColors.darkIconColor : AppColors.iconColor,
-                          ),
-                          iconSize: dropdownIconSize,
-                          elevation: 0,
-                          style: textTheme.bodyMedium?.copyWith(
-                            color: isDarkMode ? AppColors.darkTextColor : AppColors.textColor,
-                          ),
-                          hint: Text(
-                            'Loading categories...',
-                            style: textTheme.bodyMedium?.copyWith(
-                              color: isDarkMode ? AppColors.darkSubtitleColor : AppColors.subtitleColor,
-                            ),
-                          ),
-                          items: dropdownItems,
-                          onChanged: (String? newValue) {
-                            if (newValue != null) {
-                              controller.selectedCategory.value = newValue;
-                              controller.fetchChecklistLog();
-                            }
-                          },
-                        );
-                      }),
-                    ),
-                  ),
+                  //       return DropdownButton<String>(
+                  //         value: defaultValue,
+                  //         isExpanded: true,
+                  //         icon: Icon(
+                  //           Icons.keyboard_arrow_down,
+                  //           color: isDarkMode ? AppColors.darkIconColor : AppColors.iconColor,
+                  //         ),
+                  //         iconSize: dropdownIconSize,
+                  //         elevation: 0,
+                  //         style: textTheme.bodyMedium?.copyWith(
+                  //           color: isDarkMode ? AppColors.darkTextColor : AppColors.textColor,
+                  //         ),
+                  //         hint: Text(
+                  //           'Loading categories...',
+                  //           style: textTheme.bodyMedium?.copyWith(
+                  //             color: isDarkMode ? AppColors.darkSubtitleColor : AppColors.subtitleColor,
+                  //           ),
+                  //         ),
+                  //         items: dropdownItems,
+                  //         onChanged: (String? newValue) {
+                  //           if (newValue != null) {
+                  //             controller.selectedCategory.value = newValue;
+                  //             controller.fetchChecklistLog();
+                  //           }
+                  //         },
+                  //       );
+                  //     }),
+                  //   ),
+                  // ),
                   SizedBox(height: vSpacingMedium),
                   Row(
                     children: [
@@ -870,20 +843,37 @@ class InfoCardContentWidget extends StatelessWidget {
                 );
               }
 
-              final today = DateTime.now();
-              String mostRecentDate = sortedDates.first;
-              Duration minDifference = today.difference(_parseShortDate(sortedDates.first)).abs();
+              if (controller.selectedLogDate.value.isEmpty) {
+                final today = DateTime.now();
+                String mostRecentDate = sortedDates.first;
+                Duration minDifference = today.difference(_parseShortDate(sortedDates.first)).abs();
 
-              for (final date in sortedDates) {
-                final parsedDate = _parseShortDate(date);
-                final difference = today.difference(parsedDate).abs();
-                if (difference < minDifference) {
-                  minDifference = difference;
-                  mostRecentDate = date;
+                for (final date in sortedDates) {
+                  final parsedDate = _parseShortDate(date);
+                  final difference = today.difference(parsedDate).abs();
+                  if (difference < minDifference) {
+                    minDifference = difference;
+                    mostRecentDate = date;
+                  }
                 }
+                controller.selectedLogDate.value = mostRecentDate;
               }
 
-              final selectedDate = mostRecentDate.obs;
+              final logEntries = <Widget>[];
+              roundData.forEach((roomId, dateMap) {
+                if (dateMap.containsKey(controller.selectedLogDate.value)) {
+                  final room = rooms[roomId];
+                  final rounds = dateMap[controller.selectedLogDate.value]!;
+                  logEntries.add(_buildLogItem(
+                    location: room?.roomNumber?.toString() ?? 'Unknown',
+                    block: '${room?.blockName?.toString() ?? 'Unknown'} - ${room?.floorName?.toString() ?? 'Unknown'}',
+                    times: rounds.map((round) => round.timeSchedule?.toString() ?? '').toList(),
+                    textTheme: textTheme,
+                    isDarkMode: isDarkMode,
+                    size: size,
+                  ));
+                }
+              });
 
               return Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -894,15 +884,15 @@ class InfoCardContentWidget extends StatelessWidget {
                       scrollDirection: Axis.horizontal,
                       child: Row(
                         children: sortedDates.map((date) {
-                          return Obx(() => GestureDetector(
+                          return GestureDetector(
                                 onTap: () {
-                                  selectedDate.value = date;
+                                  controller.selectedLogDate.value = date;
                                 },
-                                child: Container(
+                                child: Obx(() => Container(
                                   margin: EdgeInsets.symmetric(horizontal: chipMarginH),
                                   padding: EdgeInsets.symmetric(horizontal: chipPaddingH, vertical: chipPaddingV),
                                   decoration: BoxDecoration(
-                                    color: selectedDate.value == date
+                                    color: controller.selectedLogDate.value == date
                                         ? Colors.blue.shade50
                                         : (isDarkMode ? AppColors.darkCardBackgroundColor : AppColors.cardBackgroundColor),
                                     borderRadius: BorderRadius.circular(8),
@@ -913,59 +903,44 @@ class InfoCardContentWidget extends StatelessWidget {
                                     style: textTheme.bodyMedium?.copyWith(
                                       fontSize: fontSizeSmall,
                                       fontWeight: FontWeight.w500,
-                                      color: selectedDate.value == date
+                                      color: controller.selectedLogDate.value == date
                                           ? Colors.blue
                                           : (isDarkMode ? AppColors.darkTextColor : AppColors.textColor),
                                     ),
                                   ),
-                                ),
-                              ));
+                                )),
+                              );
                         }).toList(),
                       ),
                     ),
                   ),
                   SizedBox(height: vSpacingMedium),
-                  Obx(() {
-                    final logEntries = <Widget>[];
-                    roundData.forEach((roomId, dateMap) {
-                      if (dateMap.containsKey(selectedDate.value)) {
-                        final room = rooms[roomId];
-                        final rounds = dateMap[selectedDate.value]!;
-                        logEntries.add(_buildLogItem(
-                          location: room?.roomNumber?.toString() ?? 'Unknown',
-                          block: '${room?.blockName?.toString() ?? 'Unknown'} - ${room?.floorName?.toString() ?? 'Unknown'}',
-                          times: rounds.map((round) => round.timeSchedule?.toString() ?? '').toList(),
-                          textTheme: textTheme,
-                          isDarkMode: isDarkMode,
-                          size: size,
-                        ));
-                      }
-                    });
-
-                    if (logEntries.isEmpty) {
-                      return Container(
-                        width: double.infinity,
-                        padding: EdgeInsets.all(16),
-                        decoration: BoxDecoration(
-                          color: isDarkMode ? AppColors.darkCardBackgroundColor : AppColors.cardBackgroundColor,
-                          borderRadius: BorderRadius.circular(8),
-                       
-                        ),
-                        child: Text(
-                          'No log entries for this date',
-                          textAlign: TextAlign.center,
-                          style: textTheme.bodyMedium?.copyWith(
-                            fontSize: fontSizeSmall,
-                            color: isDarkMode ? AppColors.darkSubtitleColor : AppColors.subtitleColor,
+                  if (logEntries.isEmpty)
+                    Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Image.asset(
+                            'assets/images/no_order.png',
+                            width: imageSize,
+                            height: imageSize,
+                            fit: BoxFit.contain,
                           ),
-                        ),
-                      );
-                    }
-
-                    return Column(
+                          SizedBox(height: vSpacingMedium),
+                          Text(
+                            'No Checklists found',
+                            style: textTheme.bodyLarge?.copyWith(
+                              color: isDarkMode ? AppColors.darkTextColor : AppColors.textColor,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ],
+                      ),
+                    )
+                  else
+                    Column(
                       children: logEntries,
-                    );
-                  }),
+                    ),
                 ],
               );
             }),

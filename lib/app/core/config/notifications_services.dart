@@ -102,6 +102,30 @@ class NotificationServices {
             }
           }
         },
+        onDidReceiveBackgroundNotificationResponse: (response) {
+          print('Background notification tapped: ${response.payload}');
+          if (response.payload != null && response.payload!.isNotEmpty) {
+            print('Handling background payload: ${response.payload}');
+            final payloadData = response.payload!.split('|');
+            if (payloadData[0] == 'in_app_notification') {
+              try {
+                final ticketId = payloadData.length > 5 ? payloadData[5] : null;
+                print('Extracted ticketId from payload: $ticketId');
+                Get.to(() => FullScreenNotification(
+                      title: payloadData.length > 1 ? payloadData[1] : 'QR Buddy',
+                      body: payloadData.length > 2 ? payloadData[2] : 'New message',
+                      location: payloadData.length > 3
+                          ? payloadData[3]
+                          : 'Block A1, Ground Floor, Room G1-504 (Near Canteen)',
+                      task: payloadData.length > 4 ? payloadData[4] : 'View Details',
+                      ticketId: ticketId,
+                    ));
+              } catch (e) {
+                print('Failed to navigate to FullScreenNotification from background: $e');
+              }
+            }
+          }
+        },
       );
       print('Local notifications initialized successfully');
     } catch (e) {
@@ -192,13 +216,13 @@ class NotificationServices {
         final ticketId = data['ticket_id'] as String?; // Extract ticket_id as per log
         print('Extracted ticketId from initial: $ticketId');
 
-        await showInAppNotificationWithSound(
-          title: title,
-          body: body,
-          location: url.isNotEmpty ? url : 'Block A1, Ground Floor, Room G1-504 (Near Canteen)',
-          task: 'View Details',
-          ticketId: ticketId,
-        );
+        Get.to(() => FullScreenNotification(
+              title: title,
+              body: body,
+              location: url.isNotEmpty ? url : 'Block A1, Ground Floor, Room G1-504 (Near Canteen)',
+              task: 'View Details',
+              ticketId: ticketId,
+            ));
       } catch (e) {
         print('Failed to process initial message: $e');
       }
@@ -269,7 +293,7 @@ class NotificationServices {
       print('Showing notification with title: $title, body: $body, ticketId: $ticketId');
       await flutterLocalNotificationsPlugin.show(
         1,
-        'Ticket Assigned: $title',
+        title,
         body,
         notificationDetails,
         payload: 'in_app_notification|$title|$body|$location|$task${ticketId != null ? '|$ticketId' : ''}',
@@ -284,7 +308,7 @@ class NotificationServices {
       try {
         print('Navigating to FullScreenNotification with ticketId: $ticketId');
         Get.to(() => FullScreenNotification(
-              title: 'Ticket Assigned: $title',
+              title: title,
               body: body,
               location: location,
               task: task,
@@ -448,7 +472,7 @@ class FullScreenNotification extends StatelessWidget {
                 ),
                 const SizedBox(height: 10),
                 Text(
-                  'New request assigned',
+                  body,
                   style: TextStyle(
                     color: Colors.white70,
                     fontSize: 18,
@@ -493,7 +517,9 @@ class FullScreenNotification extends StatelessWidget {
                                     style: TextStyle(
                                         fontSize: 14, color: Colors.grey)),
                                 Text(
-                                    '', // Hide Room-Bed unless specified
+                                    location.contains('Room') || location.contains('Bed')
+                                        ? location.split(',').firstWhere((part) => part.contains('Room') || part.contains('Bed'), orElse: () => 'Unknown').trim()
+                                        : 'Unknown',
                                     style: const TextStyle(
                                       fontSize: 16,
                                       fontWeight: FontWeight.bold,

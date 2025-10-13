@@ -1,10 +1,11 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:dio/dio.dart' as dio;
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:qr_buddy/app/core/config/notifications_services.dart';
 import 'package:qr_buddy/app/core/config/token_storage.dart';
 import 'package:qr_buddy/app/core/services/api_service.dart';
 import 'package:qr_buddy/app/core/theme/app_theme.dart';
@@ -55,6 +56,7 @@ class TicketController extends GetxController {
   late final DailyChecklistRepository _dailyChecklistRepository;
   late final FoodDeliveryRepository _foodDeliveryRepository;
 
+  final NotificationServices notificationServices = NotificationServices();
 
   final remarksController = TextEditingController();
   final holdDateTimeController = TextEditingController();
@@ -62,6 +64,8 @@ class TicketController extends GetxController {
 
   // Track completion of async operations
   final _completedFetches = <String, bool>{}.obs;
+
+  Timer? _pollTimer;
 
   @override
   void onInit() {
@@ -82,7 +86,10 @@ class TicketController extends GetxController {
       ApiService(),
       TokenStorage(),
     );
-   
+
+    notificationServices.requestNotificationPermission();
+    notificationServices.firebaseInit(null);
+    notificationServices.isTokenRefresh();
 
     // Initialize fetch tracking
     _completedFetches.value = {
@@ -96,11 +103,16 @@ class TicketController extends GetxController {
     fetchTickets();
     fetchFoodDeliveries();
     fetchChecklistLog();
-    
+
+    // Poll for new food deliveries every minute
+    _pollTimer = Timer.periodic(const Duration(minutes: 1), (timer) {
+      fetchFoodDeliveries();
+    });
   }
 
   @override
   void onClose() {
+    _pollTimer?.cancel();
     remarksController.dispose();
     holdDateTimeController.dispose();
     super.onClose();
@@ -241,8 +253,8 @@ class TicketController extends GetxController {
       );
       // Copy checklist log to clipboard
   
-      await Clipboard.setData(ClipboardData(text: response.toString()));
-      print('Checklist log copied to clipboard');
+      // await Clipboard.setData(ClipboardData(text: response.toString()));
+      // print('Checklist log copied to clipboard');
 
       dailyChecklist.value = response;
 
@@ -346,6 +358,15 @@ class TicketController extends GetxController {
         tasks.assignAll(newTasksData);
         print('Fetched ${tasks.length} task groups with new items');
         updateTasksCount();
+
+        // Trigger static notification for new food delivery
+        await notificationServices.showInAppNotificationWithSound(
+          title: '🍱 Food Delivery Assigned',
+          body: 'You have a new food delivery order waiting.',
+          location: 'Block B1, Room 204',
+          task: 'View Delivery Details',
+          ticketId: 'FD-2025-001',
+        );
       } else {
         print('No new food deliveries');
       }

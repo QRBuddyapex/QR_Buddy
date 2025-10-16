@@ -276,7 +276,7 @@ class _qrbuddyDashboardWidgetState extends State<qrbuddyDashboardWidget>
           childAspectRatio: childAspectRatio,
           children: [
             _infoCard(
-              "Food Delivery",
+              "Qik Tasks",
               controller.tasksCount.value.toString(),
               Icons.local_dining,
               size,

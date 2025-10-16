@@ -10,7 +10,6 @@ import 'package:qr_buddy/app/core/theme/app_theme.dart';
 import 'package:qr_buddy/app/modules/e_ticket/controllers/ticket_controller.dart';
 import 'package:qr_buddy/app/routes/routes.dart';
 import 'package:vibration/vibration.dart';
-
 class NotificationServices {
   FirebaseMessaging messaging = FirebaseMessaging.instance;
   final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
@@ -85,19 +84,33 @@ class NotificationServices {
             final payloadData = response.payload!.split('|');
             if (payloadData[0] == 'in_app_notification') {
               try {
-                final ticketId = payloadData.length > 5 ? payloadData[5] : null;
-                print('Extracted ticketId from payload: $ticketId');
-                Get.to(() => FullScreenNotification(
-                      title: payloadData.length > 1 ? payloadData[1] : 'QR Buddy',
-                      body: payloadData.length > 2 ? payloadData[2] : 'New message',
-                      location: payloadData.length > 3
-                          ? payloadData[3]
-                          : 'Block A1, Ground Floor, Room G1-504 (Near Canteen)',
-                      task: payloadData.length > 4 ? payloadData[4] : 'View Details',
-                      ticketId: ticketId,
-                    ));
+                final notificationType = payloadData[1];
+                final title = payloadData[2];
+                final body = payloadData[3];
+                final location = payloadData[4];
+                final task = payloadData[5];
+                final ticketId = payloadData.length > 6 ? payloadData[6] : null;
+                print('Extracted notificationType: $notificationType, ticketId: $ticketId');
+
+                if (notificationType == 'food') {
+                  Get.to(() => QikTasksNotification(
+                        title: title,
+                        body: body,
+                        location: location,
+                        task: task,
+                        ticketId: ticketId,
+                      ));
+                } else {
+                  Get.to(() => FullScreenNotification(
+                        title: title,
+                        body: body,
+                        location: location,
+                        task: task,
+                        ticketId: ticketId,
+                      ));
+                }
               } catch (e) {
-                print('Failed to navigate to FullScreenNotification: $e');
+                print('Failed to navigate based on notification type: $e');
               }
             }
           }
@@ -109,19 +122,33 @@ class NotificationServices {
             final payloadData = response.payload!.split('|');
             if (payloadData[0] == 'in_app_notification') {
               try {
-                final ticketId = payloadData.length > 5 ? payloadData[5] : null;
-                print('Extracted ticketId from payload: $ticketId');
-                Get.to(() => FullScreenNotification(
-                      title: payloadData.length > 1 ? payloadData[1] : 'QR Buddy',
-                      body: payloadData.length > 2 ? payloadData[2] : 'New message',
-                      location: payloadData.length > 3
-                          ? payloadData[3]
-                          : 'Block A1, Ground Floor, Room G1-504 (Near Canteen)',
-                      task: payloadData.length > 4 ? payloadData[4] : 'View Details',
-                      ticketId: ticketId,
-                    ));
+                final notificationType = payloadData[1];
+                final title = payloadData[2];
+                final body = payloadData[3];
+                final location = payloadData[4];
+                final task = payloadData[5];
+                final ticketId = payloadData.length > 6 ? payloadData[6] : null;
+                print('Extracted background notificationType: $notificationType, ticketId: $ticketId');
+
+                if (notificationType == 'food') {
+                  Get.to(() => QikTasksNotification(
+                        title: title,
+                        body: body,
+                        location: location,
+                        task: task,
+                        ticketId: ticketId,
+                      ));
+                } else {
+                  Get.to(() => FullScreenNotification(
+                        title: title,
+                        body: body,
+                        location: location,
+                        task: task,
+                        ticketId: ticketId,
+                      ));
+                }
               } catch (e) {
-                print('Failed to navigate to FullScreenNotification from background: $e');
+                print('Failed to navigate from background based on type: $e');
               }
             }
           }
@@ -166,6 +193,7 @@ class NotificationServices {
             location: url.isNotEmpty ? url : 'Block A1, Ground Floor, Room G1-504 (Near Canteen)',
             task: 'View Details',
             ticketId: ticketId,
+            notificationType: 'ticket',
           );
         } catch (e) {
           print('Failed to process foreground notification: $e');
@@ -237,6 +265,7 @@ class NotificationServices {
     required String location,
     required String task,
     String? ticketId,
+    String notificationType = 'ticket',
   }) async {
     var androidNotificationChannel = AndroidNotificationChannel(
       'in_app_notification_channel',
@@ -290,15 +319,15 @@ class NotificationServices {
     );
 
     try {
-      print('Showing notification with title: $title, body: $body, ticketId: $ticketId');
+      print('Showing notification with title: $title, body: $body, ticketId: $ticketId, type: $notificationType');
       await flutterLocalNotificationsPlugin.show(
         1,
         title,
         body,
         notificationDetails,
-        payload: 'in_app_notification|$title|$body|$location|$task${ticketId != null ? '|$ticketId' : ''}',
+        payload: 'in_app_notification|$notificationType|$title|$body|$location|$task${ticketId != null ? '|$ticketId' : ''}',
       );
-      print('Notification shown successfully with payload: in_app_notification|$title|$body|$location|$task${ticketId != null ? '|$ticketId' : ''}');
+      print('Notification shown successfully with payload: in_app_notification|$notificationType|$title|$body|$location|$task${ticketId != null ? '|$ticketId' : ''}');
     } catch (e) {
       print('Failed to show notification: $e');
     }
@@ -306,17 +335,27 @@ class NotificationServices {
     // Avoid contextless navigation in background
     if (Get.context != null) {
       try {
-        print('Navigating to FullScreenNotification with ticketId: $ticketId');
-        Get.to(() => FullScreenNotification(
-              title: title,
-              body: body,
-              location: location,
-              task: task,
-              ticketId: ticketId,
-            ));
+        print('Navigating to ${notificationType == 'food' ? 'QikTasksNotification' : 'FullScreenNotification'} with ticketId: $ticketId');
+        if (notificationType == 'food') {
+          Get.to(() => QikTasksNotification(
+                title: title,
+                body: body,
+                location: location,
+                task: task,
+                ticketId: ticketId,
+              ));
+        } else {
+          Get.to(() => FullScreenNotification(
+                title: title,
+                body: body,
+                location: location,
+                task: task,
+                ticketId: ticketId,
+              ));
+        }
         print('Navigation successful');
       } catch (e) {
-        print('Failed to navigate to FullScreenNotification: $e');
+        print('Failed to navigate: $e');
       }
     } else {
       print('Context not available, skipping navigation');
@@ -448,8 +487,33 @@ class FullScreenNotification extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     print('FullScreenNotification built with ticketId: $ticketId');
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    final cardBackgroundColor = isDark ? AppColors.darkCardBackgroundColor : AppColors.cardBackgroundColor;
+    final textColor = isDark ? AppColors.darkTextColor : AppColors.textColor;
+    final subtitleColor = isDark ? AppColors.darkSubtitleColor : AppColors.subtitleColor;
+    final primaryColor = theme.primaryColor;
+    final whiteColor = Colors.white;
+
+    String blockFloor = 'Unknown';
+    String roomBed = 'Unknown';
+    if (location.contains('Block') || location.contains('Floor')) {
+      final parts = location.split(',');
+      blockFloor = parts.firstWhere(
+        (part) => part.contains('Block') || part.contains('Floor'),
+        orElse: () => '',
+      ).trim();
+    }
+    if (location.contains('Room') || location.contains('Bed')) {
+      final parts = location.split(',');
+      roomBed = parts.firstWhere(
+        (part) => part.contains('Room') || part.contains('Bed'),
+        orElse: () => '',
+      ).trim();
+    }
+
     return Scaffold(
-      backgroundColor: AppColors.primaryColor,
+      backgroundColor: primaryColor,
       body: SafeArea(
         child: Center(
           child: Padding(
@@ -457,15 +521,13 @@ class FullScreenNotification extends StatelessWidget {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                const Icon(Icons.notifications_active,
-                    size: 80, color: Colors.white),
+                Icon(Icons.notifications_active,
+                    size: 80, color: whiteColor),
                 const SizedBox(height: 24),
                 Text(
                   title,
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold,
+                  style: theme.textTheme.headlineMedium!.copyWith(
+                    color: whiteColor,
                     fontFamily: 'Poppins',
                   ),
                   textAlign: TextAlign.center,
@@ -473,9 +535,8 @@ class FullScreenNotification extends StatelessWidget {
                 const SizedBox(height: 10),
                 Text(
                   body,
-                  style: TextStyle(
-                    color: Colors.white70,
-                    fontSize: 18,
+                  style: theme.textTheme.bodyMedium!.copyWith(
+                    color: whiteColor.withOpacity(0.7),
                     fontFamily: 'Poppins',
                   ),
                 ),
@@ -483,7 +544,7 @@ class FullScreenNotification extends StatelessWidget {
                 Container(
                   padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
-                    color: AppColors.cardBackgroundColor,
+                    color: cardBackgroundColor,
                     borderRadius: BorderRadius.circular(16),
                   ),
                   child: Column(
@@ -495,17 +556,19 @@ class FullScreenNotification extends StatelessWidget {
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                const Text("Block-Floor",
-                                    style: TextStyle(
-                                        fontSize: 14, color: Colors.grey)),
-                                Text(
-                                    location.contains('Block') || location.contains('Floor')
-                                        ? location.split(',').firstWhere((part) => part.contains('Block') || part.contains('Floor'), orElse: () => '').trim()
-                                        : 'Unknown',
-                                    style: const TextStyle(
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.bold,
+                                Text("Block-Floor",
+                                    style: theme.textTheme.bodySmall!.copyWith(
+                                      color: subtitleColor,
+                                      fontFamily: 'Poppins',
                                     )),
+                                Text(
+                                  blockFloor,
+                                  style: theme.textTheme.bodyMedium!.copyWith(
+                                    color: textColor,
+                                    fontWeight: FontWeight.bold,
+                                    fontFamily: 'Poppins',
+                                  ),
+                                ),
                               ],
                             ),
                           ),
@@ -513,17 +576,19 @@ class FullScreenNotification extends StatelessWidget {
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                const Text("Room-Bed",
-                                    style: TextStyle(
-                                        fontSize: 14, color: Colors.grey)),
-                                Text(
-                                    location.contains('Room') || location.contains('Bed')
-                                        ? location.split(',').firstWhere((part) => part.contains('Room') || part.contains('Bed'), orElse: () => 'Unknown').trim()
-                                        : 'Unknown',
-                                    style: const TextStyle(
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.bold,
+                                Text("Room-Bed",
+                                    style: theme.textTheme.bodySmall!.copyWith(
+                                      color: subtitleColor,
+                                      fontFamily: 'Poppins',
                                     )),
+                                Text(
+                                  roomBed,
+                                  style: theme.textTheme.bodyMedium!.copyWith(
+                                    color: textColor,
+                                    fontWeight: FontWeight.bold,
+                                    fontFamily: 'Poppins',
+                                  ),
+                                ),
                               ],
                             ),
                           ),
@@ -532,8 +597,11 @@ class FullScreenNotification extends StatelessWidget {
                       const Divider(height: 24, thickness: 1),
                       Center(
                         child: Text(task.isNotEmpty ? task : 'Unknown',
-                            style: const TextStyle(
-                                fontSize: 18, fontWeight: FontWeight.w600)),
+                            style: theme.textTheme.headlineSmall!.copyWith(
+                              color: textColor,
+                              fontWeight: FontWeight.w600,
+                              fontFamily: 'Poppins',
+                            )),
                       ),
                     ],
                   ),
@@ -565,17 +633,19 @@ class FullScreenNotification extends StatelessWidget {
                     }
                   },
                   icon: const Icon(Icons.arrow_forward, color: Colors.white),
-                  label: const Text("Accept and Start",
-                      style: TextStyle(color: Colors.white)),
+                  label: Text("Accept and Start",
+                      style: theme.textTheme.labelLarge!.copyWith(
+                        color: whiteColor,
+                        fontFamily: 'Poppins',
+                      )),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.white.withOpacity(0.2),
+                    backgroundColor: whiteColor.withOpacity(0.2),
+                    foregroundColor: whiteColor,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(30),
                     ),
                     padding: const EdgeInsets.symmetric(
                         horizontal: 32, vertical: 16),
-                    textStyle: const TextStyle(
-                        fontSize: 18, fontWeight: FontWeight.bold),
                   ),
                 ),
                 const SizedBox(height: 16),
@@ -584,8 +654,181 @@ class FullScreenNotification extends StatelessWidget {
                     print("Dismiss pressed");
                     Get.back();
                   },
-                  child: const Text("Dismiss",
-                      style: TextStyle(color: Colors.white, fontSize: 16)),
+                  child: Text("Dismiss",
+                      style: theme.textTheme.bodyMedium!.copyWith(
+                        color: whiteColor,
+                        fontFamily: 'Poppins',
+                      )),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class QikTasksNotification extends StatelessWidget {
+  final String title;
+  final String body;
+  final String location;
+  final String task;
+  final String? ticketId;
+
+  const QikTasksNotification({
+    Key? key,
+    required this.title,
+    required this.body,
+    required this.location,
+    required this.task,
+    this.ticketId,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    print('QikTasksNotification built with ticketId: $ticketId');
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    final cardBackgroundColor = isDark ? AppColors.darkCardBackgroundColor : AppColors.cardBackgroundColor;
+    final textColor = isDark ? AppColors.darkTextColor : AppColors.textColor;
+    final subtitleColor = isDark ? AppColors.darkSubtitleColor : AppColors.subtitleColor;
+    final primaryColor = theme.primaryColor;
+    final whiteColor = Colors.white;
+    final orangeColor = Colors.orange[600]!;
+
+    return Scaffold(
+      backgroundColor: orangeColor,
+      body: SafeArea(
+        child: Center(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 40),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Icon(Icons.restaurant_menu,
+                    size: 80, color: Colors.white),
+                const SizedBox(height: 24),
+                Text(
+                  'Qik Tasks Notification',
+                  style: theme.textTheme.headlineSmall!.copyWith(
+                    color: whiteColor,
+                    fontFamily: 'Poppins',
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  title,
+                  style: theme.textTheme.headlineMedium!.copyWith(
+                    color: whiteColor,
+                    fontFamily: 'Poppins',
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 10),
+                Text(
+                  body,
+                  style: theme.textTheme.bodyMedium!.copyWith(
+                    color: whiteColor.withOpacity(0.7),
+                    fontFamily: 'Poppins',
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 30),
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: cardBackgroundColor,
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Row(
+                        children: [
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text("Location",
+                                    style: theme.textTheme.bodySmall!.copyWith(
+                                      color: subtitleColor,
+                                      fontFamily: 'Poppins',
+                                    )),
+                                Text(
+                                  location,
+                                  style: theme.textTheme.bodyMedium!.copyWith(
+                                    color: textColor,
+                                    fontWeight: FontWeight.bold,
+                                    fontFamily: 'Poppins',
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                      const Divider(height: 24, thickness: 1),
+                      Center(
+                        child: Text(task.isNotEmpty ? task : 'Unknown',
+                            style: theme.textTheme.headlineSmall!.copyWith(
+                              color: textColor,
+                              fontWeight: FontWeight.w600,
+                              fontFamily: 'Poppins',
+                            )),
+                      ),
+                    ],
+                  ),
+                ),
+                const Spacer(),
+                ElevatedButton.icon(
+                  onPressed: () async {
+                    print("Start Delivery pressed with ticketId: $ticketId");
+                    try {
+                      // For food delivery, navigate to dashboard or specific screen
+                      // Optionally, implement accept logic if needed
+                      Get.offAllNamed(RoutesName.ticketDashboardView);
+                      final ticketController = Get.find<TicketController>();
+                      await ticketController.fetchFoodDeliveries();
+                    } catch (e) {
+                      print('Failed to start delivery: $e');
+                      Get.snackbar(
+                        'Error',
+                        'Failed to start delivery: $e',
+                        snackPosition: SnackPosition.BOTTOM,
+                        backgroundColor: Colors.red.withOpacity(0.8),
+                        colorText: Colors.white,
+                      );
+                    }
+                  },
+                  icon: Icon(Icons.arrow_forward, color: orangeColor),
+                  label: Text("Start Delivery",
+                      style: theme.textTheme.labelLarge!.copyWith(
+                        color: orangeColor,
+                        fontFamily: 'Poppins',
+                      )),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: whiteColor,
+                    foregroundColor: orangeColor,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(30),
+                    ),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 32, vertical: 16),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                TextButton(
+                  onPressed: () {
+                    print("Dismiss pressed");
+                    Get.back();
+                  },
+                  child: Text("Dismiss",
+                      style: theme.textTheme.bodyMedium!.copyWith(
+                        color: whiteColor,
+                        fontFamily: 'Poppins',
+                      )),
                 ),
               ],
             ),

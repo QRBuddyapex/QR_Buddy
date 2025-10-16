@@ -50,7 +50,7 @@ class InfoCardContentWidget extends StatelessWidget {
     required Size size,
     required TextTheme textTheme,
   }) {
-    final hPaddingSmall = size.width * 0.004;
+    final hPadding = size.width * 0.02;
     final vPadding = size.height * 0.01;
     final cardPadding = size.width * 0.04;
     final iconSize = size.width * 0.06;
@@ -61,7 +61,7 @@ class InfoCardContentWidget extends StatelessWidget {
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
     return Padding(
       padding: EdgeInsets.symmetric(
-        horizontal: hPaddingSmall,
+        horizontal: hPadding,
         vertical: vPadding,
       ),
       child: Card(
@@ -86,7 +86,7 @@ class InfoCardContentWidget extends StatelessWidget {
               Flexible(
                 child: Row(
                   children: [
-                    SizedBox(width: size.width * 0.02),
+                    SizedBox(width: size.width * 0.001),
                     Flexible(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -128,7 +128,7 @@ class InfoCardContentWidget extends StatelessWidget {
                     arguments: {'room_uuid': roomUuid},
                   );
 
-                  if (scannedUuid != null && scannedUuid == roomUuid) {
+                  if ((scannedUuid != null && scannedUuid == roomUuid)) {
                     Get.toNamed(
                       RoutesName.qualityRoundsScreen,
                       arguments: {
@@ -165,142 +165,174 @@ class InfoCardContentWidget extends StatelessWidget {
       ),
     );
   }
+Widget _buildChecklistCard({
+  required BuildContext context,
+  required Map<String, dynamic> checklist,
+  required int index,
+  required Size size,
+  required TextTheme textTheme,
+}) {
+  final padding = EdgeInsets.all(size.width * 0.04);
+  final isDarkMode = Theme.of(context).brightness == Brightness.dark;
 
-  Widget _buildChecklistCard({
-    required BuildContext context,
-    required Map<String, dynamic> checklist,
-    required int index,
-    required Size size,
-    required TextTheme textTheme,
-  }) {
-    final hPadding = size.width * 0.04;
-    final vPadding = size.height * 0.01;
-    final cardPadding = size.width * 0.04;
-    final iconSize = size.width * 0.05;
-    final fontSizeLarge = size.width * 0.04;
-    final fontSizeSmall = size.width * 0.035;
-    final vSpacing = size.height * 0.015;
-    final hSpacing = size.width * 0.02;
-    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
-    return Padding(
-      padding: EdgeInsets.symmetric(
-        horizontal: hPadding,
-        vertical: vPadding,
-      ),
-      child: Card(
-        elevation: 5,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(15),
-          side: BorderSide(
-            color: isDarkMode
-                ? AppColors.darkBorderColor
-                : AppColors.primaryColor.withOpacity(0.3),
-            width: 1,
-          ),
+  final fontSizeLarge = size.width * 0.04;
+  final fontSizeSmall = size.width * 0.035;
+  final iconSize = size.width * 0.05;
+  final vSpacing = size.height * 0.01;
+  final hSpacing = size.width * 0.02;
+
+  // Define a fixed height for consistency across cards
+  final fixedCardHeight = size.height * 0.20; // 20% of screen height for uniformity
+
+  return Padding(
+  padding: EdgeInsets.all(size.width * 0.04),
+  child: Column(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      Text(
+        'Checklists',
+        style: textTheme.titleLarge?.copyWith(
+          fontWeight: FontWeight.bold,
+          color: isDarkMode
+              ? AppColors.darkTextColor
+              : AppColors.textColor,
         ),
-        color: isDarkMode
-            ? AppColors.darkCardBackgroundColor
-            : AppColors.cardBackgroundColor,
-        child: Padding(
-          padding: EdgeInsets.all(cardPadding),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Row(
-                    children: [
-                      Container(
-                        padding: EdgeInsets.all(size.width * 0.015),
-                        decoration: BoxDecoration(
-                          color: AppColors.primaryColor.withOpacity(0.1),
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Text(
-                          "Checklist $index",
-                          style: textTheme.bodyMedium?.copyWith(
-                            color: AppColors.primaryColor,
-                            fontWeight: FontWeight.bold,
-                            fontSize: fontSizeLarge,
-                          ),
-                        ),
+      ),
+      SizedBox(height: size.height * 0.02),
+
+      // Uniform Grid of Checklist Cards
+      GridView.builder(
+        itemCount: 6, // replace with your checklist length
+        shrinkWrap: true,
+        physics: const NeverScrollableScrollPhysics(),
+        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount: 2, // 2 cards per row
+          crossAxisSpacing: size.width * 0.04,
+          mainAxisSpacing: size.height * 0.02,
+          childAspectRatio: 1.2, // Controls uniform height/width ratio
+        ),
+        itemBuilder: (context, index) {
+          return Container(
+            width: double.infinity,
+            height: double.infinity,
+            padding: EdgeInsets.all(size.width * 0.04),
+            decoration: BoxDecoration(
+              color: isDarkMode
+                  ? AppColors.darkCardBackgroundColor
+                  : AppColors.cardBackgroundColor,
+              borderRadius: BorderRadius.circular(15),
+              border: Border.all(
+                color: isDarkMode
+                    ? AppColors.darkBorderColor
+                    : AppColors.primaryColor.withOpacity(0.3),
+                width: 1,
+              ),
+              boxShadow: [
+                if (!isDarkMode)
+                  BoxShadow(
+                    color: AppColors.shadowColor.withOpacity(0.1),
+                    blurRadius: 6,
+                    offset: const Offset(2, 2),
+                  ),
+              ],
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                // Header Row
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Container(
+                      padding: EdgeInsets.symmetric(
+                        horizontal: size.width * 0.02,
+                        vertical: size.height * 0.004,
                       ),
-                      SizedBox(width: hSpacing),
-                      Text(
-                        checklist['checklist_name'],
+                      decoration: BoxDecoration(
+                        color: AppColors.primaryColor.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Text(
+                        "Checklist ${index + 1}",
                         style: textTheme.bodyMedium?.copyWith(
-                          color: isDarkMode
-                              ? AppColors.darkTextColor
-                              : AppColors.textColor,
+                          color: AppColors.primaryColor,
                           fontWeight: FontWeight.bold,
-                          fontSize: fontSizeSmall,
+                          fontSize: size.width * 0.035,
                         ),
                       ),
-                    ],
-                  ),
-                  IconButton(
-                    icon: Icon(
-                      Icons.delete,
-                      color: AppColors.dangerButtonColor,
-                      size: iconSize,
                     ),
-                    onPressed: () {},
+                    Icon(
+                      Icons.delete_outline,
+                      color: Colors.redAccent,
+                      size: size.width * 0.05,
+                    ),
+                  ],
+                ),
+
+                // Checklist Name
+                Text(
+                  "Name: Sample Task",
+                  style: textTheme.bodyMedium?.copyWith(
+                    fontWeight: FontWeight.w600,
+                    fontSize: size.width * 0.035,
+                    color: isDarkMode
+                        ? AppColors.darkTextColor
+                        : AppColors.textColor,
                   ),
-                ],
-              ),
-              SizedBox(height: vSpacing),
-              Row(
-                children: [
-                  Icon(
-                    Icons.location_on,
-                    color: AppColors.primaryColor,
-                    size: iconSize,
-                  ),
-                  SizedBox(width: hSpacing),
-                  Expanded(
-                    child: Text(
-                      "Location: ${checklist['location']}",
-                      style: textTheme.bodySmall?.copyWith(
-                        color: isDarkMode
-                            ? AppColors.darkSubtitleColor
-                            : AppColors.hintTextColor,
-                        fontSize: fontSizeSmall,
+                  overflow: TextOverflow.ellipsis,
+                ),
+
+                // Location and Date
+                Row(
+                  children: [
+                    Icon(Icons.location_on,
+                        color: AppColors.primaryColor, size: size.width * 0.04),
+                    SizedBox(width: size.width * 0.02),
+                    Expanded(
+                      child: Text(
+                        "Location A",
+                        style: textTheme.bodySmall?.copyWith(
+                          color: isDarkMode
+                              ? AppColors.darkSubtitleColor
+                              : AppColors.hintTextColor,
+                          fontSize: size.width * 0.03,
+                        ),
+                        overflow: TextOverflow.ellipsis,
                       ),
-                      overflow: TextOverflow.ellipsis,
                     ),
-                  ),
-                ],
-              ),
-              SizedBox(height: vSpacing),
-              Row(
-                children: [
-                  Icon(
-                    Icons.calendar_today,
-                    color: AppColors.primaryColor,
-                    size: iconSize,
-                  ),
-                  SizedBox(width: hSpacing),
-                  Expanded(
-                    child: Text(
-                      "Date & Time: ${checklist['date_and_time']}",
-                      style: textTheme.bodySmall?.copyWith(
-                        color: isDarkMode
-                            ? AppColors.darkSubtitleColor
-                            : AppColors.hintTextColor,
-                        fontSize: fontSizeSmall,
+                  ],
+                ),
+                Row(
+                  children: [
+                    Icon(Icons.calendar_today,
+                        color: AppColors.primaryColor, size: size.width * 0.04),
+                    SizedBox(width: size.width * 0.02),
+                    Expanded(
+                      child: Text(
+                        "12 Oct 2025",
+                        style: textTheme.bodySmall?.copyWith(
+                          color: isDarkMode
+                              ? AppColors.darkSubtitleColor
+                              : AppColors.hintTextColor,
+                          fontSize: size.width * 0.03,
+                        ),
+                        overflow: TextOverflow.ellipsis,
                       ),
-                      overflow: TextOverflow.ellipsis,
                     ),
-                  ),
-                ],
-              ),
-            ],
-          ),
-        ),
+                  ],
+                ),
+              ],
+            ),
+          );
+        },
       ),
-    );
-  }
+    ],
+  ),
+);
+
+}
+
 
   Widget _buildAddButton({
     required BuildContext context,
@@ -336,63 +368,100 @@ class InfoCardContentWidget extends StatelessWidget {
       ),
     );
   }
+Widget _buildLogItem({
+  required String location,
+  required String block,
+  required List<String> times,
+  required TextTheme textTheme,
+  required bool isDarkMode,
+  required Size size,
+}) {
+  final vMargin = size.height * 0.012;
+  final hPadding = size.width * 0.04;
+  final vPadding = size.height * 0.015;
+  final chipSpacing = size.width * 0.02;
 
-  Widget _buildLogItem({
-    required String location,
-    required String block,
-    required List<String> times,
-    required TextTheme textTheme,
-    required bool isDarkMode,
-    required Size size,
-  }) {
-    final vMargin = size.height * 0.01;
-    final padding = size.width * 0.04;
-    final vSpacing = size.height * 0.01;
-    final hSpacing = size.width * 0.02;
-    final chipSpacing = size.width * 0.02;
-    return Container(
-      margin: EdgeInsets.symmetric(vertical: vMargin),
-      padding: EdgeInsets.all(padding),
+  return Padding(
+    padding: EdgeInsets.symmetric(horizontal: hPadding, vertical: vMargin),
+    child: Container(
+      width: double.infinity,
+      padding: EdgeInsets.all(hPadding),
       decoration: BoxDecoration(
-        color: isDarkMode ? AppColors.darkCardBackgroundColor : AppColors.cardBackgroundColor,
-        borderRadius: BorderRadius.circular(8),
-      
+        color: isDarkMode
+            ? AppColors.darkCardBackgroundColor
+            : AppColors.cardBackgroundColor,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          if (!isDarkMode)
+            BoxShadow(
+              color: AppColors.shadowColor.withOpacity(0.08),
+              blurRadius: 8,
+              offset: const Offset(2, 3),
+            ),
+        ],
+        border: Border.all(
+          color: isDarkMode
+              ? AppColors.darkBorderColor
+              : AppColors.primaryColor.withOpacity(0.2),
+          width: 1,
+        ),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          // Room name
           Text(
             location,
             style: textTheme.bodyLarge?.copyWith(
               fontWeight: FontWeight.bold,
-              color: isDarkMode ? AppColors.darkTextColor : AppColors.textColor,
+              color: isDarkMode
+                  ? AppColors.darkTextColor
+                  : AppColors.textColor,
             ),
           ),
+          // Block/Floor info
           Text(
             block,
             style: textTheme.bodyMedium?.copyWith(
-              color: isDarkMode ? AppColors.darkSubtitleColor : Colors.grey.shade600,
+              color: isDarkMode
+                  ? AppColors.darkSubtitleColor
+                  : Colors.grey.shade600,
             ),
           ),
-          SizedBox(height: vSpacing),
+          SizedBox(height: size.height * 0.01),
+
+          // Dynamic time chips
           Wrap(
             spacing: chipSpacing,
+            runSpacing: size.height * 0.008,
             children: times
-                .map((time) => Chip(
-                      label: Text(
+                .map((time) => Container(
+                      padding: EdgeInsets.symmetric(
+                        horizontal: size.width * 0.05,
+                        vertical: size.height * 0.008,
+                      ),
+                      decoration: BoxDecoration(
+                        color: Colors.pink.shade50,
+                        borderRadius: BorderRadius.circular(10),
+                        border: Border.all(
+                          color: Colors.pink.shade200,
+                        ),
+                      ),
+                      child: Text(
                         time,
                         style: textTheme.bodySmall?.copyWith(
                           color: Colors.pink.shade700,
+                          fontWeight: FontWeight.w500,
                         ),
                       ),
-                      backgroundColor: Colors.pink.shade50,
                     ))
                 .toList(),
           ),
         ],
       ),
-    );
-  }
+    ),
+  );
+}
 
   DateTime _parseShortDate(String dateStr) {
     final parts = dateStr.trim().split(' ');
@@ -475,7 +544,7 @@ class InfoCardContentWidget extends StatelessWidget {
             );
           },
         );
-      } else if (controller.selectedInfoCard.value == 'Food Delivery') {
+      } else if (controller.selectedInfoCard.value == 'Qik Tasks') {
         if (controller.tasksCount == 0) {
           return Center(
             child: Column(
@@ -525,7 +594,7 @@ class InfoCardContentWidget extends StatelessWidget {
           }).toList(),
         );
       } else if (controller.selectedInfoCard.value == 'Checklists') {
-          if (controller.checklists.isEmpty  ) {
+        if (controller.checklists.isEmpty) {
           return Center(
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
@@ -573,10 +642,6 @@ class InfoCardContentWidget extends StatelessWidget {
                   //   size: size,
                   //   textTheme: textTheme,
                   // ),
-                 
-              
-                    // ...checklistWidgets,
-                 
                 ],
               );
             }).toList(),
@@ -597,84 +662,6 @@ class InfoCardContentWidget extends StatelessWidget {
                     ),
                   ),
                   SizedBox(height: vSpacingMedium),
-                  // Container(
-                  //   padding: EdgeInsets.symmetric(horizontal: hPadding),
-                  //   decoration: BoxDecoration(
-                  //     color: isDarkMode ? AppColors.darkCardBackgroundColor : AppColors.cardBackgroundColor,
-                  //     border: Border.all(
-                  //       color: isDarkMode ? AppColors.darkBorderColor : AppColors.borderColor,
-                  //     ),
-                  //     borderRadius: BorderRadius.circular(25),
-                   
-                  //   ),
-                  //   child: DropdownButtonHideUnderline(
-                  //     child: Obx(() {
-                  //       final categories = controller.dailyChecklist.value?.categories ?? [];
-                  //       const noCategoryOption = 'No Category';
-
-                  //       final dropdownItems = [
-                  //         DropdownMenuItem<String>(
-                  //           value: noCategoryOption,
-                  //           child: Text(
-                  //             noCategoryOption,
-                  //             style: textTheme.bodyMedium?.copyWith(
-                  //               color: isDarkMode ? AppColors.darkTextColor : AppColors.textColor,
-                  //             ),
-                  //           ),
-                  //         ),
-                  //         ...categories.map((category) {
-                  //           return DropdownMenuItem<String>(
-                  //             value: category.categoryName,
-                  //             child: Text(
-                  //               category.categoryName,
-                  //               style: textTheme.bodyMedium?.copyWith(
-                  //                 color: isDarkMode ? AppColors.darkTextColor : AppColors.textColor,
-                  //               ),
-                  //             ),
-                  //           );
-                  //         }).toList(),
-                  //       ];
-
-                  //       String defaultValue;
-                  //       if (categories.isEmpty) {
-                  //         defaultValue = noCategoryOption;
-                  //       } else if (controller.selectedCategory.value.isNotEmpty &&
-                  //           (controller.selectedCategory.value == noCategoryOption ||
-                  //               categories.any((cat) => cat.categoryName == controller.selectedCategory.value))) {
-                  //         defaultValue = controller.selectedCategory.value;
-                  //       } else {
-                  //         defaultValue = noCategoryOption;
-                  //       }
-
-                  //       return DropdownButton<String>(
-                  //         value: defaultValue,
-                  //         isExpanded: true,
-                  //         icon: Icon(
-                  //           Icons.keyboard_arrow_down,
-                  //           color: isDarkMode ? AppColors.darkIconColor : AppColors.iconColor,
-                  //         ),
-                  //         iconSize: dropdownIconSize,
-                  //         elevation: 0,
-                  //         style: textTheme.bodyMedium?.copyWith(
-                  //           color: isDarkMode ? AppColors.darkTextColor : AppColors.textColor,
-                  //         ),
-                  //         hint: Text(
-                  //           'Loading categories...',
-                  //           style: textTheme.bodyMedium?.copyWith(
-                  //             color: isDarkMode ? AppColors.darkSubtitleColor : AppColors.subtitleColor,
-                  //           ),
-                  //         ),
-                  //         items: dropdownItems,
-                  //         onChanged: (String? newValue) {
-                  //           if (newValue != null) {
-                  //             controller.selectedCategory.value = newValue;
-                  //             controller.fetchChecklistLog();
-                  //           }
-                  //         },
-                  //       );
-                  //     }),
-                  //   ),
-                  // ),
                   SizedBox(height: vSpacingMedium),
                   Row(
                     children: [
@@ -770,180 +757,185 @@ class InfoCardContentWidget extends StatelessWidget {
                 vertical: vPadding,
                 horizontal: filterHSpacing,
               ),
-              child: Text(
-                'Log',
-                style: textTheme.titleLarge?.copyWith(
-                  fontWeight: FontWeight.bold,
-                  color: isDarkMode ? AppColors.darkTextColor : AppColors.textColor,
-                ),
-              ),
-            ),
-            SizedBox(height: vSpacingMedium),
-            Obx(() {
-              if (controller.dailyChecklist.value == null ||
-                  controller.dailyChecklist.value!.roundData.isEmpty ||
-                  controller.dailyChecklist.value!.rooms.isEmpty) {
-                return Container(
-                  width: double.infinity,
-                  padding: EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: isDarkMode ? AppColors.darkCardBackgroundColor : AppColors.cardBackgroundColor,
-                    borderRadius: BorderRadius.circular(8),
-                  
-                  ),
-                  child: Text(
-                    'No log data available',
-                    textAlign: TextAlign.center,
-                    style: textTheme.bodyMedium?.copyWith(
-                      fontSize: fontSizeSmall,
-                      color: isDarkMode ? AppColors.darkSubtitleColor : AppColors.subtitleColor,
-                    ),
-                  ),
-                );
-              }
-
-              final roundData = controller.dailyChecklist.value!.roundData;
-              final rooms = controller.dailyChecklist.value!.rooms;
-              final allDates = <String>{};
-
-              roundData.forEach((roomId, dateMap) {
-                dateMap.keys.forEach((date) {
-                  allDates.add(date);
-                });
-              });
-
-              final sortedDates = allDates.toList()
-                ..sort((a, b) {
-                  try {
-                    final dateA = _parseShortDate(a);
-                    final dateB = _parseShortDate(b);
-                    return dateA.compareTo(dateB);
-                  } catch (e) {
-                    return a.compareTo(b);
-                  }
-                });
-
-              if (sortedDates.isEmpty) {
-                return Container(
-                  width: double.infinity,
-                  padding: EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: isDarkMode ? AppColors.darkCardBackgroundColor : AppColors.cardBackgroundColor,
-                    borderRadius: BorderRadius.circular(8),
-                 
-                  ),
-                  child: Text(
-                    'No log data available',
-                    textAlign: TextAlign.center,
-                    style: textTheme.bodyMedium?.copyWith(
-                      fontSize: fontSizeSmall,
-                      color: isDarkMode ? AppColors.darkSubtitleColor : AppColors.subtitleColor,
-                    ),
-                  ),
-                );
-              }
-
-              if (controller.selectedLogDate.value.isEmpty) {
-                final today = DateTime.now();
-                String mostRecentDate = sortedDates.first;
-                Duration minDifference = today.difference(_parseShortDate(sortedDates.first)).abs();
-
-                for (final date in sortedDates) {
-                  final parsedDate = _parseShortDate(date);
-                  final difference = today.difference(parsedDate).abs();
-                  if (difference < minDifference) {
-                    minDifference = difference;
-                    mostRecentDate = date;
-                  }
-                }
-                controller.selectedLogDate.value = mostRecentDate;
-              }
-
-              final logEntries = <Widget>[];
-              roundData.forEach((roomId, dateMap) {
-                if (dateMap.containsKey(controller.selectedLogDate.value)) {
-                  final room = rooms[roomId];
-                  final rounds = dateMap[controller.selectedLogDate.value]!;
-                  logEntries.add(_buildLogItem(
-                    location: room?.roomNumber?.toString() ?? 'Unknown',
-                    block: '${room?.blockName?.toString() ?? 'Unknown'} - ${room?.floorName?.toString() ?? 'Unknown'}',
-                    times: rounds.map((round) => round.timeSchedule?.toString() ?? '').toList(),
-                    textTheme: textTheme,
-                    isDarkMode: isDarkMode,
-                    size: size,
-                  ));
-                }
-              });
-
-              return Column(
+              child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  SizedBox(
-                    height: dateRowHeight,
-                    child: SingleChildScrollView(
-                      scrollDirection: Axis.horizontal,
-                      child: Row(
-                        children: sortedDates.map((date) {
-                          return GestureDetector(
-                                onTap: () {
-                                  controller.selectedLogDate.value = date;
-                                },
-                                child: Obx(() => Container(
-                                  margin: EdgeInsets.symmetric(horizontal: chipMarginH),
-                                  padding: EdgeInsets.symmetric(horizontal: chipPaddingH, vertical: chipPaddingV),
-                                  decoration: BoxDecoration(
-                                    color: controller.selectedLogDate.value == date
-                                        ? Colors.blue.shade50
-                                        : (isDarkMode ? AppColors.darkCardBackgroundColor : AppColors.cardBackgroundColor),
-                                    borderRadius: BorderRadius.circular(8),
-                                 
-                                  ),
-                                  child: Text(
-                                    _formatShortDate(date),
-                                    style: textTheme.bodyMedium?.copyWith(
-                                      fontSize: fontSizeSmall,
-                                      fontWeight: FontWeight.w500,
-                                      color: controller.selectedLogDate.value == date
-                                          ? Colors.blue
-                                          : (isDarkMode ? AppColors.darkTextColor : AppColors.textColor),
-                                    ),
-                                  ),
-                                )),
-                              );
-                        }).toList(),
-                      ),
+                  Text(
+                    'Log',
+                    style: textTheme.titleLarge?.copyWith(
+                      fontWeight: FontWeight.bold,
+                      color: isDarkMode ? AppColors.darkTextColor : AppColors.textColor,
                     ),
                   ),
                   SizedBox(height: vSpacingMedium),
-                  if (logEntries.isEmpty)
-                    Center(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Image.asset(
-                            'assets/images/no_order.png',
-                            width: imageSize,
-                            height: imageSize,
-                            fit: BoxFit.contain,
+                  Obx(() {
+                    if (controller.dailyChecklist.value == null ||
+                        controller.dailyChecklist.value!.roundData.isEmpty ||
+                        controller.dailyChecklist.value!.rooms.isEmpty) {
+                      return Container(
+                        width: double.infinity,
+                        padding: EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: isDarkMode ? AppColors.darkCardBackgroundColor : AppColors.cardBackgroundColor,
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Text(
+                          'No log data available',
+                          textAlign: TextAlign.center,
+                          style: textTheme.bodyMedium?.copyWith(
+                            fontSize: fontSizeSmall,
+                            color: isDarkMode ? AppColors.darkSubtitleColor : AppColors.subtitleColor,
                           ),
-                          SizedBox(height: vSpacingMedium),
-                          Text(
-                            'No Checklists found',
-                            style: textTheme.bodyLarge?.copyWith(
-                              color: isDarkMode ? AppColors.darkTextColor : AppColors.textColor,
-                              fontWeight: FontWeight.w500,
+                        ),
+                      );
+                    }
+
+                    final roundData = controller.dailyChecklist.value!.roundData;
+                    final rooms = controller.dailyChecklist.value!.rooms;
+                    final allDates = <String>{};
+
+                    roundData.forEach((roomId, dateMap) {
+                      dateMap.keys.forEach((date) {
+                        allDates.add(date);
+                      });
+                    });
+
+                    final sortedDates = allDates.toList()
+                      ..sort((a, b) {
+                        try {
+                          final dateA = _parseShortDate(a);
+                          final dateB = _parseShortDate(b);
+                          return dateA.compareTo(dateB);
+                        } catch (e) {
+                          return a.compareTo(b);
+                        }
+                      });
+
+                    if (sortedDates.isEmpty) {
+                      return Container(
+                        width: double.infinity,
+                        padding: EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: isDarkMode ? AppColors.darkCardBackgroundColor : AppColors.cardBackgroundColor,
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Text(
+                          'No log data available',
+                          textAlign: TextAlign.center,
+                          style: textTheme.bodyMedium?.copyWith(
+                            fontSize: fontSizeSmall,
+                            color: isDarkMode ? AppColors.darkSubtitleColor : AppColors.subtitleColor,
+                          ),
+                        ),
+                      );
+                    }
+
+                    if (controller.selectedLogDate.value.isEmpty) {
+                      final today = DateTime.now();
+                      String mostRecentDate = sortedDates.first;
+                      Duration minDifference = today.difference(_parseShortDate(sortedDates.first)).abs();
+
+                      for (final date in sortedDates) {
+                        final parsedDate = _parseShortDate(date);
+                        final difference = today.difference(parsedDate).abs();
+                        if (difference < minDifference) {
+                          minDifference = difference;
+                          mostRecentDate = date;
+                        }
+                      }
+                      controller.selectedLogDate.value = mostRecentDate;
+                    }
+
+                    final logEntries = <Widget>[];
+                    roundData.forEach((roomId, dateMap) {
+                      if (dateMap.containsKey(controller.selectedLogDate.value)) {
+                        final room = rooms[roomId];
+                        final rounds = dateMap[controller.selectedLogDate.value]!;
+                        logEntries.add(_buildLogItem(
+                          location: room?.roomNumber?.toString() ?? 'Unknown',
+                          block: '${room?.blockName?.toString() ?? 'Unknown'} - ${room?.floorName?.toString() ?? 'Unknown'}',
+                          times: rounds.map((round) => round.timeSchedule?.toString() ?? '').toList(),
+                          textTheme: textTheme,
+                          isDarkMode: isDarkMode,
+                          size: size,
+                        ));
+                      }
+                    });
+
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        SizedBox(
+                          height: dateRowHeight,
+                          child: SingleChildScrollView(
+                            scrollDirection: Axis.horizontal,
+                            child: Row(
+                              children: sortedDates.map((date) {
+                                return GestureDetector(
+                                  onTap: () {
+                                    controller.selectedLogDate.value = date;
+                                  },
+                                  child: Obx(() => Container(
+                                    margin: EdgeInsets.symmetric(horizontal: chipMarginH),
+                                    padding: EdgeInsets.symmetric(horizontal: chipPaddingH, vertical: chipPaddingV),
+                                    decoration: BoxDecoration(
+                                      color: controller.selectedLogDate.value == date
+                                          ? Colors.blue.shade50
+                                          : (isDarkMode ? AppColors.darkCardBackgroundColor : AppColors.cardBackgroundColor),
+                                      borderRadius: BorderRadius.circular(8),
+                                    ),
+                                    child: Text(
+                                      _formatShortDate(date),
+                                      style: textTheme.bodyMedium?.copyWith(
+                                        fontSize: fontSizeSmall,
+                                        fontWeight: FontWeight.w500,
+                                        color: controller.selectedLogDate.value == date
+                                            ? Colors.blue
+                                            : (isDarkMode ? AppColors.darkTextColor : AppColors.textColor),
+                                      ),
+                                    ),
+                                  )),
+                                );
+                              }).toList(),
                             ),
                           ),
-                        ],
-                      ),
-                    )
-                  else
-                    Column(
-                      children: logEntries,
-                    ),
+                        ),
+                        SizedBox(height: vSpacingMedium),
+                        if (logEntries.isEmpty)
+                          Center(
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Image.asset(
+                                  'assets/images/no_order.png',
+                                  width: imageSize,
+                                  height: imageSize,
+                                  fit: BoxFit.contain,
+                                ),
+                                SizedBox(height: vSpacingMedium),
+                                Text(
+                                  'No Checklists found',
+                                  style: textTheme.bodyLarge?.copyWith(
+                                    color: isDarkMode ? AppColors.darkTextColor : AppColors.textColor,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          )
+                        else
+                          Padding(
+                            padding: EdgeInsets.symmetric(horizontal: 0.0),
+                            child: Column(
+                              children: logEntries,
+                            ),
+                          ),
+                      ],
+                    );
+                  }),
                 ],
-              );
-            }),
+              ),
+            ),
           ],
         );
       }

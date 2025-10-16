@@ -105,7 +105,7 @@ class _TicketCardState extends State<TicketCard>
     final size = MediaQuery.of(context).size;
     final width = size.width;
     final height = size.height;
-    final hPadding = width * 0.02;
+    final cardPadding = width * 0.04;
     final vSpacingSmall = height * 0.008;
     final vSpacingMedium = height * 0.012;
     final vSpacingLarge = height * 0.02;
@@ -114,10 +114,9 @@ class _TicketCardState extends State<TicketCard>
     final textPaddingV = height * 0.008;
     final statusPaddingH = width * 0.035;
     final statusPaddingV = height * 0.008;
-    final cardPadding = width * 0.045;
 
     return Padding(
-      padding: EdgeInsets.symmetric(horizontal: hPadding * 2, vertical: vSpacingSmall),
+      padding: EdgeInsets.all(cardPadding),
       child: Card(
         elevation: 0, // 🔥 Removed shadow
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
@@ -177,7 +176,7 @@ class _TicketCardState extends State<TicketCard>
                                         ),
                                   ),
                                 ),
-                                SizedBox(width: hPadding + 12),
+                                SizedBox(width: cardPadding),
                                 widget.source.toLowerCase() == 'qr' ? Column(
                                   children: [
                                     Icon(
@@ -186,16 +185,15 @@ class _TicketCardState extends State<TicketCard>
                                       color: AppColors.linkColor,
                                     ),
                                     Text(
-                                   'QR',
-                                    style: Theme.of(context)
-                                        .textTheme
-                                        .bodySmall!
-                                        .copyWith(
-                                          color: _getStatusColor(widget.status),
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                  ),
-                                    
+                                      'QR',
+                                      style: Theme.of(context)
+                                          .textTheme
+                                          .bodySmall!
+                                          .copyWith(
+                                            color: _getStatusColor(widget.status),
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                    ),
                                   ],
                                 ) : widget.source.toLowerCase() == 'rem' ? Column(
                                   children: [
@@ -204,16 +202,16 @@ class _TicketCardState extends State<TicketCard>
                                       size: iconSize,
                                       color: AppColors.linkColor,
                                     ),
-                                     Text(
-                                   'REM',
-                                    style: Theme.of(context)
-                                        .textTheme
-                                        .bodySmall!
-                                        .copyWith(
-                                          color: _getStatusColor(widget.status),
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                  ),
+                                    Text(
+                                      'REM',
+                                      style: Theme.of(context)
+                                          .textTheme
+                                          .bodySmall!
+                                          .copyWith(
+                                            color: _getStatusColor(widget.status),
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                    ),
                                   ],
                                 ) : widget.source.toLowerCase() == 'web' ? Column(
                                   children: [
@@ -222,25 +220,18 @@ class _TicketCardState extends State<TicketCard>
                                       size: iconSize,
                                       color: AppColors.linkColor,
                                     ),
-                                     Text(
-                                   'WEB',
-                                    style: Theme.of(context)
-                                        .textTheme
-                                        .bodySmall!
-                                        .copyWith(
-                                          color: _getStatusColor(widget.status),
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                  ),
+                                    Text(
+                                      'WEB',
+                                      style: Theme.of(context)
+                                          .textTheme
+                                          .bodySmall!
+                                          .copyWith(
+                                            color: _getStatusColor(widget.status),
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                    ),
                                   ],
-                                ) : SizedBox.shrink(),
-                                // IconButton(
-                                //   icon: Icon(
-                                //     Icons.qr_code,
-                                //     color: AppColors.linkColor,
-                                //   ),
-                                //   onPressed: () {},
-                                // ),
+                                ) : const SizedBox.shrink(),
                               ],
                             ),
                           ],
@@ -258,7 +249,7 @@ class _TicketCardState extends State<TicketCard>
                                   ? AppColors.darkSubtitleColor
                                   : AppColors.subtitleColor,
                             ),
-                            SizedBox(width: hPadding / 2),
+                            SizedBox(width: cardPadding / 2),
                             Expanded(
                               child: Text(
                                 widget.block,
@@ -273,27 +264,24 @@ class _TicketCardState extends State<TicketCard>
                                 overflow: TextOverflow.ellipsis,
                               ),
                             ),
-                            
                           ],
                         ),
 
                         SizedBox(height: vSpacingSmall),
-                        
-                            Text(
-                              widget.roomNumber != null
-                                  ? '${widget.roomNumber}'
-                                  : '',
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .bodySmall
-                                  ?.copyWith(
-                                    color: isDarkMode
-                                        ? AppColors.darkSubtitleColor
-                                        : AppColors.subtitleColor,
-                                  ),
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                                SizedBox(height: vSpacingSmall),
+
+                        Text(
+                          widget.roomNumber ?? '',
+                          style: Theme.of(context)
+                              .textTheme
+                              .bodySmall
+                              ?.copyWith(
+                                color: isDarkMode
+                                    ? AppColors.darkSubtitleColor
+                                    : AppColors.subtitleColor,
+                              ),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        SizedBox(height: vSpacingSmall),
 
                         /// Assigned To
                         Text(
@@ -333,7 +321,7 @@ class _TicketCardState extends State<TicketCard>
                                   ? AppColors.darkSubtitleColor
                                   : AppColors.subtitleColor,
                             ),
-                            SizedBox(width: hPadding / 2),
+                            SizedBox(width: cardPadding / 2),
                             Text(
                               widget.date,
                               style: Theme.of(context)
@@ -376,14 +364,7 @@ class _TicketCardState extends State<TicketCard>
                                 overflow: TextOverflow.ellipsis,
                               ),
                             ),
-                            SizedBox(width: hPadding / 2),
-                            // Icon(
-                            //   Icons.copy,
-                            //   size: iconSize,
-                            //   color: isDarkMode
-                            //       ? AppColors.darkSubtitleColor
-                            //       : AppColors.subtitleColor,
-                            // ),
+                            SizedBox(width: cardPadding / 2),
                           ],
                         ),
 
@@ -414,25 +395,6 @@ class _TicketCardState extends State<TicketCard>
                           ),
 
                         SizedBox(height: vSpacingLarge),
-                        // GestureDetector(
-                        //   onTap: () {},
-                        //   child: Container(
-                        //     width: width,
-                        //     alignment: Alignment.center,
-                        //     padding: EdgeInsets.symmetric(vertical: textPaddingV * 1.5),
-                        //     decoration: BoxDecoration(
-                        //       color: AppColors.primaryColor.withOpacity(0.1),
-                        //       borderRadius: BorderRadius.circular(12),
-                        //     ),
-                        //     child: Text(
-                        //       'View Ticket',
-                        //       style: Theme.of(context).textTheme.bodyMedium!.copyWith(
-                        //             color: AppColors.primaryColor,
-                        //             fontWeight: FontWeight.bold,
-                        //           ),
-                        //     ),
-                        //   ),
-                        // ),
                       ],
                     ),
                   ),

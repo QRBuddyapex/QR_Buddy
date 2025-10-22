@@ -50,7 +50,7 @@ class InfoCardContentWidget extends StatelessWidget {
     required Size size,
     required TextTheme textTheme,
   }) {
-    final hPadding = size.width * 0.02;
+    final hPadding = size.width * 0.0009;
     final vPadding = size.height * 0.01;
     final cardPadding = size.width * 0.04;
     final iconSize = size.width * 0.06;
@@ -165,173 +165,6 @@ class InfoCardContentWidget extends StatelessWidget {
       ),
     );
   }
-Widget _buildChecklistCard({
-  required BuildContext context,
-  required Map<String, dynamic> checklist,
-  required int index,
-  required Size size,
-  required TextTheme textTheme,
-}) {
-  final padding = EdgeInsets.all(size.width * 0.04);
-  final isDarkMode = Theme.of(context).brightness == Brightness.dark;
-
-  final fontSizeLarge = size.width * 0.04;
-  final fontSizeSmall = size.width * 0.035;
-  final iconSize = size.width * 0.05;
-  final vSpacing = size.height * 0.01;
-  final hSpacing = size.width * 0.02;
-
-  // Define a fixed height for consistency across cards
-  final fixedCardHeight = size.height * 0.20; // 20% of screen height for uniformity
-
-  return Padding(
-  padding: EdgeInsets.all(size.width * 0.04),
-  child: Column(
-    crossAxisAlignment: CrossAxisAlignment.start,
-    children: [
-      Text(
-        'Checklists',
-        style: textTheme.titleLarge?.copyWith(
-          fontWeight: FontWeight.bold,
-          color: isDarkMode
-              ? AppColors.darkTextColor
-              : AppColors.textColor,
-        ),
-      ),
-      SizedBox(height: size.height * 0.02),
-
-      // Uniform Grid of Checklist Cards
-      GridView.builder(
-        itemCount: 6, // replace with your checklist length
-        shrinkWrap: true,
-        physics: const NeverScrollableScrollPhysics(),
-        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: 2, // 2 cards per row
-          crossAxisSpacing: size.width * 0.04,
-          mainAxisSpacing: size.height * 0.02,
-          childAspectRatio: 1.2, // Controls uniform height/width ratio
-        ),
-        itemBuilder: (context, index) {
-          return Container(
-            width: double.infinity,
-            height: double.infinity,
-            padding: EdgeInsets.all(size.width * 0.04),
-            decoration: BoxDecoration(
-              color: isDarkMode
-                  ? AppColors.darkCardBackgroundColor
-                  : AppColors.cardBackgroundColor,
-              borderRadius: BorderRadius.circular(15),
-              border: Border.all(
-                color: isDarkMode
-                    ? AppColors.darkBorderColor
-                    : AppColors.primaryColor.withOpacity(0.3),
-                width: 1,
-              ),
-              boxShadow: [
-                if (!isDarkMode)
-                  BoxShadow(
-                    color: AppColors.shadowColor.withOpacity(0.1),
-                    blurRadius: 6,
-                    offset: const Offset(2, 2),
-                  ),
-              ],
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                // Header Row
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Container(
-                      padding: EdgeInsets.symmetric(
-                        horizontal: size.width * 0.02,
-                        vertical: size.height * 0.004,
-                      ),
-                      decoration: BoxDecoration(
-                        color: AppColors.primaryColor.withOpacity(0.1),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Text(
-                        "Checklist ${index + 1}",
-                        style: textTheme.bodyMedium?.copyWith(
-                          color: AppColors.primaryColor,
-                          fontWeight: FontWeight.bold,
-                          fontSize: size.width * 0.035,
-                        ),
-                      ),
-                    ),
-                    Icon(
-                      Icons.delete_outline,
-                      color: Colors.redAccent,
-                      size: size.width * 0.05,
-                    ),
-                  ],
-                ),
-
-                // Checklist Name
-                Text(
-                  "Name: Sample Task",
-                  style: textTheme.bodyMedium?.copyWith(
-                    fontWeight: FontWeight.w600,
-                    fontSize: size.width * 0.035,
-                    color: isDarkMode
-                        ? AppColors.darkTextColor
-                        : AppColors.textColor,
-                  ),
-                  overflow: TextOverflow.ellipsis,
-                ),
-
-                // Location and Date
-                Row(
-                  children: [
-                    Icon(Icons.location_on,
-                        color: AppColors.primaryColor, size: size.width * 0.04),
-                    SizedBox(width: size.width * 0.02),
-                    Expanded(
-                      child: Text(
-                        "Location A",
-                        style: textTheme.bodySmall?.copyWith(
-                          color: isDarkMode
-                              ? AppColors.darkSubtitleColor
-                              : AppColors.hintTextColor,
-                          fontSize: size.width * 0.03,
-                        ),
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                  ],
-                ),
-                Row(
-                  children: [
-                    Icon(Icons.calendar_today,
-                        color: AppColors.primaryColor, size: size.width * 0.04),
-                    SizedBox(width: size.width * 0.02),
-                    Expanded(
-                      child: Text(
-                        "12 Oct 2025",
-                        style: textTheme.bodySmall?.copyWith(
-                          color: isDarkMode
-                              ? AppColors.darkSubtitleColor
-                              : AppColors.hintTextColor,
-                          fontSize: size.width * 0.03,
-                        ),
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          );
-        },
-      ),
-    ],
-  ),
-);
-
-}
 
 
   Widget _buildAddButton({
@@ -377,7 +210,7 @@ Widget _buildLogItem({
   required Size size,
 }) {
   final vMargin = size.height * 0.012;
-  final hPadding = size.width * 0.04;
+  final hPadding = size.width * 0.019;
   final vPadding = size.height * 0.015;
   final chipSpacing = size.width * 0.02;
 
@@ -392,12 +225,13 @@ Widget _buildLogItem({
             : AppColors.cardBackgroundColor,
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
-          if (!isDarkMode)
-            BoxShadow(
-              color: AppColors.shadowColor.withOpacity(0.08),
-              blurRadius: 8,
-              offset: const Offset(2, 3),
-            ),
+          // if (!isDarkMode)
+            // BoxShadow(
+            //   color: AppColors.shadowColor.withOpacity(0.08),
+            //   blurRadius: 8,
+            //   offset: const Offset(2, 3),
+            // ),
+        // ]
         ],
         border: Border.all(
           color: isDarkMode
@@ -507,7 +341,7 @@ Widget _buildLogItem({
     final fontSizeLarge = width * 0.045;
     final fontSizeSmall = width * 0.035;
     final hSpacing = width * 0.02;
-    final filterHSpacing = width * 0.04;
+    final filterHSpacing = width * 0.02;
     final filterVSpacing = height * 0.01;
     final dropdownIconSize = width * 0.06;
     final dateFontSize = width * 0.035;
@@ -620,31 +454,31 @@ Widget _buildLogItem({
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Checklists Section
-            ...controller.checklists.map((group) {
-              final checklistWidgets = group['checklists'].asMap().entries.map<Widget>((entry) {
-                return _buildChecklistCard(
-                  context: context,
-                  checklist: entry.value,
-                  index: entry.key + 1,
-                  size: size,
-                  textTheme: textTheme,
-                );
-              }).toList();
+            // // Checklists Section
+            // ...controller.checklists.map((group) {
+            //   final checklistWidgets = group['checklists'].asMap().entries.map<Widget>((entry) {
+            //     return _buildChecklistCard(
+            //       context: context,
+            //       checklist: entry.value,
+            //       index: entry.key + 1,
+            //       size: size,
+            //       textTheme: textTheme,
+            //     );
+            //   }).toList();
 
-              return Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // _buildGroupHeader(
-                  //   context: context,
-                  //   groupName: group['group'],
-                  //   onRefresh: () => controller.fetchChecklistLog(),
-                  //   size: size,
-                  //   textTheme: textTheme,
-                  // ),
-                ],
-              );
-            }).toList(),
+            //   return Column(
+            //     crossAxisAlignment: CrossAxisAlignment.start,
+            //     children: [
+            //       // _buildGroupHeader(
+            //       //   context: context,
+            //       //   groupName: group['group'],
+            //       //   onRefresh: () => controller.fetchChecklistLog(),
+            //       //   size: size,
+            //       //   textTheme: textTheme,
+            //       // ),
+            //     ],
+            //   );
+            // }).toList(),
             // Filters Section
             Padding(
               padding: EdgeInsets.symmetric(
@@ -662,7 +496,7 @@ Widget _buildLogItem({
                     ),
                   ),
                   SizedBox(height: vSpacingMedium),
-                  SizedBox(height: vSpacingMedium),
+                  // SizedBox(height: vSpacingMedium),
                   Row(
                     children: [
                       Expanded(

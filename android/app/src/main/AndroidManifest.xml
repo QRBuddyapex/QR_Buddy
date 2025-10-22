@@ -1,17 +1,22 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
-    <!-- Required permissions for FCM and vibration -->
+    <!-- Your existing permissions -->
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.VIBRATE" />
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
-   
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
     
+    <!-- Add these for foreground service -->
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC" />
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />  <!-- Android 13+ -->
 
     <application
         android:label="qr_buddy"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
+        <!-- Your existing activity and services -->
         <activity
             android:name=".MainActivity"
             android:exported="true"
@@ -35,7 +40,7 @@
             </intent-filter>
         </activity>
 
-        <!-- Firebase Messaging Service -->
+        <!-- Your existing Firebase service -->
         <service
             android:name="com.google.firebase.messaging.FirebaseMessagingService"
             android:exported="false">
@@ -44,21 +49,25 @@
             </intent-filter>
         </service>
 
-        <!-- Set default notification icon and channel -->
+        <!-- Add foreground service -->
+        <service 
+            android:name="com.pravera.flutter_foreground_task.service.ForegroundService"
+            android:foregroundServiceType="dataSync"
+            android:exported="false" />
+
+        <!-- Your existing meta-data -->
         <meta-data
             android:name="com.google.firebase.messaging.default_notification_icon"
             android:resource="@drawable/ic_notification" />
         <meta-data
             android:name="com.google.firebase.messaging.default_notification_channel_id"
             android:value="in_app_notification_channel" />
-
-        <!-- Required by Flutter for plugin registration -->
         <meta-data
             android:name="flutterEmbedding"
             android:value="2" />
     </application>
 
-    <!-- Required to query activities for text processing -->
+    <!-- Your existing queries -->
     <queries>
         <intent>
             <action android:name="android.intent.action.PROCESS_TEXT" />

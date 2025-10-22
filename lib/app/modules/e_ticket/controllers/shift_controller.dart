@@ -1,10 +1,14 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_foreground_task/flutter_foreground_task.dart';
 import 'package:get/get.dart';
 import 'package:qr_buddy/app/core/config/api_config.dart';
 import 'package:qr_buddy/app/core/config/token_storage.dart';
 import 'package:qr_buddy/app/core/services/api_service.dart';
+import 'package:qr_buddy/app/core/services/shift_foreground_service.dart';
 import 'package:qr_buddy/app/modules/e_ticket/controllers/location_dialog.dart';
+import 'package:qr_buddy/app/routes/routes.dart';
+ // Ensures startCallback is accessible
 
 class ShiftController extends GetxController {
   final ApiService _apiService = ApiService();
@@ -19,7 +23,6 @@ class ShiftController extends GetxController {
   }
 
   Future<void> _fetchCurrentShiftStatus() async {
- 
     final userId = await _tokenStorage.getUserId() ?? '2053';
     final hcoId = await _tokenStorage.getHcoId() ?? '46';
     final token = await _tokenStorage.getToken() ?? '';
@@ -39,7 +42,10 @@ class ShiftController extends GetxController {
         ),
       );
       if (response.statusCode == 200 && response.data['status'] == 1) {
-        shiftStatus.value = response.data['shift_status'] ?? 'END';
+        final newStatus = response.data['shift_status'] ?? 'END';
+        shiftStatus.value = newStatus;
+        // Manage foreground service based on fetched status
+        await _manageForegroundService(newStatus);
       }
     } catch (e) {
       print('Error fetching shift status: $e');
@@ -78,6 +84,8 @@ class ShiftController extends GetxController {
       );
       if (response.statusCode == 200 && response.data['status'] == 1) {
         shiftStatus.value = status;
+        // Manage foreground service
+        await _manageForegroundService(status);
         Get.snackbar(
           'Success',
           'Shift status updated to $status',
@@ -94,6 +102,50 @@ class ShiftController extends GetxController {
         backgroundColor: Colors.red.withOpacity(0.8),
         colorText: Colors.white,
       );
+    }
+  }
+
+  // Helper to manage foreground service
+  Future<void> _manageForegroundService(String status) async {
+    if (status == 'START' || status == 'BREAK') {
+      final bool isRunning = await FlutterForegroundTask.isRunningService;
+      final String text = status == 'START' ? 'Waiting for orders...' : 'On Break - Waiting for orders...';
+      final List<NotificationButton> buttons = [
+        const NotificationButton(id: 'break_shift', text: 'Take Break'),
+        const NotificationButton(id: 'end_shift', text: 'End Shift'),
+      ];
+
+      if (isRunning) {
+        // Update existing service
+        await FlutterForegroundTask.updateService(
+          notificationTitle: 'QR Buddy Shift Active',
+          notificationText: text,
+          notificationButtons: buttons,
+        );
+      } else {
+        // Start new service
+        final ServiceRequestResult result = await FlutterForegroundTask.startService(
+          serviceId: 888,  // Required unique ID
+          notificationTitle: 'QR Buddy Shift Active',
+          notificationText: text,
+          notificationIcon: null,  // Use null as per latest API; customize via AndroidNotificationOptions if needed
+          notificationButtons: buttons,
+          notificationInitialRoute: RoutesName.ticketDashboardView,  // Use your route constant
+          callback: startCallback,
+        );
+        if (result case ServiceRequestSuccess()) {
+          print('Shift service started successfully');
+        } else {
+          print('Failed to start shift service: $result');
+        }
+      }
+    } else if (status == 'END') {
+      final ServiceRequestResult result = await FlutterForegroundTask.stopService();
+      if (result case ServiceRequestSuccess()) {
+        print('Shift service stopped');
+      } else {
+        print('Failed to stop shift service: $result');
+      }
     }
   }
 }

@@ -11,8 +11,7 @@ class qrbuddyDashboardWidget extends StatefulWidget {
   State<qrbuddyDashboardWidget> createState() => _qrbuddyDashboardWidgetState();
 }
 
-class _qrbuddyDashboardWidgetState extends State<qrbuddyDashboardWidget>
-    with SingleTickerProviderStateMixin {
+class _qrbuddyDashboardWidgetState extends State<qrbuddyDashboardWidget> with SingleTickerProviderStateMixin {
   final TicketController controller = Get.put(TicketController());
   late AnimationController _animationController;
   late Animation<double> _progressAnimation;
@@ -21,17 +20,11 @@ class _qrbuddyDashboardWidgetState extends State<qrbuddyDashboardWidget>
   @override
   void initState() {
     super.initState();
-    // Defer setting default selected tab to after first frame to avoid build-phase update
     WidgetsBinding.instance.addPostFrameCallback((_) {
       controller.setSelectedInfoCard('E-Tickets');
     });
-    _animationController = AnimationController(
-      duration: const Duration(milliseconds: 1200),
-      vsync: this,
-    );
-    _progressAnimation = Tween<double>(begin: 0, end: 1).animate(
-      CurvedAnimation(parent: _animationController, curve: Curves.easeOut),
-    );
+    _animationController = AnimationController(duration: const Duration(milliseconds: 1200), vsync: this);
+    _progressAnimation = Tween<double>(begin: 0, end: 1).animate(CurvedAnimation(parent: _animationController, curve: Curves.easeOut));
     Future.delayed(const Duration(milliseconds: 100), () {
       if (mounted) {
         _animationController.forward();
@@ -83,23 +76,22 @@ class _qrbuddyDashboardWidgetState extends State<qrbuddyDashboardWidget>
     final textTheme = Theme.of(context).textTheme;
     final bool isSmall = _isSmallScreen(context);
 
-    final double horizontalPadding = _getScaledValue(size.width * 0.04);
-    final double verticalPadding = _getScaledValue(size.height * 0.01);
+    final double hp = _getScaledValue(size.width * 0.04);
+    final double vp = _getScaledValue(size.height * 0.01);
 
     final double smallFontScale = isSmall ? 0.85 : 1.0;
     final double smallIconScale = isSmall ? 0.9 : 1.0;
 
     return Container(
       color: isDarkMode ? AppColors.darkBackgroundColor : AppColors.backgroundColor,
-      padding: EdgeInsets.symmetric(
-          horizontal: horizontalPadding, vertical: verticalPadding),
+      padding: EdgeInsets.symmetric(horizontal: hp, vertical: vp),
       child: SingleChildScrollView(
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             _buildTodaysStatusSection(size, textTheme, isSmall, smallFontScale),
-            SizedBox(height: verticalPadding * 2),
+            SizedBox(height: vp * 2),
             _buildInfoGrid(size, textTheme, isSmall, smallIconScale),
             Obx(() {
               if (controller.selectedInfoCard.value == 'Rating') {
@@ -122,15 +114,12 @@ class _qrbuddyDashboardWidgetState extends State<qrbuddyDashboardWidget>
                       Text(
                         'Rating (Pending: $totalPendingReviews)',
                         style: textTheme.titleSmall?.copyWith(
-                              fontWeight: FontWeight.w600,
-                              color: isDarkMode ? AppColors.darkTextColor : AppColors.textColor,
-                              fontSize: (textTheme.titleSmall?.fontSize ?? 16) * smallFontScale,
-                            ),
+                          fontWeight: FontWeight.w600,
+                          color: isDarkMode ? AppColors.darkTextColor : AppColors.textColor,
+                          fontSize: (textTheme.titleSmall?.fontSize ?? 16) * smallFontScale,
+                        ),
                       ),
-                      Divider(
-                        color: isDarkMode ? AppColors.darkBorderColor : AppColors.borderColor,
-                        thickness: 1,
-                      ),
+                      Divider(color: isDarkMode ? AppColors.darkBorderColor : AppColors.borderColor, thickness: 1),
                       SizedBox(height: _getScaledValue(size.height * 0.012)),
                       Row(
                         mainAxisSize: MainAxisSize.min,
@@ -148,27 +137,27 @@ class _qrbuddyDashboardWidgetState extends State<qrbuddyDashboardWidget>
                       Text(
                         '${controller.averageRating.value.toStringAsFixed(1)} star',
                         style: textTheme.headlineSmall?.copyWith(
-                              color: isDarkMode ? AppColors.darkTextColor : AppColors.textColor,
-                              fontSize: (textTheme.headlineSmall?.fontSize ?? 24) * smallFontScale,
-                            ),
+                          color: isDarkMode ? AppColors.darkTextColor : AppColors.textColor,
+                          fontSize: (textTheme.headlineSmall?.fontSize ?? 24) * smallFontScale,
+                        ),
                       ),
                       SizedBox(height: _getScaledValue(size.height * 0.01)),
                       Text(
                         'Status: $status',
                         style: textTheme.bodyLarge?.copyWith(
-                              color: _getStatusColor(controller.averageRating.value * 20),
-                              fontWeight: FontWeight.bold,
-                              fontSize: (textTheme.bodyLarge?.fontSize ?? 16) * smallFontScale,
-                            ),
+                          color: _getStatusColor(controller.averageRating.value * 20),
+                          fontWeight: FontWeight.bold,
+                          fontSize: (textTheme.bodyLarge?.fontSize ?? 16) * smallFontScale,
+                        ),
                       ),
                       SizedBox(height: _getScaledValue(size.height * 0.02)),
                       Text(
                         'Details:',
                         style: textTheme.bodyLarge?.copyWith(
-                              fontWeight: FontWeight.bold,
-                              color: isDarkMode ? AppColors.darkTextColor : AppColors.textColor,
-                              fontSize: (textTheme.bodyLarge?.fontSize ?? 16) * smallFontScale,
-                            ),
+                          fontWeight: FontWeight.bold,
+                          color: isDarkMode ? AppColors.darkTextColor : AppColors.textColor,
+                          fontSize: (textTheme.bodyLarge?.fontSize ?? 16) * smallFontScale,
+                        ),
                       ),
                       SizedBox(height: _getScaledValue(size.height * 0.01)),
                       _buildRatingDetailRow('5 - Champion', textTheme, isDarkMode, smallFontScale),
@@ -184,7 +173,7 @@ class _qrbuddyDashboardWidgetState extends State<qrbuddyDashboardWidget>
               }
               return const SizedBox.shrink();
             }),
-            SizedBox(height: verticalPadding * 2),
+            SizedBox(height: vp * 2),
           ],
         ),
       ),
@@ -197,9 +186,9 @@ class _qrbuddyDashboardWidgetState extends State<qrbuddyDashboardWidget>
       child: Text(
         text,
         style: textTheme.bodyMedium?.copyWith(
-              color: isDarkMode ? AppColors.darkSubtitleColor : AppColors.subtitleColor,
-              fontSize: (textTheme.bodyMedium?.fontSize ?? 14) * smallFontScale,
-            ),
+          color: isDarkMode ? AppColors.darkSubtitleColor : AppColors.subtitleColor,
+          fontSize: (textTheme.bodyMedium?.fontSize ?? 14) * smallFontScale,
+        ),
       ),
     );
   }
@@ -207,12 +196,8 @@ class _qrbuddyDashboardWidgetState extends State<qrbuddyDashboardWidget>
   Widget _buildTodaysStatusSection(Size size, TextTheme textTheme, bool isSmall, double smallFontScale) {
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
     return Container(
-      padding: EdgeInsets.symmetric(
-          horizontal: _getScaledValue(size.width * 0.04), vertical: _getScaledValue(size.height * 0.015)),
-      decoration: BoxDecoration(
-        color: isDarkMode ? AppColors.darkCardBackgroundColor : AppColors.cardBackgroundColor,
-        borderRadius: BorderRadius.circular(12),
-      ),
+      padding: EdgeInsets.symmetric(horizontal: _getScaledValue(size.width * 0.04), vertical: _getScaledValue(size.height * 0.015)),
+      decoration: BoxDecoration(color: isDarkMode ? AppColors.darkCardBackgroundColor : AppColors.cardBackgroundColor, borderRadius: BorderRadius.circular(12)),
       child: Obx(() {
         double statusValue = controller.todayStatus.value;
         return Column(
@@ -249,9 +234,7 @@ class _qrbuddyDashboardWidgetState extends State<qrbuddyDashboardWidget>
                     value: (statusValue / 100) * _progressAnimation.value,
                     minHeight: _getScaledValue(size.height * 0.008),
                     valueColor: AlwaysStoppedAnimation<Color>(_getStatusColor(statusValue)),
-                    backgroundColor: isDarkMode
-                        ? AppColors.darkBackgroundColor.withOpacity(0.3)
-                        : AppColors.backgroundColor.withOpacity(0.3),
+                    backgroundColor: isDarkMode ? AppColors.darkBackgroundColor.withOpacity(0.3) : AppColors.backgroundColor.withOpacity(0.3),
                   ),
                 );
               },
@@ -265,8 +248,8 @@ class _qrbuddyDashboardWidgetState extends State<qrbuddyDashboardWidget>
   Widget _buildInfoGrid(Size size, TextTheme textTheme, bool isSmall, double smallIconScale) {
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
     final double childAspectRatio = isSmall ? 1.5 : (size.width < 360 ? 1.8 : 2.2);
-    final double crossSpacing = _getScaledValue(size.width * 0.03);
-    final double mainSpacing = _getScaledValue(size.height * 0.012);
+    final double crossSpacing = _getScaledValue(size.width * 0.030);
+    final double mainSpacing = _getScaledValue(size.height * 0.015);
     return Obx(() => GridView.count(
           crossAxisCount: 2,
           shrinkWrap: true,
@@ -275,53 +258,15 @@ class _qrbuddyDashboardWidgetState extends State<qrbuddyDashboardWidget>
           mainAxisSpacing: mainSpacing,
           childAspectRatio: childAspectRatio,
           children: [
-            _infoCard(
-              "Qik Tasks",
-              controller.tasksCount.value.toString(),
-              Icons.local_dining,
-              size,
-              textTheme,
-              _getLineColor(controller.tasksCount.value),
-              isSmall: isSmall,
-              smallIconScale: smallIconScale,
-            ),
-            _infoCard(
-              "E-Tickets",
-              controller.tickets.length.toString(),
-              Icons.sticky_note_2_outlined,
-              size,
-              textTheme,
-              _getLineColor(controller.tickets.length),
-              isSmall: isSmall,
-              smallIconScale: smallIconScale,
-            ),
-            _infoCard(
-              "Checklists",
-              controller.logEntriesCount.value.toString(),
-              Icons.checklist_rtl_outlined,
-              size,
-              textTheme,
-              _getLineColor(controller.logEntriesCount.value),
-              isSmall: isSmall,
-              smallIconScale: smallIconScale,
-            ),
-            _infoCard(
-              "Rating",
-              controller.averageRating.value.toStringAsFixed(1),
-              Icons.star,
-              size,
-              textTheme,
-              _getLineColor(controller.averageRating.value.toInt()),
-              isSmall: isSmall,
-              smallIconScale: smallIconScale,
-            ),
+            _infoCard("Qik Tasks", controller.tasksCount.value.toString(), Icons.local_dining, size, textTheme, _getLineColor(controller.tasksCount.value), isSmall: isSmall, smallIconScale: smallIconScale),
+            _infoCard("E-Tickets", controller.tickets.length.toString(), Icons.sticky_note_2_outlined, size, textTheme, _getLineColor(controller.tickets.length), isSmall: isSmall, smallIconScale: smallIconScale),
+            _infoCard("Checklists", controller.logEntriesCount.value.toString(), Icons.checklist_rtl_outlined, size, textTheme, _getLineColor(controller.logEntriesCount.value), isSmall: isSmall, smallIconScale: smallIconScale),
+            _infoCard("Rating", controller.averageRating.value.toStringAsFixed(1), Icons.star, size, textTheme, _getLineColor(controller.averageRating.value.toInt()), isSmall: isSmall, smallIconScale: smallIconScale),
           ],
         ));
   }
 
-  Widget _infoCard(
-      String title, String count, IconData icon, Size size, TextTheme textTheme, Color accentColor,
-      {bool isDisabled = false, required bool isSmall, required double smallIconScale}) {
+  Widget _infoCard(String title, String count, IconData icon, Size size, TextTheme textTheme, Color accentColor, {bool isDisabled = false, required bool isSmall, required double smallIconScale}) {
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
     final double cardHorizontalPadding = _getScaledValue(size.width * 0.03);
     final double cardVerticalPadding = _getScaledValue(size.height * 0.005);
@@ -334,14 +279,12 @@ class _qrbuddyDashboardWidgetState extends State<qrbuddyDashboardWidget>
         onTap: isDisabled
             ? null
             : () {
-                // Only change selection if a different tab is tapped
                 if (!isSelected) {
                   controller.setSelectedInfoCard(title);
                 }
               },
         child: Container(
-          padding: EdgeInsets.symmetric(
-              horizontal: cardHorizontalPadding, vertical: cardVerticalPadding),
+          padding: EdgeInsets.symmetric(horizontal: cardHorizontalPadding, vertical: cardVerticalPadding),
           decoration: BoxDecoration(
             color: isDisabled
                 ? (isDarkMode ? Colors.grey[700] : Colors.grey[300])
@@ -351,10 +294,7 @@ class _qrbuddyDashboardWidgetState extends State<qrbuddyDashboardWidget>
             borderRadius: BorderRadius.circular(12),
             border: Border(
                 left: BorderSide(
-                    color: isDisabled
-                        ? (isDarkMode ? Colors.grey[600]! : Colors.grey[400]!)
-                        : AppColors.primaryColor,
-                    width: 5)),
+                    color: isDisabled ? (isDarkMode ? Colors.grey[600]! : Colors.grey[400]!) : AppColors.primaryColor, width: 5)),
           ),
           child: Stack(
             children: [
@@ -419,15 +359,8 @@ class _qrbuddyDashboardWidgetState extends State<qrbuddyDashboardWidget>
                   right: 0,
                   child: Container(
                     padding: EdgeInsets.all(_getScaledValue(size.width * 0.01)),
-                    decoration: BoxDecoration(
-                      color: isDarkMode ? Colors.grey[600] : Colors.grey[400],
-                      shape: BoxShape.circle,
-                    ),
-                    child: Icon(
-                      Icons.lock,
-                      size: _getScaledValue(size.width * 0.04),
-                      color: Colors.white,
-                    ),
+                    decoration: BoxDecoration(color: isDarkMode ? Colors.grey[600] : Colors.grey[400], shape: BoxShape.circle),
+                    child: Icon(Icons.lock, size: _getScaledValue(size.width * 0.04), color: Colors.white),
                   ),
                 ),
             ],
@@ -455,11 +388,8 @@ class _qrbuddyDashboardWidgetState extends State<qrbuddyDashboardWidget>
         },
         borderRadius: BorderRadius.circular(20),
         child: Chip(
-          backgroundColor: isActive
-              ? AppColors.primaryColor.withOpacity(0.15)
-              : (isDarkMode ? AppColors.darkCardBackgroundColor : AppColors.cardBackgroundColor),
-          padding: EdgeInsets.symmetric(
-              horizontal: _getScaledValue(size.width * 0.02), vertical: tabPaddingV),
+          backgroundColor: isActive ? AppColors.primaryColor.withOpacity(0.15) : (isDarkMode ? AppColors.darkCardBackgroundColor : AppColors.cardBackgroundColor),
+          padding: EdgeInsets.symmetric(horizontal: _getScaledValue(size.width * 0.02), vertical: tabPaddingV),
           label: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.center,
@@ -467,9 +397,7 @@ class _qrbuddyDashboardWidgetState extends State<qrbuddyDashboardWidget>
               Text(
                 title,
                 style: textTheme.bodySmall?.copyWith(
-                  color: isActive
-                      ? AppColors.primaryColor
-                      : (isDarkMode ? AppColors.darkSubtitleColor : AppColors.subtitleColor),
+                  color: isActive ? AppColors.primaryColor : (isDarkMode ? AppColors.darkSubtitleColor : AppColors.subtitleColor),
                   fontWeight: isActive ? FontWeight.bold : FontWeight.normal,
                   fontSize: tabFontSize,
                 ),
@@ -480,21 +408,14 @@ class _qrbuddyDashboardWidgetState extends State<qrbuddyDashboardWidget>
               Text(
                 count,
                 style: textTheme.bodyMedium?.copyWith(
-                  color: isActive
-                      ? AppColors.primaryColor
-                      : (isDarkMode ? AppColors.darkSubtitleColor : AppColors.subtitleColor),
+                  color: isActive ? AppColors.primaryColor : (isDarkMode ? AppColors.darkSubtitleColor : AppColors.subtitleColor),
                   fontWeight: isActive ? FontWeight.bold : FontWeight.normal,
                   fontSize: countFontSize,
                 ),
               ),
             ],
           ),
-          side: BorderSide(
-            color: isActive
-                ? AppColors.primaryColor
-                : (isDarkMode ? AppColors.darkBorderColor : AppColors.borderColor),
-            width: 1.5,
-          ),
+          side: BorderSide(color: isActive ? AppColors.primaryColor : (isDarkMode ? AppColors.darkBorderColor : AppColors.borderColor), width: 1.5),
         ),
       ),
     );

@@ -8,6 +8,8 @@ class TokenStorage {
   static const String _userNameKey = 'user_name';
   static const String _userTypeKey = 'user_type';
   static const String _themeKey = 'is_dark_mode'; 
+  static const String _shiftStatusKey = 'shift_status';
+  static const String _pendingShiftStatusKey = 'pending_shift_status';
 
   Future<void> saveAuthData({
     required String token,
@@ -54,6 +56,26 @@ class TokenStorage {
     return value != null ? value.toLowerCase() == 'true' : null;
   }
 
+  Future<void> saveShiftStatus(String status) async {
+    await _storage.write(key: _shiftStatusKey, value: status);
+  }
+
+  Future<String?> getShiftStatus() async {
+    return await _storage.read(key: _shiftStatusKey);
+  }
+
+  Future<void> savePendingShiftStatus(String status) async {
+    await _storage.write(key: _pendingShiftStatusKey, value: status);
+  }
+
+  Future<String?> getPendingShiftStatus() async {
+    return await _storage.read(key: _pendingShiftStatusKey);
+  }
+
+  Future<void> clearPendingShiftStatus() async {
+    await _storage.delete(key: _pendingShiftStatusKey);
+  }
+
   Future<void> clearToken() async {
     await Future.wait([
       _storage.delete(key: _tokenKey),
@@ -61,7 +83,9 @@ class TokenStorage {
       _storage.delete(key: _hcoIdKey),
       _storage.delete(key: _userNameKey),
       _storage.delete(key: _userTypeKey),
-      _storage.delete(key: _themeKey), 
+      _storage.delete(key: _themeKey),
+      _storage.delete(key: _shiftStatusKey),
+      _storage.delete(key: _pendingShiftStatusKey),
     ]);
   }
 }

@@ -73,8 +73,8 @@ Future<void> _initForegroundTask() async {
       channelId: 'shift_channel',
       channelName: 'Shift Status',
       channelDescription: 'Shows when shift is active and waiting for orders.',
-      channelImportance: NotificationChannelImportance.LOW,
-      priority: NotificationPriority.LOW,
+      channelImportance: NotificationChannelImportance.HIGH,  // Increased to HIGH for better visibility and buttons
+      priority: NotificationPriority.HIGH,  // High priority for immediate display
       onlyAlertOnce: true,
     ),
     iosNotificationOptions: const IOSNotificationOptions(
@@ -105,25 +105,26 @@ Future<void> _initForegroundTask() async {
 }
 
 void _onReceiveShiftData(Object? data) {
-  if (data is Map<String, dynamic>) {
-    print('Received from shift service: $data');
+  // Pass notification events to ShiftController
+  final shiftController = Get.isRegistered<ShiftController>() ? Get.find<ShiftController>() : null;
+  if (shiftController != null && data is Map<String, dynamic>) {
     final String event = data['event'] ?? '';
     switch (event) {
       case 'take_break':
-        // Handle break from button press
-        final shiftController = Get.find<ShiftController>();
         shiftController.updateShiftStatus('BREAK');
         break;
+      case 'resume_shift':
+        shiftController.updateShiftStatus('START');
+        break;
+      case 'end_shift':
+        shiftController.updateShiftStatus('END');
+        break;
       case 'shift_ended':
-        // Handle service stop
-        final shiftController = Get.find<ShiftController>();
         shiftController.shiftStatus.value = 'END';
         break;
-      // Add more cases as needed (e.g., 'heartbeat' for logging)
     }
   }
 }
-
 Future<void> _checkForUpdate() async {
   log('checking for update');
   await InAppUpdate.checkForUpdate().then((info) async {

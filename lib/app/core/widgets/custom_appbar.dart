@@ -136,19 +136,20 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
       ),
       actions: [
         Obx(() {
+          final currentStatus = shiftController.shiftStatus.value;
           return Row(
             children: [
-              if (shiftController.shiftStatus.value == 'START')
+              if (currentStatus == 'START')
                 IconButton(
                   icon: const Icon(Icons.pause_circle_outline, color: Colors.yellow, size: 30),
                   onPressed: () => shiftController.updateShiftStatus('BREAK'),
                 ),
-              if (shiftController.shiftStatus.value == 'START' || shiftController.shiftStatus.value == 'BREAK')
+              if (currentStatus == 'START' || currentStatus == 'BREAK')
                 IconButton(
                   icon: const Icon(Icons.stop_circle, color: Colors.red, size: 30),
                   onPressed: () => shiftController.updateShiftStatus('END'),
                 ),
-              if (shiftController.shiftStatus.value == 'END' || shiftController.shiftStatus.value == 'BREAK')
+              if (currentStatus == 'END' || currentStatus == 'BREAK')
                 ElevatedButton(
                   onPressed: () => shiftController.startShift(),
                   style: Theme.of(context).elevatedButtonTheme.style?.copyWith(

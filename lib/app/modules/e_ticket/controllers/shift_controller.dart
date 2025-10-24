@@ -19,12 +19,10 @@ class ShiftController extends GetxController {
     super.onInit();
     Get.put(LocationDialogController(), permanent: true);
     _fetchCurrentShiftStatus();
-
   }
 
   @override
   void onClose() {
-   
     super.onClose();
   }
 
@@ -84,50 +82,59 @@ class ShiftController extends GetxController {
       barrierDismissible: false,
     );
   }
-Future<void> updateShiftStatus(String status) async {
-  final userId = await _tokenStorage.getUserId();
-  final hcoId = await _tokenStorage.getHcoId();
-  final token = await _tokenStorage.getToken();
 
-  if (userId == null || hcoId == null || token == null) {
-     Get.snackbar('Error', 'User not logged in.', backgroundColor: Colors.red);
-     return;
-  }
+  Future<void> updateShiftStatus(String status) async {
+    if (shiftStatus.value == status) return; // prevent duplicate calls
 
-  try {
-    final response = await _apiService.post(
-      '${AppUrl.baseUrl}/users.html?action=update_shift&user_id=$userId&hco_id=$hcoId',
-      data: {'shift_status': status},
-      options: Options(
-        headers: {'authorization': token},
-      ),
-    );
-    if (response.statusCode == 200 && response.data['status'] == 1) {
-      shiftStatus.value = status;
-      await _tokenStorage.saveShiftStatus(status);
-      await _manageForegroundService(status);
-      Get.snackbar('Success', 'Shift status updated to $status',
-          snackPosition: SnackPosition.BOTTOM,
-          backgroundColor: Colors.green.withOpacity(0.8),
-          colorText: Colors.white);
-    } else {
-      throw Exception(response.data['message'] ?? 'Failed to update status');
+    final userId = await _tokenStorage.getUserId();
+    final hcoId = await _tokenStorage.getHcoId();
+    final token = await _tokenStorage.getToken();
+
+    if (userId == null || hcoId == null || token == null) {
+      Get.snackbar('Error', 'User not logged in.', backgroundColor: Colors.red);
+      return;
     }
-  } catch (e) {
-    Get.snackbar('Error', 'Failed to update shift status: $e',
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Colors.red.withOpacity(0.8),
-        colorText: Colors.white);
-  }
-}
 
-Future<void> _manageForegroundService(String status) async {
-  if (status == 'START') {
-    await NativeShiftService.startShift();
-  } else if (status == 'BREAK') {
-    await NativeShiftService.takeBreak();
-  } else if (status == 'END') {
-    await NativeShiftService.endShift();
+    shiftStatus.value = status; // optimistically update UI
+
+    try {
+      final response = await _apiService.post(
+        '${AppUrl.baseUrl}/users.html?action=update_shift&user_id=$userId&hco_id=$hcoId',
+        data: {'shift_status': status},
+        options: Options(
+          headers: {'authorization': token},
+        ),
+      );
+      if (response.statusCode == 200 && response.data['status'] == 1) {
+        await _tokenStorage.saveShiftStatus(status);
+        await _manageForegroundService(status);
+        Get.snackbar('Success', 'Shift status updated to $status',
+            snackPosition: SnackPosition.BOTTOM,
+            backgroundColor: Colors.green.withOpacity(0.8),
+            colorText: Colors.white);
+      } else {
+        throw Exception(response.data['message'] ?? 'Failed to update status');
+      }
+    } catch (e) {
+      // rollback status
+      final oldStatus = await _tokenStorage.getShiftStatus() ?? 'END';
+      shiftStatus.value = oldStatus;
+      Get.snackbar('Error', 'Failed to update shift status: $e',
+          snackPosition: SnackPosition.BOTTOM,
+          backgroundColor: Colors.red.withOpacity(0.8),
+          colorText: Colors.white);
+    }
   }
-}
+
+  Future<void> _manageForegroundService(String status) async {
+    if (status == 'START') {
+      await NativeShiftService.startShift();
+    } else if (status == 'BREAK') {
+      await NativeShiftService.takeBreak();
+    } else if (status == 'START' && shiftStatus.value == 'BREAK') { // resume
+      await NativeShiftService.resumeShift();
+    } else if (status == 'END') {
+      await NativeShiftService.endShift();
+    }
+  }
 }

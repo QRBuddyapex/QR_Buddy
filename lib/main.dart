@@ -40,22 +40,6 @@ Future<void> main() async {
       ? RoutesName.ticketDashboardView
       : RoutesName.loginScreen;
 
-  // Setup MethodChannel for native calls
-  const channel = MethodChannel('com.nxtdesigns.qrbuddy_v2/shift_service');
-  channel.setMethodCallHandler((call) async {
-    switch (call.method) {
-      case 'takeBreak':
-        Get.find<ShiftController>().updateShiftStatus('BREAK');
-        break;
-      case 'endShift':
-        Get.find<ShiftController>().updateShiftStatus('END');
-        break;
-      case 'resumeShift':
-        Get.find<ShiftController>().updateShiftStatus('START');
-        break;
-    }
-  });
-
   runApp(MyApp(
     notificationServices: notificationServices,
     initialRoute: initialRoute,
@@ -134,6 +118,11 @@ class MyApp extends StatelessWidget {
     final themeController = Get.put(ThemeController());
     Get.put(ShiftController()); // ShiftController globally
 
+    // Setup MethodChannel handler after controller is put
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _setupMethodChannelHandler();
+    });
+
     WidgetsBinding.instance.addPostFrameCallback((_) {
       notificationServices.firebaseInit(context);
     });
@@ -151,5 +140,25 @@ class MyApp extends StatelessWidget {
         initialBinding: AuthBinding(),
       ),
     );
+  }
+
+  void _setupMethodChannelHandler() {
+    const channel = MethodChannel('com.nxtdesigns.qrbuddy_v2/shift_service');
+    channel.setMethodCallHandler((call) async {
+      print('MethodChannel received call: ${call.method}');
+      final shiftController = Get.find<ShiftController>();
+      switch (call.method) {
+        case 'takeBreak':
+          print('Native requested to take break');
+          await shiftController.updateShiftStatus('BREAK');
+          break;
+        case 'endShift':
+          await shiftController.updateShiftStatus('END');
+          break;
+        case 'resumeShift':
+          await shiftController.updateShiftStatus('START');
+          break;
+      }
+    });
   }
 }

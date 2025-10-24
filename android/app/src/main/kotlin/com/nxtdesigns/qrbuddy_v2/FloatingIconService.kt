@@ -1,5 +1,7 @@
 package com.nxtdesigns.qrbuddy_v2
 
+import android.animation.AnimatorSet
+import android.animation.ObjectAnimator
 import android.app.Service
 import android.content.Intent
 import android.graphics.PixelFormat
@@ -7,6 +9,7 @@ import android.os.Build
 import android.os.IBinder
 import android.util.Log
 import android.view.*
+import android.view.animation.AccelerateDecelerateInterpolator
 import android.widget.ImageView
 import io.flutter.embedding.engine.FlutterEngineCache
 import io.flutter.plugin.common.MethodChannel
@@ -51,6 +54,16 @@ class FloatingIconService : Service() {
         floatingView = LayoutInflater.from(this).inflate(R.layout.overlay_icon, null)
         icon = floatingView.findViewById(R.id.floating_icon)
 
+        // Animate appearance
+        icon.scaleX = 0f
+        icon.scaleY = 0f
+        icon.animate()
+            .scaleX(1f)
+            .scaleY(1f)
+            .setDuration(300)
+            .setInterpolator(AccelerateDecelerateInterpolator())
+            .start()
+
         // MethodChannel to Flutter
         val engine = FlutterEngineCache.getInstance().get("my_engine")
         if (engine != null) {
@@ -60,7 +73,7 @@ class FloatingIconService : Service() {
             Log.e("FloatingIconService", "FlutterEngine not found in cache")
         }
 
-        icon.setOnTouchListener { v, event ->
+        icon.setOnTouchListener { _, event ->
             when (event.action) {
                 MotionEvent.ACTION_DOWN -> {
                     initialX = layoutParams.x
@@ -96,9 +109,9 @@ class FloatingIconService : Service() {
 
     private fun openMenu() {
         val actions = listOf(
-            Triple(android.R.drawable.ic_media_pause, "BREAK") { sendFlutter("takeBreak") },
-            Triple(android.R.drawable.ic_media_play, "START") { sendFlutter("resumeShift") },
-            Triple(android.R.drawable.ic_menu_close_clear_cancel, "END") { sendFlutter("endShift") },
+            Triple(R.drawable.ic_pause_circle, "BREAK") { sendFlutter("takeBreak") },
+            Triple(R.drawable.ic_play_circle, "START") { sendFlutter("resumeShift") },
+            Triple(R.drawable.ic_stop_circle, "END") { sendFlutter("endShift") },
         )
         val angles = listOf(-3 * Math.PI / 4, -Math.PI / 2, -Math.PI / 4)
 
@@ -112,14 +125,16 @@ class FloatingIconService : Service() {
                 val (iconRes, _, action) = actions[i]
                 val button = ImageView(this).apply {
                     setImageResource(iconRes)
-                    setBackgroundResource(R.drawable.floating_bg)
-                    elevation = 12f
-                    setPadding(20, 20, 20, 20)
+                    setBackgroundResource(R.drawable.menu_button_bg)
+                    elevation = 16f
+                    alpha = 0f
+                    scaleX = 0f
+                    scaleY = 0f
                 }
 
                 val buttonParams = WindowManager.LayoutParams(
-                    60,
-                    60,
+                    110,
+                    110,
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)
                         WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY
                     else
@@ -131,8 +146,8 @@ class FloatingIconService : Service() {
                     val angleRad = angles[i]
                     val dx = (radius * cos(angleRad)).toFloat()
                     val dy = (radius * sin(angleRad)).toFloat()
-                    x = (iconCenterX + dx - 30).toInt()
-                    y = (iconCenterY + dy - 30).toInt()
+                    x = (iconCenterX + dx - 55).toInt()
+                    y = (iconCenterY + dy - 55).toInt()
                 }
 
                 button.setOnClickListener {
@@ -143,13 +158,39 @@ class FloatingIconService : Service() {
 
                 windowManager.addView(button, buttonParams)
                 menuButtons.add(button)
+
+                // Animate button appearance
+                val scaleX = ObjectAnimator.ofFloat(button, "scaleX", 0f, 1f)
+                val scaleY = ObjectAnimator.ofFloat(button, "scaleY", 0f, 1f)
+                val fadeIn = ObjectAnimator.ofFloat(button, "alpha", 0f, 1f)
+                AnimatorSet().apply {
+                    playTogether(scaleX, scaleY, fadeIn)
+                    interpolator = AccelerateDecelerateInterpolator()
+                    duration = 250
+                    startDelay = (i * 100).toLong()
+                    start()
+                }
             }
         }
     }
 
     private fun closeMenu() {
-        menuButtons.forEach { button ->
-            windowManager.removeView(button)
+        menuButtons.forEachIndexed { i, button ->
+            val scaleX = ObjectAnimator.ofFloat(button, "scaleX", 1f, 0f)
+            val scaleY = ObjectAnimator.ofFloat(button, "scaleY", 1f, 0f)
+            val fadeOut = ObjectAnimator.ofFloat(button, "alpha", 1f, 0f)
+            AnimatorSet().apply {
+                playTogether(scaleX, scaleY, fadeOut)
+                interpolator = AccelerateDecelerateInterpolator()
+                duration = 200
+                startDelay = (i * 80).toLong()
+                start()
+            }
+            button.postDelayed({
+                try {
+                    windowManager.removeView(button)
+                } catch (_: Exception) {}
+            }, 300)
         }
         menuButtons.clear()
     }

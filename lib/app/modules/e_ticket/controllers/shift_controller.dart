@@ -2,13 +2,11 @@
 
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_foreground_task/flutter_foreground_task.dart';
-import 'package:flutter_overlay_window/flutter_overlay_window.dart';
 import 'package:get/get.dart';
 import 'package:qr_buddy/app/core/config/api_config.dart';
 import 'package:qr_buddy/app/core/config/token_storage.dart';
 import 'package:qr_buddy/app/core/services/api_service.dart';
-import 'package:qr_buddy/app/core/services/shift_foreground_service.dart';
+import 'package:qr_buddy/app/core/services/native_shift_service.dart';
 import 'package:qr_buddy/app/modules/e_ticket/controllers/location_dialog.dart';
 
 class ShiftController extends GetxController {
@@ -21,37 +19,12 @@ class ShiftController extends GetxController {
     super.onInit();
     Get.put(LocationDialogController(), permanent: true);
     _fetchCurrentShiftStatus();
-    // Listen for data from the foreground service.
-    FlutterForegroundTask.addTaskDataCallback(_onReceiveShiftData);
+
   }
 
-  void _onReceiveShiftData(Object? data) {
-    if (data is Map<String, dynamic>) {
-      print('Received from shift service: $data');
-      final String event = data['event'] ?? '';
-      // Use updateShiftStatus for actions that require an API call
-      // and directly update status for sync events.
-      switch (event) {
-        case 'take_break':
-          updateShiftStatus('BREAK');
-          break;
-        case 'resume_shift':
-          updateShiftStatus('START');
-          break;
-        case 'end_shift':
-          updateShiftStatus('END');
-          break;
-        case 'shift_ended':
-          shiftStatus.value = 'END';
-          break;
-      }
-    }
-  }
-  
   @override
   void onClose() {
-    // It's good practice to remove the callback when the controller is destroyed.
-    FlutterForegroundTask.removeTaskDataCallback(_onReceiveShiftData);
+   
     super.onClose();
   }
 
@@ -111,112 +84,50 @@ class ShiftController extends GetxController {
       barrierDismissible: false,
     );
   }
+Future<void> updateShiftStatus(String status) async {
+  final userId = await _tokenStorage.getUserId();
+  final hcoId = await _tokenStorage.getHcoId();
+  final token = await _tokenStorage.getToken();
 
-  Future<void> updateShiftStatus(String status) async {
-    final userId = await _tokenStorage.getUserId();
-    final hcoId = await _tokenStorage.getHcoId();
-    final token = await _tokenStorage.getToken();
+  if (userId == null || hcoId == null || token == null) {
+     Get.snackbar('Error', 'User not logged in.', backgroundColor: Colors.red);
+     return;
+  }
 
-    if (userId == null || hcoId == null || token == null) {
-       Get.snackbar('Error', 'User not logged in.', backgroundColor: Colors.red);
-       return;
-    }
-
-    try {
-      final response = await _apiService.post(
-        '${AppUrl.baseUrl}/users.html?action=update_shift&user_id=$userId&hco_id=$hcoId',
-        queryParameters: {
-          'action': 'update_shift',
-          'user_id': userId,
-          'hco_id': hcoId,
-          'phone_uuid': '',
-          'hco_key': '0',
-        },
-        data: {'shift_status': status},
-        options: Options(
-          headers: {'authorization': token},
-        ),
-      );
-      if (response.statusCode == 200 && response.data['status'] == 1) {
-        shiftStatus.value = status;
-        await _tokenStorage.saveShiftStatus(status);
-        await _manageForegroundService(status);
-        Get.snackbar(
-          'Success',
-          'Shift status updated to $status',
+  try {
+    final response = await _apiService.post(
+      '${AppUrl.baseUrl}/users.html?action=update_shift&user_id=$userId&hco_id=$hcoId',
+      data: {'shift_status': status},
+      options: Options(
+        headers: {'authorization': token},
+      ),
+    );
+    if (response.statusCode == 200 && response.data['status'] == 1) {
+      shiftStatus.value = status;
+      await _tokenStorage.saveShiftStatus(status);
+      await _manageForegroundService(status);
+      Get.snackbar('Success', 'Shift status updated to $status',
           snackPosition: SnackPosition.BOTTOM,
           backgroundColor: Colors.green.withOpacity(0.8),
-          colorText: Colors.white,
-        );
-      } else {
-        throw Exception(response.data['message'] ?? 'Failed to update status');
-      }
-    } catch (e) {
-      Get.snackbar(
-        'Error',
-        'Failed to update shift status: $e',
+          colorText: Colors.white);
+    } else {
+      throw Exception(response.data['message'] ?? 'Failed to update status');
+    }
+  } catch (e) {
+    Get.snackbar('Error', 'Failed to update shift status: $e',
         snackPosition: SnackPosition.BOTTOM,
         backgroundColor: Colors.red.withOpacity(0.8),
-        colorText: Colors.white,
-      );
-    }
+        colorText: Colors.white);
   }
+}
+
 Future<void> _manageForegroundService(String status) async {
-  final isOverlayPermitted = await FlutterOverlayWindow.isPermissionGranted();
-  if (!isOverlayPermitted) {
-    await FlutterOverlayWindow.requestPermission();
-  }
-
-  if (status == 'START' || status == 'BREAK') {
-    final text = status == 'START'
-        ? 'Waiting for orders...'
-        : 'On Break - Waiting for orders...';
-
-    final buttons = status == 'START'
-        ? [
-            const NotificationButton(id: 'take_break', text: 'Take Break'),
-            const NotificationButton(id: 'end_shift', text: 'End Shift'),
-          ]
-        : [
-            const NotificationButton(id: 'resume_shift', text: 'Resume Shift'),
-            const NotificationButton(id: 'end_shift', text: 'End Shift'),
-          ];
-
-    if (await FlutterForegroundTask.isRunningService) {
-      await FlutterForegroundTask.updateService(
-        notificationTitle: 'QR Buddy Shift Active',
-        notificationText: text,
-        notificationButtons: buttons,
-      );
-    } else {
-      await FlutterForegroundTask.startService(
-        notificationTitle: 'QR Buddy Shift Active',
-        notificationText: text,
-        notificationButtons: buttons,
-        callback: startCallback,
-      );
-    }
-
-    if (await FlutterOverlayWindow.isPermissionGranted()) {
-      if (await FlutterOverlayWindow.isActive()) {
-        await FlutterOverlayWindow.closeOverlay();
-      }
-      await FlutterOverlayWindow.showOverlay(
-        height: 80,
-        width: 80,
-        enableDrag: true,
-        flag: OverlayFlag.defaultFlag,
-        alignment: OverlayAlignment.topRight,
-      );
-    }
-
+  if (status == 'START') {
+    await NativeShiftService.startShift();
+  } else if (status == 'BREAK') {
+    await NativeShiftService.takeBreak();
   } else if (status == 'END') {
-    if (await FlutterForegroundTask.isRunningService) {
-      await FlutterForegroundTask.stopService();
-    }
-    if (await FlutterOverlayWindow.isActive()) {
-      await FlutterOverlayWindow.closeOverlay();
-    }
+    await NativeShiftService.endShift();
   }
 }
 }

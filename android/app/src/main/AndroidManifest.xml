@@ -1,6 +1,6 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
-    <!-- === Permissions === -->
+    <!-- Permissions -->
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.VIBRATE" />
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
@@ -8,17 +8,15 @@
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_LOCATION" />
-    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC" />
     <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
     <uses-permission android:name="android.permission.WAKE_LOCK" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
 
     <application
-        android:label="qr_buddy"
         android:name="${applicationName}"
+        android:label="qr_buddy"
         android:icon="@mipmap/ic_launcher">
 
-        <!-- Main Flutter Activity -->
         <activity
             android:name=".MainActivity"
             android:exported="true"
@@ -38,37 +36,18 @@
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
-
         </activity>
 
-        <!-- Firebase Messaging -->
+        <!-- Foreground + Floating Services -->
         <service
-            android:name="com.google.firebase.messaging.FirebaseMessagingService"
-            android:exported="false">
-            <intent-filter>
-                <action android:name="com.google.firebase.MESSAGING_EVENT" />
-            </intent-filter>
-        </service>
-
-        <!-- Foreground Service (Shift) -->
-        <service
-            android:name="com.pravera.flutter_foreground_task.service.ForegroundService"
+            android:name=".ShiftForegroundService"
             android:exported="false"
-            android:stopWithTask="true"
-            android:foregroundServiceType="dataSync|location" />
+            android:foregroundServiceType="location" />
 
-        <!-- Overlay Window Service -->
         <service
-            android:name="dev.flutter.overlay_window.FlutterOverlayWindowService"
-            android:exported="false" />
-
-        <!-- Firebase Meta -->
-        <meta-data
-            android:name="com.google.firebase.messaging.default_notification_icon"
-            android:resource="@drawable/ic_notification" />
-        <meta-data
-            android:name="com.google.firebase.messaging.default_notification_channel_id"
-            android:value="in_app_notification_channel" />
+            android:name=".FloatingIconService"
+            android:exported="false"
+            android:permission="android.permission.SYSTEM_ALERT_WINDOW" />
 
         <!-- Flutter embedding -->
         <meta-data
@@ -76,16 +55,5 @@
             android:value="2" />
 
     </application>
-
-
-
-
-    <!-- === Queries for Text Actions (optional) === -->
-    <queries>
-        <intent>
-            <action android:name="android.intent.action.PROCESS_TEXT" />
-            <data android:mimeType="text/plain" />
-        </intent>
-    </queries>
 
 </manifest>

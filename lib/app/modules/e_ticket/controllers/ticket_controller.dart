@@ -1,3 +1,4 @@
+
 import 'dart:async';
 import 'dart:io';
 
@@ -358,15 +359,6 @@ class TicketController extends GetxController {
         tasks.assignAll(newTasksData);
         print('Fetched ${tasks.length} task groups with new items');
         updateTasksCount();
-
-        // Trigger static notification for new food delivery
-        await notificationServices.showInAppNotificationWithSound(
-          title: '🍱 Food Delivery Assigned',
-          body: 'You have a new food delivery order waiting.',
-          location: 'Block B1, Room 204',
-          task: 'View Delivery Details',
-          ticketId: 'FD-2025-001',
-        );
       } else {
         print('No new food deliveries');
       }

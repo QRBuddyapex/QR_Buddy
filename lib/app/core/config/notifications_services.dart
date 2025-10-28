@@ -89,8 +89,9 @@ class NotificationServices {
                 final body = payloadData[3];
                 final location = payloadData[4];
                 final task = payloadData[5];
-                final ticketId = payloadData.length > 6 ? payloadData[6] : null;
-                print('Extracted notificationType: $notificationType, ticketId: $ticketId');
+                final checklistId = payloadData.length > 6 ? payloadData[6] : null; // For checklists
+                final ticketId = payloadData.length > 7 ? payloadData[7] : null; // For tickets
+                print('Extracted notificationType: $notificationType, checklistId: $checklistId, ticketId: $ticketId');
 
                 if (notificationType == 'food') {
                   Get.to(() => QikTasksNotification(
@@ -98,7 +99,15 @@ class NotificationServices {
                         body: body,
                         location: location,
                         task: task,
-                        ticketId: ticketId,
+                        ticketId: ticketId, // Reuse for food if needed
+                      ));
+                } else if (notificationType == 'checklist') {
+                  Get.to(() => ChecklistNotification(
+                        title: title,
+                        body: body,
+                        location: location,
+                        task: task,
+                        checklistId: checklistId,
                       ));
                 } else {
                   Get.to(() => FullScreenNotification(
@@ -127,8 +136,9 @@ class NotificationServices {
                 final body = payloadData[3];
                 final location = payloadData[4];
                 final task = payloadData[5];
-                final ticketId = payloadData.length > 6 ? payloadData[6] : null;
-                print('Extracted background notificationType: $notificationType, ticketId: $ticketId');
+                final checklistId = payloadData.length > 6 ? payloadData[6] : null; // For checklists
+                final ticketId = payloadData.length > 7 ? payloadData[7] : null; // For tickets
+                print('Extracted background notificationType: $notificationType, checklistId: $checklistId, ticketId: $ticketId');
 
                 if (notificationType == 'food') {
                   Get.to(() => QikTasksNotification(
@@ -136,7 +146,15 @@ class NotificationServices {
                         body: body,
                         location: location,
                         task: task,
-                        ticketId: ticketId,
+                        ticketId: ticketId, // Reuse for food if needed
+                      ));
+                } else if (notificationType == 'checklist') {
+                  Get.to(() => ChecklistNotification(
+                        title: title,
+                        body: body,
+                        location: location,
+                        task: task,
+                        checklistId: checklistId,
                       ));
                 } else {
                   Get.to(() => FullScreenNotification(
@@ -180,8 +198,10 @@ class NotificationServices {
           final title = data['title'] as String? ?? 'QR Buddy';
           final body = data['body'] as String? ?? 'New message';
           final url = data['url'] as String? ?? '';
-          final ticketId = data['ticket_id'] as String?; // Extract ticket_id as per log
-          print('Extracted ticketId: $ticketId');
+          final notificationType = data['notification_type'] as String? ?? 'ticket'; // Extract type from backend
+          final ticketId = data['ticket_id'] as String?;
+          final checklistId = data['checklist_id'] as String?;
+          print('Extracted notificationType: $notificationType, ticketId: $ticketId, checklistId: $checklistId');
 
           if (title.isEmpty || body.isEmpty) {
             print('Warning: Empty title or body received from backend');
@@ -193,7 +213,8 @@ class NotificationServices {
             location: url.isNotEmpty ? url : 'Block A1, Ground Floor, Room G1-504 (Near Canteen)',
             task: 'View Details',
             ticketId: ticketId,
-            notificationType: 'ticket',
+            checklistId: checklistId,
+            notificationType: notificationType,
           );
         } catch (e) {
           print('Failed to process foreground notification: $e');
@@ -214,18 +235,38 @@ class NotificationServices {
           final title = data['title'] as String? ?? 'QR Buddy';
           final body = data['body'] as String? ?? 'New message';
           final url = data['url'] as String? ?? '';
-          final ticketId = data['ticket_id'] as String?; // Extract ticket_id as per log
-          print('Extracted ticketId on open: $ticketId');
+          final notificationType = data['notification_type'] as String? ?? 'ticket'; // Extract type from backend
+          final ticketId = data['ticket_id'] as String?;
+          final checklistId = data['checklist_id'] as String?;
+          print('Extracted notificationType on open: $notificationType, ticketId: $ticketId, checklistId: $checklistId');
 
-          Get.to(() => FullScreenNotification(
-                title: title,
-                body: body,
-                location: url.isNotEmpty ? url : 'Block A1, Ground Floor, Room G1-504 (Near Canteen)',
-                task: 'View Details',
-                ticketId: ticketId,
-              ));
+          if (notificationType == 'food') {
+            Get.to(() => QikTasksNotification(
+                  title: title,
+                  body: body,
+                  location: url.isNotEmpty ? url : 'Block A1, Ground Floor, Room G1-504 (Near Canteen)',
+                  task: 'View Details',
+                  ticketId: ticketId,
+                ));
+          } else if (notificationType == 'checklist') {
+            Get.to(() => ChecklistNotification(
+                  title: title,
+                  body: body,
+                  location: url.isNotEmpty ? url : 'Block A1, Ground Floor, Room G1-504 (Near Canteen)',
+                  task: 'View Details',
+                  checklistId: checklistId,
+                ));
+          } else {
+            Get.to(() => FullScreenNotification(
+                  title: title,
+                  body: body,
+                  location: url.isNotEmpty ? url : 'Block A1, Ground Floor, Room G1-504 (Near Canteen)',
+                  task: 'View Details',
+                  ticketId: ticketId,
+                ));
+          }
         } catch (e) {
-          print('Failed to navigate to FullScreenNotification: $e');
+          print('Failed to navigate to notification screen: $e');
         }
       }
     });
@@ -241,16 +282,36 @@ class NotificationServices {
         final title = data['title'] as String? ?? 'QR Buddy';
         final body = data['body'] as String? ?? 'New message';
         final url = data['url'] as String? ?? '';
-        final ticketId = data['ticket_id'] as String?; // Extract ticket_id as per log
-        print('Extracted ticketId from initial: $ticketId');
+        final notificationType = data['notification_type'] as String? ?? 'ticket'; // Extract type from backend
+        final ticketId = data['ticket_id'] as String?;
+        final checklistId = data['checklist_id'] as String?;
+        print('Extracted notificationType from initial: $notificationType, ticketId: $ticketId, checklistId: $checklistId');
 
-        Get.to(() => FullScreenNotification(
-              title: title,
-              body: body,
-              location: url.isNotEmpty ? url : 'Block A1, Ground Floor, Room G1-504 (Near Canteen)',
-              task: 'View Details',
-              ticketId: ticketId,
-            ));
+        if (notificationType == 'food') {
+          Get.to(() => QikTasksNotification(
+                title: title,
+                body: body,
+                location: url.isNotEmpty ? url : 'Block A1, Ground Floor, Room G1-504 (Near Canteen)',
+                task: 'View Details',
+                ticketId: ticketId,
+              ));
+        } else if (notificationType == 'checklist') {
+          Get.to(() => ChecklistNotification(
+                title: title,
+                body: body,
+                location: url.isNotEmpty ? url : 'Block A1, Ground Floor, Room G1-504 (Near Canteen)',
+                task: 'View Details',
+                checklistId: checklistId,
+              ));
+        } else {
+          Get.to(() => FullScreenNotification(
+                title: title,
+                body: body,
+                location: url.isNotEmpty ? url : 'Block A1, Ground Floor, Room G1-504 (Near Canteen)',
+                task: 'View Details',
+                ticketId: ticketId,
+              ));
+        }
       } catch (e) {
         print('Failed to process initial message: $e');
       }
@@ -265,6 +326,7 @@ class NotificationServices {
     required String location,
     required String task,
     String? ticketId,
+    String? checklistId,
     String notificationType = 'ticket',
   }) async {
     var androidNotificationChannel = AndroidNotificationChannel(
@@ -319,15 +381,22 @@ class NotificationServices {
     );
 
     try {
-      print('Showing notification with title: $title, body: $body, ticketId: $ticketId, type: $notificationType');
+      // Build payload based on type
+      String payload = 'in_app_notification|$notificationType|$title|$body|$location|$task';
+      if (notificationType == 'checklist' && checklistId != null) {
+        payload += '|$checklistId';
+      } else if (ticketId != null) {
+        payload += '|$ticketId';
+      }
+      print('Showing notification with title: $title, body: $body, type: $notificationType');
       await flutterLocalNotificationsPlugin.show(
         1,
         title,
         body,
         notificationDetails,
-        payload: 'in_app_notification|$notificationType|$title|$body|$location|$task${ticketId != null ? '|$ticketId' : ''}',
+        payload: payload,
       );
-      print('Notification shown successfully with payload: in_app_notification|$notificationType|$title|$body|$location|$task${ticketId != null ? '|$ticketId' : ''}');
+      print('Notification shown successfully with payload: $payload');
     } catch (e) {
       print('Failed to show notification: $e');
     }
@@ -335,7 +404,7 @@ class NotificationServices {
     // Avoid contextless navigation in background
     if (Get.context != null) {
       try {
-        print('Navigating to ${notificationType == 'food' ? 'QikTasksNotification' : 'FullScreenNotification'} with ticketId: $ticketId');
+        print('Navigating to ${notificationType == 'food' ? 'QikTasksNotification' : notificationType == 'checklist' ? 'ChecklistNotification' : 'FullScreenNotification'} with checklistId: $checklistId, ticketId: $ticketId');
         if (notificationType == 'food') {
           Get.to(() => QikTasksNotification(
                 title: title,
@@ -343,6 +412,14 @@ class NotificationServices {
                 location: location,
                 task: task,
                 ticketId: ticketId,
+              ));
+        } else if (notificationType == 'checklist') {
+          Get.to(() => ChecklistNotification(
+                title: title,
+                body: body,
+                location: location,
+                task: task,
+                checklistId: checklistId,
               ));
         } else {
           Get.to(() => FullScreenNotification(
@@ -811,6 +888,216 @@ class QikTasksNotification extends StatelessWidget {
                   style: ElevatedButton.styleFrom(
                     backgroundColor: whiteColor,
                     foregroundColor: orangeColor,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(30),
+                    ),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 32, vertical: 16),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                TextButton(
+                  onPressed: () {
+                    print("Dismiss pressed");
+                    Get.back();
+                  },
+                  child: Text("Dismiss",
+                      style: theme.textTheme.bodyMedium!.copyWith(
+                        color: whiteColor,
+                        fontFamily: 'Poppins',
+                      )),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class ChecklistNotification extends StatelessWidget {
+  final String title;
+  final String body;
+  final String location;
+  final String task;
+  final String? checklistId;
+
+  const ChecklistNotification({
+    Key? key,
+    required this.title,
+    required this.body,
+    required this.location,
+    required this.task,
+    this.checklistId,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    print('ChecklistNotification built with checklistId: $checklistId');
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    final cardBackgroundColor = isDark ? AppColors.darkCardBackgroundColor : AppColors.cardBackgroundColor;
+    final textColor = isDark ? AppColors.darkTextColor : AppColors.textColor;
+    final subtitleColor = isDark ? AppColors.darkSubtitleColor : AppColors.subtitleColor;
+    final primaryColor = theme.primaryColor;
+    final whiteColor = Colors.white;
+    final greenColor = Colors.green[600]!; // Different color for checklists, e.g., green for completion
+
+    String blockFloor = 'Unknown';
+    String roomBed = 'Unknown';
+    if (location.contains('Block') || location.contains('Floor')) {
+      final parts = location.split(',');
+      blockFloor = parts.firstWhere(
+        (part) => part.contains('Block') || part.contains('Floor'),
+        orElse: () => '',
+      ).trim();
+    }
+    if (location.contains('Room') || location.contains('Bed')) {
+      final parts = location.split(',');
+      roomBed = parts.firstWhere(
+        (part) => part.contains('Room') || part.contains('Bed'),
+        orElse: () => '',
+      ).trim();
+    }
+
+    return Scaffold(
+      backgroundColor: greenColor,
+      body: SafeArea(
+        child: Center(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 40),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(Icons.checklist,
+                    size: 80, color: whiteColor),
+                const SizedBox(height: 24),
+                Text(
+                  'Checklist Notification',
+                  style: theme.textTheme.headlineSmall!.copyWith(
+                    color: whiteColor,
+                    fontFamily: 'Poppins',
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  title,
+                  style: theme.textTheme.headlineMedium!.copyWith(
+                    color: whiteColor,
+                    fontFamily: 'Poppins',
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 10),
+                Text(
+                  body,
+                  style: theme.textTheme.bodyMedium!.copyWith(
+                    color: whiteColor.withOpacity(0.7),
+                    fontFamily: 'Poppins',
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 30),
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: cardBackgroundColor,
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Row(
+                        children: [
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text("Block-Floor",
+                                    style: theme.textTheme.bodySmall!.copyWith(
+                                      color: subtitleColor,
+                                      fontFamily: 'Poppins',
+                                    )),
+                                Text(
+                                  blockFloor,
+                                  style: theme.textTheme.bodyMedium!.copyWith(
+                                    color: textColor,
+                                    fontWeight: FontWeight.bold,
+                                    fontFamily: 'Poppins',
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text("Room-Bed",
+                                    style: theme.textTheme.bodySmall!.copyWith(
+                                      color: subtitleColor,
+                                      fontFamily: 'Poppins',
+                                    )),
+                                Text(
+                                  roomBed,
+                                  style: theme.textTheme.bodyMedium!.copyWith(
+                                    color: textColor,
+                                    fontWeight: FontWeight.bold,
+                                    fontFamily: 'Poppins',
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                      const Divider(height: 24, thickness: 1),
+                      Center(
+                        child: Text(task.isNotEmpty ? task : 'Unknown',
+                            style: theme.textTheme.headlineSmall!.copyWith(
+                              color: textColor,
+                              fontWeight: FontWeight.w600,
+                              fontFamily: 'Poppins',
+                            )),
+                      ),
+                    ],
+                  ),
+                ),
+                const Spacer(),
+                ElevatedButton.icon(
+                  onPressed: () async {
+                    print("Start Checklist pressed with checklistId: $checklistId");
+                    try {
+                      if (checklistId == null) {
+                        throw Exception('Checklist ID is missing from notification');
+                      }
+                      // Navigate to checklist details or update status
+                      // Example: Get.offAllNamed(RoutesName.checklistDetailsView, arguments: {'checklistId': checklistId});
+                      Get.offAllNamed(RoutesName.ticketDashboardView); // Fallback to dashboard
+                      final ticketController = Get.find<TicketController>();
+                      await ticketController.fetchChecklistLog(); // Refresh checklists
+                    } catch (e) {
+                      print('Failed to start checklist: $e');
+                      Get.snackbar(
+                        'Error',
+                        'Failed to start checklist: $e',
+                        snackPosition: SnackPosition.BOTTOM,
+                        backgroundColor: Colors.red.withOpacity(0.8),
+                        colorText: Colors.white,
+                      );
+                    }
+                  },
+                  icon: const Icon(Icons.arrow_forward, color: Colors.white),
+                  label: Text("Start Checklist",
+                      style: theme.textTheme.labelLarge!.copyWith(
+                        color: whiteColor,
+                        fontFamily: 'Poppins',
+                      )),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: whiteColor.withOpacity(0.2),
+                    foregroundColor: whiteColor,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(30),
                     ),

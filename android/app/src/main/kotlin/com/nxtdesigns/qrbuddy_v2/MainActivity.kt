@@ -12,14 +12,13 @@ class MainActivity : FlutterActivity() {
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
         FlutterEngineCache.getInstance().put("my_engine", flutterEngine)
-
         MethodChannel(flutterEngine.dartExecutor.binaryMessenger, CHANNEL)
             .setMethodCallHandler { call, result ->
                 when (call.method) {
                     "startShift" -> {
                         val intent = Intent(this, ShiftForegroundService::class.java).apply { action = ShiftForegroundService.ACTION_START }
                         startService(intent)
-                        startService(Intent(this, FloatingIconService::class.java))
+                        // Do not start floating icon here; let Flutter handle based on app lifecycle
                         result.success(null)
                     }
                     "takeBreak" -> {
@@ -34,6 +33,15 @@ class MainActivity : FlutterActivity() {
                     }
                     "endShift" -> {
                         stopService(Intent(this, ShiftForegroundService::class.java))
+                        stopService(Intent(this, FloatingIconService::class.java))
+                        result.success(null)
+                    }
+                    "startFloatingIcon" -> {
+                        val intent = Intent(this, FloatingIconService::class.java)
+                        startService(intent)
+                        result.success(null)
+                    }
+                    "stopFloatingIcon" -> {
                         stopService(Intent(this, FloatingIconService::class.java))
                         result.success(null)
                     }

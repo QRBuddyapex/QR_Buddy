@@ -21,10 +21,31 @@ class FloatingIconService : Service() {
     private var initialY = 0
     private var touchX = 0f
     private var touchY = 0f
+    private var isViewAdded = false
 
     override fun onCreate() {
         super.onCreate()
         windowManager = getSystemService(WINDOW_SERVICE) as WindowManager
+        // MethodChannel to Flutter (for potential future use, e.g., buttons)
+        val engine = FlutterEngineCache.getInstance().get("my_engine")
+        if (engine != null) {
+            channel = MethodChannel(engine.dartExecutor.binaryMessenger, "com.nxtdesigns.qrbuddy_v2/shift_service")
+            Log.d("FloatingIconService", "Channel initialized successfully")
+        } else {
+            Log.e("FloatingIconService", "FlutterEngine not found in cache")
+        }
+    }
+
+    override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+        super.onStartCommand(intent, flags, startId)
+        if (!isViewAdded) {
+            addFloatingView()
+        }
+        // Make the service sticky so it restarts if killed
+        return START_STICKY
+    }
+
+    private fun addFloatingView() {
         val layoutParams = WindowManager.LayoutParams(
             WindowManager.LayoutParams.WRAP_CONTENT,
             WindowManager.LayoutParams.WRAP_CONTENT,
@@ -38,8 +59,10 @@ class FloatingIconService : Service() {
         layoutParams.gravity = Gravity.TOP or Gravity.END
         layoutParams.x = 20
         layoutParams.y = 100
+
         floatingView = LayoutInflater.from(this).inflate(R.layout.overlay_icon, null)
         icon = floatingView.findViewById(R.id.floating_icon)
+
         // Animate appearance
         icon.scaleX = 0f
         icon.scaleY = 0f
@@ -49,14 +72,7 @@ class FloatingIconService : Service() {
             .setDuration(300)
             .setInterpolator(AccelerateDecelerateInterpolator())
             .start()
-        // MethodChannel to Flutter
-        val engine = FlutterEngineCache.getInstance().get("my_engine")
-        if (engine != null) {
-            channel = MethodChannel(engine.dartExecutor.binaryMessenger, "com.nxtdesigns.qrbuddy_v2/shift_service")
-            Log.d("FloatingIconService", "Channel initialized successfully")
-        } else {
-            Log.e("FloatingIconService", "FlutterEngine not found in cache")
-        }
+
         icon.setOnTouchListener { _, event ->
             when (event.action) {
                 MotionEvent.ACTION_DOWN -> {
@@ -83,22 +99,36 @@ class FloatingIconService : Service() {
             }
         }
         windowManager.addView(floatingView, layoutParams)
+        isViewAdded = true
+        Log.d("FloatingIconService", "Floating view added")
+    }
+
+    private fun removeFloatingView() {
+        if (isViewAdded) {
+            try {
+                windowManager.removeView(floatingView)
+                isViewAdded = false
+                Log.d("FloatingIconService", "Floating view removed")
+            } catch (e: Exception) {
+                Log.e("FloatingIconService", "Error removing view: $e")
+            }
+        }
     }
 
     private fun launchApp() {
         val intent = Intent(this, MainActivity::class.java).apply {
-            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP)
-            // Navigate to dashboard - assuming the initial route or specific route is handled in Flutter
+            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP)
+            // Add extra to indicate launched from floating icon if needed
+            putExtra("from_floating_icon", true)
         }
         startActivity(intent)
-        Log.d("FloatingIconService", "Launching app dashboard")
+        Log.d("FloatingIconService", "Launching app from floating icon")
     }
 
     override fun onDestroy() {
         super.onDestroy()
-        if (::windowManager.isInitialized && ::floatingView.isInitialized) {
-            windowManager.removeView(floatingView)
-        }
+        removeFloatingView()
+        Log.d("FloatingIconService", "Service destroyed")
     }
 
     override fun onBind(intent: Intent?): IBinder? = null

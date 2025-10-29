@@ -7,4 +7,7 @@ class NativeShiftService {
   static Future<void> takeBreak() async => _channel.invokeMethod('takeBreak');
   static Future<void> resumeShift() async => _channel.invokeMethod('resumeShift');
   static Future<void> endShift() async => _channel.invokeMethod('endShift');
+  
+  static Future<void> startFloatingIcon() async => _channel.invokeMethod('startFloatingIcon');
+  static Future<void> stopFloatingIcon() async => _channel.invokeMethod('stopFloatingIcon');
 }

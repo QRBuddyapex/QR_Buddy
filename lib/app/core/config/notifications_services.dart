@@ -7,6 +7,7 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:get/get.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:qr_buddy/app/core/theme/app_theme.dart';
+import 'package:qr_buddy/app/data/models/notification_model.dart';
 import 'package:qr_buddy/app/modules/e_ticket/controllers/ticket_controller.dart';
 import 'package:qr_buddy/app/routes/routes.dart';
 import 'package:vibration/vibration.dart';
@@ -89,9 +90,8 @@ class NotificationServices {
                 final body = payloadData[3];
                 final location = payloadData[4];
                 final task = payloadData[5];
-                final checklistId = payloadData.length > 6 ? payloadData[6] : null; // For checklists
-                final ticketId = payloadData.length > 7 ? payloadData[7] : null; // For tickets
-                print('Extracted notificationType: $notificationType, checklistId: $checklistId, ticketId: $ticketId');
+                final eventUuid = payloadData.length > 6 ? payloadData[6] : null;
+                print('Extracted notificationType: $notificationType, eventUuid: $eventUuid');
 
                 if (notificationType == 'food') {
                   Get.to(() => QikTasksNotification(
@@ -99,7 +99,7 @@ class NotificationServices {
                         body: body,
                         location: location,
                         task: task,
-                        ticketId: ticketId, // Reuse for food if needed
+                        eventUuid: eventUuid,
                       ));
                 } else if (notificationType == 'checklist') {
                   Get.to(() => ChecklistNotification(
@@ -107,7 +107,7 @@ class NotificationServices {
                         body: body,
                         location: location,
                         task: task,
-                        checklistId: checklistId,
+                        eventUuid: eventUuid,
                       ));
                 } else {
                   Get.to(() => FullScreenNotification(
@@ -115,7 +115,7 @@ class NotificationServices {
                         body: body,
                         location: location,
                         task: task,
-                        ticketId: ticketId,
+                        eventUuid: eventUuid,
                       ));
                 }
               } catch (e) {
@@ -136,9 +136,8 @@ class NotificationServices {
                 final body = payloadData[3];
                 final location = payloadData[4];
                 final task = payloadData[5];
-                final checklistId = payloadData.length > 6 ? payloadData[6] : null; // For checklists
-                final ticketId = payloadData.length > 7 ? payloadData[7] : null; // For tickets
-                print('Extracted background notificationType: $notificationType, checklistId: $checklistId, ticketId: $ticketId');
+                final eventUuid = payloadData.length > 6 ? payloadData[6] : null;
+                print('Extracted background notificationType: $notificationType, eventUuid: $eventUuid');
 
                 if (notificationType == 'food') {
                   Get.to(() => QikTasksNotification(
@@ -146,7 +145,7 @@ class NotificationServices {
                         body: body,
                         location: location,
                         task: task,
-                        ticketId: ticketId, // Reuse for food if needed
+                        eventUuid: eventUuid,
                       ));
                 } else if (notificationType == 'checklist') {
                   Get.to(() => ChecklistNotification(
@@ -154,7 +153,7 @@ class NotificationServices {
                         body: body,
                         location: location,
                         task: task,
-                        checklistId: checklistId,
+                        eventUuid: eventUuid,
                       ));
                 } else {
                   Get.to(() => FullScreenNotification(
@@ -162,7 +161,7 @@ class NotificationServices {
                         body: body,
                         location: location,
                         task: task,
-                        ticketId: ticketId,
+                        eventUuid: eventUuid,
                       ));
                 }
               } catch (e) {
@@ -195,13 +194,14 @@ class NotificationServices {
           final notification = message.data['message'] as Map<String, dynamic>? ?? {};
           final data = notification['data'] as Map<String, dynamic>? ?? message.data;
           print('Processed notification data: $data');
-          final title = data['title'] as String? ?? 'QR Buddy';
-          final body = data['body'] as String? ?? 'New message';
-          final url = data['url'] as String? ?? '';
-          final notificationType = data['notification_type'] as String? ?? 'ticket'; // Extract type from backend
-          final ticketId = data['ticket_id'] as String?;
-          final checklistId = data['checklist_id'] as String?;
-          print('Extracted notificationType: $notificationType, ticketId: $ticketId, checklistId: $checklistId');
+          final payload = NotificationPayload.fromMap(data);
+          final title = payload.title;
+          final body = payload.body;
+          final url = payload.location;
+          final notificationType = payload.eventType;
+          final eventUuid = payload.eventUuid;
+          final task = payload.task;
+          print('Extracted notificationType: $notificationType, eventUuid: $eventUuid, eventId: ${payload.eventId}');
 
           if (title.isEmpty || body.isEmpty) {
             print('Warning: Empty title or body received from backend');
@@ -211,9 +211,8 @@ class NotificationServices {
             title: title,
             body: body,
             location: url.isNotEmpty ? url : 'Block A1, Ground Floor, Room G1-504 (Near Canteen)',
-            task: 'View Details',
-            ticketId: ticketId,
-            checklistId: checklistId,
+            task: task.isNotEmpty ? task : 'View Details',
+            eventUuid: eventUuid,
             notificationType: notificationType,
           );
         } catch (e) {
@@ -232,37 +231,38 @@ class NotificationServices {
         try {
           final notification = message.data['message'] as Map<String, dynamic>? ?? {};
           final data = notification['data'] as Map<String, dynamic>? ?? message.data;
-          final title = data['title'] as String? ?? 'QR Buddy';
-          final body = data['body'] as String? ?? 'New message';
-          final url = data['url'] as String? ?? '';
-          final notificationType = data['notification_type'] as String? ?? 'ticket'; // Extract type from backend
-          final ticketId = data['ticket_id'] as String?;
-          final checklistId = data['checklist_id'] as String?;
-          print('Extracted notificationType on open: $notificationType, ticketId: $ticketId, checklistId: $checklistId');
+          final payload = NotificationPayload.fromMap(data);
+          final title = payload.title;
+          final body = payload.body;
+          final url = payload.location;
+          final notificationType = payload.eventType;
+          final eventUuid = payload.eventUuid;
+          final task = payload.task;
+          print('Extracted notificationType on open: $notificationType, eventUuid: $eventUuid, eventId: ${payload.eventId}');
 
           if (notificationType == 'food') {
             Get.to(() => QikTasksNotification(
                   title: title,
                   body: body,
                   location: url.isNotEmpty ? url : 'Block A1, Ground Floor, Room G1-504 (Near Canteen)',
-                  task: 'View Details',
-                  ticketId: ticketId,
+                  task: task.isNotEmpty ? task : 'View Details',
+                  eventUuid: eventUuid,
                 ));
           } else if (notificationType == 'checklist') {
             Get.to(() => ChecklistNotification(
                   title: title,
                   body: body,
                   location: url.isNotEmpty ? url : 'Block A1, Ground Floor, Room G1-504 (Near Canteen)',
-                  task: 'View Details',
-                  checklistId: checklistId,
+                  task: task.isNotEmpty ? task : 'View Details',
+                  eventUuid: eventUuid,
                 ));
           } else {
             Get.to(() => FullScreenNotification(
                   title: title,
                   body: body,
                   location: url.isNotEmpty ? url : 'Block A1, Ground Floor, Room G1-504 (Near Canteen)',
-                  task: 'View Details',
-                  ticketId: ticketId,
+                  task: task.isNotEmpty ? task : 'View Details',
+                  eventUuid: eventUuid,
                 ));
           }
         } catch (e) {
@@ -279,37 +279,38 @@ class NotificationServices {
       try {
         final notification = initialMessage.data['message'] as Map<String, dynamic>? ?? {};
         final data = notification['data'] as Map<String, dynamic>? ?? initialMessage.data;
-        final title = data['title'] as String? ?? 'QR Buddy';
-        final body = data['body'] as String? ?? 'New message';
-        final url = data['url'] as String? ?? '';
-        final notificationType = data['notification_type'] as String? ?? 'ticket'; // Extract type from backend
-        final ticketId = data['ticket_id'] as String?;
-        final checklistId = data['checklist_id'] as String?;
-        print('Extracted notificationType from initial: $notificationType, ticketId: $ticketId, checklistId: $checklistId');
+        final payload = NotificationPayload.fromMap(data);
+        final title = payload.title;
+        final body = payload.body;
+        final url = payload.location;
+        final notificationType = payload.eventType;
+        final eventUuid = payload.eventUuid;
+        final task = payload.task;
+        print('Extracted notificationType from initial: $notificationType, eventUuid: $eventUuid, eventId: ${payload.eventId}');
 
         if (notificationType == 'food') {
           Get.to(() => QikTasksNotification(
                 title: title,
                 body: body,
                 location: url.isNotEmpty ? url : 'Block A1, Ground Floor, Room G1-504 (Near Canteen)',
-                task: 'View Details',
-                ticketId: ticketId,
+                task: task.isNotEmpty ? task : 'View Details',
+                eventUuid: eventUuid,
               ));
         } else if (notificationType == 'checklist') {
           Get.to(() => ChecklistNotification(
                 title: title,
                 body: body,
                 location: url.isNotEmpty ? url : 'Block A1, Ground Floor, Room G1-504 (Near Canteen)',
-                task: 'View Details',
-                checklistId: checklistId,
+                task: task.isNotEmpty ? task : 'View Details',
+                eventUuid: eventUuid,
               ));
         } else {
           Get.to(() => FullScreenNotification(
                 title: title,
                 body: body,
                 location: url.isNotEmpty ? url : 'Block A1, Ground Floor, Room G1-504 (Near Canteen)',
-                task: 'View Details',
-                ticketId: ticketId,
+                task: task.isNotEmpty ? task : 'View Details',
+                eventUuid: eventUuid,
               ));
         }
       } catch (e) {
@@ -325,8 +326,7 @@ class NotificationServices {
     required String body,
     required String location,
     required String task,
-    String? ticketId,
-    String? checklistId,
+    String? eventUuid,
     String notificationType = 'ticket',
   }) async {
     var androidNotificationChannel = AndroidNotificationChannel(
@@ -383,10 +383,8 @@ class NotificationServices {
     try {
       // Build payload based on type
       String payload = 'in_app_notification|$notificationType|$title|$body|$location|$task';
-      if (notificationType == 'checklist' && checklistId != null) {
-        payload += '|$checklistId';
-      } else if (ticketId != null) {
-        payload += '|$ticketId';
+      if (eventUuid != null) {
+        payload += '|$eventUuid';
       }
       print('Showing notification with title: $title, body: $body, type: $notificationType');
       await flutterLocalNotificationsPlugin.show(
@@ -404,14 +402,14 @@ class NotificationServices {
     // Avoid contextless navigation in background
     if (Get.context != null) {
       try {
-        print('Navigating to ${notificationType == 'food' ? 'QikTasksNotification' : notificationType == 'checklist' ? 'ChecklistNotification' : 'FullScreenNotification'} with checklistId: $checklistId, ticketId: $ticketId');
+        print('Navigating to ${notificationType == 'food' ? 'QikTasksNotification' : notificationType == 'checklist' ? 'ChecklistNotification' : 'FullScreenNotification'} with eventUuid: $eventUuid');
         if (notificationType == 'food') {
           Get.to(() => QikTasksNotification(
                 title: title,
                 body: body,
                 location: location,
                 task: task,
-                ticketId: ticketId,
+                eventUuid: eventUuid,
               ));
         } else if (notificationType == 'checklist') {
           Get.to(() => ChecklistNotification(
@@ -419,7 +417,7 @@ class NotificationServices {
                 body: body,
                 location: location,
                 task: task,
-                checklistId: checklistId,
+                eventUuid: eventUuid,
               ));
         } else {
           Get.to(() => FullScreenNotification(
@@ -427,7 +425,7 @@ class NotificationServices {
                 body: body,
                 location: location,
                 task: task,
-                ticketId: ticketId,
+                eventUuid: eventUuid,
               ));
         }
         print('Navigation successful');
@@ -550,7 +548,7 @@ class FullScreenNotification extends StatelessWidget {
   final String body;
   final String location;
   final String task;
-  final String? ticketId;
+  final String? eventUuid;
 
   const FullScreenNotification({
     Key? key,
@@ -558,12 +556,12 @@ class FullScreenNotification extends StatelessWidget {
     required this.body,
     required this.location,
     required this.task,
-    this.ticketId,
+    this.eventUuid,
   }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    print('FullScreenNotification built with ticketId: $ticketId');
+    print('FullScreenNotification built with eventUuid: $eventUuid');
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
     final cardBackgroundColor = isDark ? AppColors.darkCardBackgroundColor : AppColors.cardBackgroundColor;
@@ -686,15 +684,15 @@ class FullScreenNotification extends StatelessWidget {
                 const Spacer(),
                 ElevatedButton.icon(
                   onPressed: () async {
-                    print("Accept and Start pressed with ticketId: $ticketId");
+                    print("Accept and Start pressed with eventUuid: $eventUuid");
                     try {
-                      if (ticketId == null) {
-                        throw Exception('Ticket ID is missing from notification');
+                      if (eventUuid == null || eventUuid!.isEmpty) {
+                        throw Exception('Event UUID is missing from notification');
                       }
                       final ticketController = Get.find<TicketController>();
                       await ticketController.updateRequest(
                         action: 'Accept',
-                        orderId: ticketId!,
+                        orderId: eventUuid!,
                       );
                       Get.offAllNamed(RoutesName.ticketDashboardView);
                       await ticketController.fetchTickets();
@@ -751,7 +749,7 @@ class QikTasksNotification extends StatelessWidget {
   final String body;
   final String location;
   final String task;
-  final String? ticketId;
+  final String? eventUuid;
 
   const QikTasksNotification({
     Key? key,
@@ -759,12 +757,12 @@ class QikTasksNotification extends StatelessWidget {
     required this.body,
     required this.location,
     required this.task,
-    this.ticketId,
+    this.eventUuid,
   }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    print('QikTasksNotification built with ticketId: $ticketId');
+    print('QikTasksNotification built with eventUuid: $eventUuid');
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
     final cardBackgroundColor = isDark ? AppColors.darkCardBackgroundColor : AppColors.cardBackgroundColor;
@@ -861,7 +859,7 @@ class QikTasksNotification extends StatelessWidget {
                 const Spacer(),
                 ElevatedButton.icon(
                   onPressed: () async {
-                    print("Start Delivery pressed with ticketId: $ticketId");
+                    print("Start Delivery pressed with eventUuid: $eventUuid");
                     try {
                       // For food delivery, navigate to dashboard or specific screen
                       // Optionally, implement accept logic if needed
@@ -921,7 +919,7 @@ class ChecklistNotification extends StatelessWidget {
   final String body;
   final String location;
   final String task;
-  final String? checklistId;
+  final String? eventUuid;
 
   const ChecklistNotification({
     Key? key,
@@ -929,12 +927,12 @@ class ChecklistNotification extends StatelessWidget {
     required this.body,
     required this.location,
     required this.task,
-    this.checklistId,
+    this.eventUuid,
   }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    print('ChecklistNotification built with checklistId: $checklistId');
+    print('ChecklistNotification built with eventUuid: $eventUuid');
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
     final cardBackgroundColor = isDark ? AppColors.darkCardBackgroundColor : AppColors.cardBackgroundColor;
@@ -1068,13 +1066,13 @@ class ChecklistNotification extends StatelessWidget {
                 const Spacer(),
                 ElevatedButton.icon(
                   onPressed: () async {
-                    print("Start Checklist pressed with checklistId: $checklistId");
+                    print("Start Checklist pressed with eventUuid: $eventUuid");
                     try {
-                      if (checklistId == null) {
-                        throw Exception('Checklist ID is missing from notification');
+                      if (eventUuid == null || eventUuid!.isEmpty) {
+                        throw Exception('Event UUID is missing from notification');
                       }
                       // Navigate to checklist details or update status
-                      // Example: Get.offAllNamed(RoutesName.checklistDetailsView, arguments: {'checklistId': checklistId});
+                      // Example: Get.offAllNamed(RoutesName.checklistDetailsView, arguments: {'checklistId': eventUuid});
                       Get.offAllNamed(RoutesName.ticketDashboardView); // Fallback to dashboard
                       final ticketController = Get.find<TicketController>();
                       await ticketController.fetchChecklistLog(); // Refresh checklists

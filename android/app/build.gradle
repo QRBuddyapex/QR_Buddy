@@ -12,7 +12,7 @@ if (keystorePropertiesFile.exists()) {
 }
 
 android {
-    namespace 'com.nxtdesigns.qrbuddy_v2'
+    namespace 'com.nxtdesigns.qrbuddy_apexv3'
     compileSdk flutter.compileSdkVersion
     ndkVersion flutter.ndkVersion
 
@@ -27,7 +27,7 @@ android {
     }
 
     defaultConfig {
-        applicationId 'com.nxtdesigns.qrbuddy_v2'
+        applicationId "com.nxtdesigns.qrbuddy_apexv3"
         minSdk flutter.minSdkVersion
         targetSdk flutter.targetSdkVersion
         versionCode flutter.versionCode
@@ -46,7 +46,7 @@ android {
 
     buildTypes {
         release {
-            // signingConfig signingConfigs.release   // enable only if keystore is ready
+            signingConfig signingConfigs.release   // enable only if keystore is ready
             minifyEnabled false
             shrinkResources false
             debuggable false

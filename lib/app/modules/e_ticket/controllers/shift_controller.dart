@@ -163,7 +163,7 @@ class ShiftController extends GetxController with WidgetsBindingObserver {
   Future<void> _startFloatingService() async {
     // Assuming NativeShiftService has a method to start the floating icon service
     // If not, implement via MethodChannel:
-    // const channel = MethodChannel('com.nxtdesigns.qrbuddy_v2/floating');
+    // const channel = MethodChannel('com.nxtdesigns.qrbuddy_apexv3/floating');
     // await channel.invokeMethod('startFloatingService');
     await NativeShiftService.startFloatingIcon();
   }
@@ -171,7 +171,7 @@ class ShiftController extends GetxController with WidgetsBindingObserver {
   Future<void> _stopFloatingService() async {
     // Assuming NativeShiftService has a method to stop the floating icon service
     // If not, implement via MethodChannel:
-    // const channel = MethodChannel('com.nxtdesigns.qrbuddy_v2/floating');
+    // const channel = MethodChannel('com.nxtdesigns.qrbuddy_apexv3/floating');
     // await channel.invokeMethod('stopFloatingService');
     await NativeShiftService.stopFloatingIcon();
   }

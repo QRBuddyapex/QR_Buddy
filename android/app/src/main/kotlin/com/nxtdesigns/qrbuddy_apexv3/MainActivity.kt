@@ -1,4 +1,4 @@
-package com.nxtdesigns.qrbuddy_v2
+package com.nxtdesigns.qrbuddy_apexv3
 
 import android.content.Intent
 import io.flutter.embedding.android.FlutterActivity
@@ -7,7 +7,7 @@ import io.flutter.embedding.engine.FlutterEngineCache
 import io.flutter.plugin.common.MethodChannel
 
 class MainActivity : FlutterActivity() {
-    private val CHANNEL = "com.nxtdesigns.qrbuddy_v2/shift_service"
+    private val CHANNEL = "com.nxtdesigns.qrbuddy_apexv3/shift_service"
 
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)

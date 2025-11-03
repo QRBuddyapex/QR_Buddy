@@ -1,4 +1,4 @@
-package com.nxtdesigns.qrbuddy_v2
+package com.nxtdesigns.qrbuddy_apexv3
 
 import android.app.*
 import android.content.Context
@@ -26,7 +26,7 @@ class ShiftForegroundService : Service() {
         super.onCreate()
         val engine = FlutterEngineCache.getInstance().get("my_engine")
         if (engine != null) {
-            channel = MethodChannel(engine.dartExecutor.binaryMessenger, "com.nxtdesigns.qrbuddy_v2/shift_service")
+            channel = MethodChannel(engine.dartExecutor.binaryMessenger, "com.nxtdesigns.qrbuddy_apexv3/shift_service")
             Log.d("ShiftForegroundService", "Channel initialized successfully")
         } else {
             Log.e("ShiftForegroundService", "FlutterEngine not found in cache")

@@ -1,4 +1,4 @@
-package com.nxtdesigns.qrbuddy_v2
+package com.nxtdesigns.qrbuddy_apexv3
 
 import android.app.Service
 import android.content.Intent
@@ -29,7 +29,7 @@ class FloatingIconService : Service() {
         // MethodChannel to Flutter (for potential future use, e.g., buttons)
         val engine = FlutterEngineCache.getInstance().get("my_engine")
         if (engine != null) {
-            channel = MethodChannel(engine.dartExecutor.binaryMessenger, "com.nxtdesigns.qrbuddy_v2/shift_service")
+            channel = MethodChannel(engine.dartExecutor.binaryMessenger, "com.nxtdesigns.qrbuddy_apexv3/shift_service")
             Log.d("FloatingIconService", "Channel initialized successfully")
         } else {
             Log.e("FloatingIconService", "FlutterEngine not found in cache")

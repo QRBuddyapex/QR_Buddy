@@ -143,7 +143,7 @@ class MyApp extends StatelessWidget {
   }
 
   void _setupMethodChannelHandler() {
-    const channel = MethodChannel('com.nxtdesigns.qrbuddy_v2/shift_service');
+    const channel = MethodChannel('com.nxtdesigns.qrbuddy_apexv3/shift_service');
     channel.setMethodCallHandler((call) async {
       print('MethodChannel received call: ${call.method}');
       final shiftController = Get.find<ShiftController>();

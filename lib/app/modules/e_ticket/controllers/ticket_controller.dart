@@ -325,57 +325,55 @@ class TicketController extends GetxController {
       _checkAllFetchesComplete();
     }
   }
-
-  Future<void> fetchFoodDeliveries() async {
-    try {
-      final userId = await TokenStorage().getUserId() ?? '2055';
-      final newTasksData = await _foodDeliveryRepository.fetchFoodDeliveries(userId: userId);
-      
-      // Collect old UUIDs
-      final Set<String> oldUuids = {};
-      for (final group in tasks) {
-        for (final task in (group['tasks'] as List)) {
-          final uuid = task['uuid']?.toString() ?? '';
-          if (uuid.isNotEmpty) oldUuids.add(uuid);
-        }
+Future<void> fetchFoodDeliveries() async {
+  try {
+    final userId = await TokenStorage().getUserId() ?? '2055';
+    final newTasksData = await _foodDeliveryRepository.fetchFoodDeliveries(userId: userId);
+    
+  
+    final Set<String> oldUuids = {};
+    for (final group in tasks) {
+      for (final task in (group['tasks'] as List)) {
+        final uuid = task['uuid']?.toString() ?? '';
+        if (uuid.isNotEmpty) oldUuids.add(uuid);
       }
-      
-      // Collect new UUIDs
-      final Set<String> newUuids = {};
-      bool hasNew = false;
-      for (final group in newTasksData) {
-        for (final task in (group['tasks'] as List)) {
-          final uuid = task['uuid']?.toString() ?? '';
-          if (uuid.isNotEmpty) {
-            newUuids.add(uuid);
-            if (!oldUuids.contains(uuid)) {
-              hasNew = true;
-            }
-          }
-        }
-      }
-      
-      if (hasNew) {
-        tasks.assignAll(newTasksData);
-        print('Fetched ${tasks.length} task groups with new items');
-        updateTasksCount();
-      } else {
-        print('No new food deliveries');
-      }
-    } catch (e) {
-      Get.snackbar(
-        'Error',
-        'Failed to fetch food deliveries: $e',
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Colors.red.withOpacity(0.8),
-        colorText: Colors.white,
-      );
-    } finally {
-      _completedFetches['foodDeliveries'] = true;
-      _checkAllFetchesComplete();
     }
-  }
+    
+ 
+    final Set<String> newUuids = {};
+    for (final group in newTasksData) {
+      for (final task in (group['tasks'] as List)) {
+        final uuid = task['uuid']?.toString() ?? '';
+        if (uuid.isNotEmpty) {
+          newUuids.add(uuid);
+        }
+      }
+    }
 
+    final bool hasChange = oldUuids.isEmpty || 
+                           oldUuids.length != newUuids.length || 
+                           !oldUuids.every((uuid) => newUuids.contains(uuid));
+    
+    if (hasChange) {
+      tasks.assignAll(newTasksData);
+      print('Fetched ${tasks.length} task groups with changes (added/removed)');
+      updateTasksCount();
+    } else {
+      print('No changes in food deliveries');
+    }
+  } catch (e) {
+    Get.snackbar(
+      'Error',
+      'Failed to fetch food deliveries: $e',
+      snackPosition: SnackPosition.BOTTOM,
+      backgroundColor: Colors.red.withOpacity(0.8),
+      colorText: Colors.white,
+    );
+  } finally {
+    _completedFetches['foodDeliveries'] = true;
+    _checkAllFetchesComplete();
+  }
+}
   
   String _mapFilterToRequestStatus(String filter) {
     switch (filter) {

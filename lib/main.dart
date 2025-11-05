@@ -11,6 +11,7 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:qr_buddy/app/core/config/notifications_services.dart';
 import 'package:qr_buddy/app/core/config/token_storage.dart';
 import 'package:qr_buddy/app/core/theme/app_theme.dart';
+import 'package:qr_buddy/app/data/models/notification_model.dart';
 import 'package:qr_buddy/app/modules/auth/bindings/auth_binding.dart';
 import 'package:qr_buddy/app/modules/e_ticket/controllers/shift_controller.dart';
 import 'package:qr_buddy/app/routes/routes.dart';
@@ -23,8 +24,6 @@ Future<void> main() async {
 
   final notificationServices = NotificationServices();
   await notificationServices.requestNotificationPermission();
-  await notificationServices.initLocalNotification(null);
-  notificationServices.firebaseInit(null);
 
   final token = await notificationServices.getDeviceToken();
   log('FCM Token: $token');
@@ -86,20 +85,39 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
 
   if (!NotificationServices.hasProcessedMessage(message.messageId)) {
     NotificationServices.addProcessedMessage(message.messageId);
-    final notification = message.data['message'] as Map<String, dynamic>? ?? {};
-    final data = notification['data'] as Map<String, dynamic>? ?? message.data;
-    final title = data['title'] as String? ?? 'QR Buddy';
-    final body = data['body'] as String? ?? 'New message';
-    final url = data['url'] as String? ?? '';
+    try {
+      final data = message.data;
+      final payload = NotificationPayload.fromMap(data);
 
-    await notificationServices.showInAppNotificationWithSound(
-      title: title,
-      body: body,
-      location: url.isNotEmpty
+      final title = payload.title;
+      final body = payload.body;
+      final url = payload.url;
+      final notificationType = payload.eventType.toLowerCase();
+      final eventUuid = payload.ticketUuid.isNotEmpty ? payload.ticketUuid : null;
+      final task = 'View Details';
+      final location = url.isNotEmpty
           ? url
-          : 'Block A1, Ground Floor, Room G1-504 (Near Canteen)',
-      task: 'View Details',
-    );
+          : 'Block A1, Ground Floor, Room G1-504 (Near Canteen)';
+
+      // Show full-screen notification
+      await notificationServices.showInAppNotificationWithSound(
+        title: title,
+        body: body,
+        location: location,
+        task: task,
+        eventUuid: eventUuid,
+        notificationType: notificationType,
+      );
+
+      // 🔔 Also show it in the notification panel
+      await notificationServices.showSystemNotification(
+        title: title,
+        body: body,
+        payload: eventUuid ?? '',
+      );
+    } catch (e) {
+      print('Failed to process background notification: $e');
+    }
   }
 }
 
@@ -116,9 +134,8 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final themeController = Get.put(ThemeController());
-    Get.put(ShiftController()); // ShiftController globally
+    Get.put(ShiftController());
 
-    // Setup MethodChannel handler after controller is put
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _setupMethodChannelHandler();
     });
@@ -133,8 +150,9 @@ class MyApp extends StatelessWidget {
         debugShowCheckedModeBanner: false,
         theme: AppTheme.lightTheme,
         darkTheme: AppTheme.darkTheme,
-        themeMode:
-            themeController.isDarkMode.value ? ThemeMode.dark : ThemeMode.light,
+        themeMode: themeController.isDarkMode.value
+            ? ThemeMode.dark
+            : ThemeMode.light,
         initialRoute: initialRoute,
         getPages: AppRoutes.appRoutes(),
         initialBinding: AuthBinding(),
@@ -149,7 +167,6 @@ class MyApp extends StatelessWidget {
       final shiftController = Get.find<ShiftController>();
       switch (call.method) {
         case 'takeBreak':
-          print('Native requested to take break');
           await shiftController.updateShiftStatus('BREAK');
           break;
         case 'endShift':

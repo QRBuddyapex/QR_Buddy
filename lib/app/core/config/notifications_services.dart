@@ -11,316 +11,247 @@ import 'package:qr_buddy/app/data/models/notification_model.dart';
 import 'package:qr_buddy/app/modules/e_ticket/controllers/ticket_controller.dart';
 import 'package:qr_buddy/app/routes/routes.dart';
 import 'package:vibration/vibration.dart';
+
 class NotificationServices {
   FirebaseMessaging messaging = FirebaseMessaging.instance;
   final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
       FlutterLocalNotificationsPlugin();
 
-  // List to track processed message IDs to avoid duplicates
   static final List<String> _processedMessageIds = [];
+  static int _nextNotificationId = 0;
 
-  // Public method to check if a message has been processed
   static bool hasProcessedMessage(String? messageId) {
-    if (messageId == null) {
-      print("Warning: Message ID is null, skipping to avoid duplicates");
-      return true;
-    }
+    if (messageId == null) return true;
     return _processedMessageIds.contains(messageId);
   }
 
-  // Public method to add a message ID to the processed list
   static void addProcessedMessage(String? messageId) {
     if (messageId != null && !_processedMessageIds.contains(messageId)) {
       _processedMessageIds.add(messageId);
-      print("Added message ID to processed list: $messageId");
     }
   }
 
-  // Request notification permissions
+  // 🔹 Create enhanced notification channels
+  Future<void> createNotificationChannels() async {
+    if (!Platform.isAndroid) return;
+
+    final androidPlugin = flutterLocalNotificationsPlugin
+        .resolvePlatformSpecificImplementation<
+            AndroidFlutterLocalNotificationsPlugin>();
+
+    final channels = [
+      AndroidNotificationChannel(
+        'ticket_channel',
+        'Ticket Notifications',
+        description: 'Notifications for ticket updates and assignments',
+        importance: Importance.max,
+        enableLights: true,
+        enableVibration: true,
+        showBadge: true,
+        playSound: true,
+        sound: const RawResourceAndroidNotificationSound('notification_sound'),
+        vibrationPattern: Int64List.fromList([0, 1500, 500, 1500]),
+      ),
+      AndroidNotificationChannel(
+        'food_channel',
+        'Food Delivery Notifications',
+        description: 'Notifications for food delivery tasks',
+        importance: Importance.max,
+        enableLights: true,
+        enableVibration: true,
+        showBadge: true,
+        playSound: true,
+        sound: const RawResourceAndroidNotificationSound('notification_sound'),
+        vibrationPattern: Int64List.fromList([0, 1500, 500, 1500]),
+      ),
+      AndroidNotificationChannel(
+        'checklist_channel',
+        'Checklist Notifications',
+        description: 'Notifications for checklist tasks',
+        importance: Importance.max,
+        enableLights: true,
+        enableVibration: true,
+        showBadge: true,
+        playSound: true,
+        sound: const RawResourceAndroidNotificationSound('notification_sound'),
+        vibrationPattern: Int64List.fromList([0, 1500, 500, 1500]),
+      ),
+      AndroidNotificationChannel(
+        'system_notification_channel',
+        'General Notifications',
+        description: 'Shows notifications in system tray',
+        importance: Importance.max,
+        playSound: true,
+      ),
+    ];
+
+    for (final c in channels) {
+      await androidPlugin?.createNotificationChannel(c);
+    }
+
+    print('✅ Notification channels created successfully');
+  }
+
+  // 🔹 Request notification permissions
   Future<void> requestNotificationPermission() async {
-    NotificationSettings settings = await messaging.requestPermission(
+    final settings = await messaging.requestPermission(
       alert: true,
-      announcement: true,
-      carPlay: true,
-      criticalAlert: true,
-      provisional: true,
       badge: true,
       sound: true,
+      provisional: true,
+      criticalAlert: true,
     );
 
     if (Platform.isAndroid && await Permission.notification.isDenied) {
       await Permission.notification.request();
     }
 
-    if (settings.authorizationStatus == AuthorizationStatus.authorized) {
-      print('User granted permission');
-    } else if (settings.authorizationStatus == AuthorizationStatus.provisional) {
-      print('User granted provisional permission');
-    } else {
-      print('User declined or has not accepted permission');
-    }
+    print('Notification permission: ${settings.authorizationStatus}');
   }
 
-  // Initialize local notifications
+  // 🔹 Initialize local notifications
   Future<void> initLocalNotification(BuildContext? context) async {
-    const androidInitialization =
-        AndroidInitializationSettings('@drawable/ic_notification');
-    const iosInitialization = DarwinInitializationSettings(
+    const androidInit =
+        AndroidInitializationSettings('@drawable/ic_notification'); // ✅ FIXED ICON
+    const iosInit = DarwinInitializationSettings(
       requestAlertPermission: true,
       requestBadgePermission: true,
       requestSoundPermission: true,
     );
-    const initializationSettings = InitializationSettings(
-      android: androidInitialization,
-      iOS: iosInitialization,
-    );
+
+    const initSettings =
+        InitializationSettings(android: androidInit, iOS: iosInit);
 
     try {
       await flutterLocalNotificationsPlugin.initialize(
-        initializationSettings,
+        initSettings,
         onDidReceiveNotificationResponse: (response) {
-          print('Notification tapped: ${response.payload}');
-          if (response.payload != null && response.payload!.isNotEmpty) {
-            print('Handling payload: ${response.payload}');
-            final payloadData = response.payload!.split('|');
-            if (payloadData[0] == 'in_app_notification') {
-              try {
-                final notificationType = payloadData[1];
-                final title = payloadData[2];
-                final body = payloadData[3];
-                final location = payloadData[4];
-                final task = payloadData[5];
-                final eventUuid = payloadData.length > 6 ? payloadData[6] : null;
-                print('Extracted notificationType: $notificationType, eventUuid: $eventUuid');
-
-                if (notificationType == 'food') {
-                  Get.to(() => QikTasksNotification(
-                        title: title,
-                        body: body,
-                        location: location,
-                        task: task,
-                        eventUuid: eventUuid,
-                      ));
-                } else if (notificationType == 'checklist') {
-                  Get.to(() => ChecklistNotification(
-                        title: title,
-                        body: body,
-                        location: location,
-                        task: task,
-                        eventUuid: eventUuid,
-                      ));
-                } else {
-                  Get.to(() => FullScreenNotification(
-                        title: title,
-                        body: body,
-                        location: location,
-                        task: task,
-                        eventUuid: eventUuid,
-                      ));
-                }
-              } catch (e) {
-                print('Failed to navigate based on notification type: $e');
-              }
-            }
-          }
+          _handleNotificationTap(response.payload);
         },
         onDidReceiveBackgroundNotificationResponse: (response) {
-          print('Background notification tapped: ${response.payload}');
-          if (response.payload != null && response.payload!.isNotEmpty) {
-            print('Handling background payload: ${response.payload}');
-            final payloadData = response.payload!.split('|');
-            if (payloadData[0] == 'in_app_notification') {
-              try {
-                final notificationType = payloadData[1];
-                final title = payloadData[2];
-                final body = payloadData[3];
-                final location = payloadData[4];
-                final task = payloadData[5];
-                final eventUuid = payloadData.length > 6 ? payloadData[6] : null;
-                print('Extracted background notificationType: $notificationType, eventUuid: $eventUuid');
-
-                if (notificationType == 'food') {
-                  Get.to(() => QikTasksNotification(
-                        title: title,
-                        body: body,
-                        location: location,
-                        task: task,
-                        eventUuid: eventUuid,
-                      ));
-                } else if (notificationType == 'checklist') {
-                  Get.to(() => ChecklistNotification(
-                        title: title,
-                        body: body,
-                        location: location,
-                        task: task,
-                        eventUuid: eventUuid,
-                      ));
-                } else {
-                  Get.to(() => FullScreenNotification(
-                        title: title,
-                        body: body,
-                        location: location,
-                        task: task,
-                        eventUuid: eventUuid,
-                      ));
-                }
-              } catch (e) {
-                print('Failed to navigate from background based on type: $e');
-              }
-            }
-          }
+          _handleNotificationTap(response.payload);
         },
       );
-      print('Local notifications initialized successfully');
+      print('✅ Local notifications initialized');
+      await createNotificationChannels();
     } catch (e) {
-      print('Failed to initialize local notifications: $e');
+      print('❌ Failed to initialize notifications: $e');
     }
   }
 
-  // Initialize Firebase messaging
+  // 🔹 Handle taps on notifications
+  void _handleNotificationTap(String? payload) {
+    if (payload == null || payload.isEmpty) return;
+
+    final parts = payload.split('|');
+    if (parts.length < 6) return;
+
+    final notificationType = parts[1];
+    final title = parts[2];
+    final body = parts[3];
+    final location = parts[4];
+    final task = parts[5];
+    final eventUuid = parts.length > 6 ? parts[6] : null;
+
+    print('📩 Notification tapped → $notificationType');
+
+    if (notificationType == 'food') {
+      Get.to(() => QikTasksNotification(
+            title: title,
+            body: body,
+            location: location,
+            task: task,
+            eventUuid: eventUuid,
+          ));
+    } else if (notificationType == 'checklist') {
+      Get.to(() => ChecklistNotification(
+            title: title,
+            body: body,
+            location: location,
+            task: task,
+            eventUuid: eventUuid,
+          ));
+    } else {
+      Get.to(() => FullScreenNotification(
+            title: title,
+            body: body,
+            location: location,
+            task: task,
+            eventUuid: eventUuid,
+          ));
+    }
+  }
+
+  // 🔹 Initialize Firebase messaging
   Future<void> firebaseInit(BuildContext? context) async {
     await initLocalNotification(context);
 
     FirebaseMessaging.onMessage.listen((message) async {
-      print('Foreground message received: ${message.toString()}');
-      print('Foreground message ID: ${message.messageId}');
-      print('onMessage data: ${message.data.toString()}');
-      print('onMessage notification message: ${message.notification?.title}, ${message.notification?.body}');
-      print('onMessage data structure: ${message.data}');
+      if (hasProcessedMessage(message.messageId)) return;
+      addProcessedMessage(message.messageId);
 
-      if (!hasProcessedMessage(message.messageId)) {
-        addProcessedMessage(message.messageId);
-        try {
-          final notification = message.data['message'] as Map<String, dynamic>? ?? {};
-          final data = notification['data'] as Map<String, dynamic>? ?? message.data;
-          print('Processed notification data: $data');
-          final payload = NotificationPayload.fromMap(data);
-          final title = payload.title;
-          final body = payload.body;
-          final url = payload.location;
-          final notificationType = payload.eventType;
-          final eventUuid = payload.eventUuid;
-          final task = payload.task;
-          print('Extracted notificationType: $notificationType, eventUuid: $eventUuid, eventId: ${payload.eventId}');
+      try {
+        final data = message.data;
+        final payload = NotificationPayload.fromMap(data);
+        final title = payload.title;
+        final body = payload.body;
+        final location = payload.url.isNotEmpty
+            ? payload.url
+            : 'Block A1, Ground Floor, Room G1-504 (Near Canteen)';
+        final type = payload.eventType.toLowerCase();
+        final eventUuid = payload.ticketUuid.isNotEmpty ? payload.ticketUuid : null;
+        final task = 'View Details';
 
-          if (title.isEmpty || body.isEmpty) {
-            print('Warning: Empty title or body received from backend');
-          }
-
-          await showInAppNotificationWithSound(
-            title: title,
-            body: body,
-            location: url.isNotEmpty ? url : 'Block A1, Ground Floor, Room G1-504 (Near Canteen)',
-            task: task.isNotEmpty ? task : 'View Details',
-            eventUuid: eventUuid,
-            notificationType: notificationType,
-          );
-        } catch (e) {
-          print('Failed to process foreground notification: $e');
-        }
-      } else {
-        print('Foreground notification already processed: ${message.messageId}');
+        await showInAppNotificationWithSound(
+          title: title,
+          body: body,
+          location: location,
+          task: task,
+          eventUuid: eventUuid,
+          notificationType: type,
+        );
+      } catch (e) {
+        print('❌ Error showing foreground notification: $e');
       }
     });
 
     FirebaseMessaging.onMessageOpenedApp.listen((message) {
-      print('App opened from background: ${message.messageId}');
-      print('Data on open: ${message.data.toString()}');
-      if (!hasProcessedMessage(message.messageId)) {
-        addProcessedMessage(message.messageId);
-        try {
-          final notification = message.data['message'] as Map<String, dynamic>? ?? {};
-          final data = notification['data'] as Map<String, dynamic>? ?? message.data;
-          final payload = NotificationPayload.fromMap(data);
-          final title = payload.title;
-          final body = payload.body;
-          final url = payload.location;
-          final notificationType = payload.eventType;
-          final eventUuid = payload.eventUuid;
-          final task = payload.task;
-          print('Extracted notificationType on open: $notificationType, eventUuid: $eventUuid, eventId: ${payload.eventId}');
-
-          if (notificationType == 'food') {
-            Get.to(() => QikTasksNotification(
-                  title: title,
-                  body: body,
-                  location: url.isNotEmpty ? url : 'Block A1, Ground Floor, Room G1-504 (Near Canteen)',
-                  task: task.isNotEmpty ? task : 'View Details',
-                  eventUuid: eventUuid,
-                ));
-          } else if (notificationType == 'checklist') {
-            Get.to(() => ChecklistNotification(
-                  title: title,
-                  body: body,
-                  location: url.isNotEmpty ? url : 'Block A1, Ground Floor, Room G1-504 (Near Canteen)',
-                  task: task.isNotEmpty ? task : 'View Details',
-                  eventUuid: eventUuid,
-                ));
-          } else {
-            Get.to(() => FullScreenNotification(
-                  title: title,
-                  body: body,
-                  location: url.isNotEmpty ? url : 'Block A1, Ground Floor, Room G1-504 (Near Canteen)',
-                  task: task.isNotEmpty ? task : 'View Details',
-                  eventUuid: eventUuid,
-                ));
-          }
-        } catch (e) {
-          print('Failed to navigate to notification screen: $e');
-        }
-      }
+      if (hasProcessedMessage(message.messageId)) return;
+      addProcessedMessage(message.messageId);
+      final data = message.data;
+      final payload = NotificationPayload.fromMap(data);
+      _handleNotificationTap(
+          'in_app_notification|${payload.eventType}|${payload.title}|${payload.body}|${payload.url}|View Details|${payload.ticketUuid}');
     });
 
-    RemoteMessage? initialMessage =
-        await FirebaseMessaging.instance.getInitialMessage();
+    final initialMessage = await FirebaseMessaging.instance.getInitialMessage();
     if (initialMessage != null && !hasProcessedMessage(initialMessage.messageId)) {
-      print('App opened from terminated state: ${initialMessage.messageId}');
       addProcessedMessage(initialMessage.messageId);
-      try {
-        final notification = initialMessage.data['message'] as Map<String, dynamic>? ?? {};
-        final data = notification['data'] as Map<String, dynamic>? ?? initialMessage.data;
-        final payload = NotificationPayload.fromMap(data);
-        final title = payload.title;
-        final body = payload.body;
-        final url = payload.location;
-        final notificationType = payload.eventType;
-        final eventUuid = payload.eventUuid;
-        final task = payload.task;
-        print('Extracted notificationType from initial: $notificationType, eventUuid: $eventUuid, eventId: ${payload.eventId}');
-
-        if (notificationType == 'food') {
-          Get.to(() => QikTasksNotification(
-                title: title,
-                body: body,
-                location: url.isNotEmpty ? url : 'Block A1, Ground Floor, Room G1-504 (Near Canteen)',
-                task: task.isNotEmpty ? task : 'View Details',
-                eventUuid: eventUuid,
-              ));
-        } else if (notificationType == 'checklist') {
-          Get.to(() => ChecklistNotification(
-                title: title,
-                body: body,
-                location: url.isNotEmpty ? url : 'Block A1, Ground Floor, Room G1-504 (Near Canteen)',
-                task: task.isNotEmpty ? task : 'View Details',
-                eventUuid: eventUuid,
-              ));
-        } else {
-          Get.to(() => FullScreenNotification(
-                title: title,
-                body: body,
-                location: url.isNotEmpty ? url : 'Block A1, Ground Floor, Room G1-504 (Near Canteen)',
-                task: task.isNotEmpty ? task : 'View Details',
-                eventUuid: eventUuid,
-              ));
-        }
-      } catch (e) {
-        print('Failed to process initial message: $e');
-      }
+      final data = initialMessage.data;
+      final payload = NotificationPayload.fromMap(data);
+      _handleNotificationTap(
+          'in_app_notification|${payload.eventType}|${payload.title}|${payload.body}|${payload.url}|View Details|${payload.ticketUuid}');
     }
 
-    print('Firebase messaging initialized');
+    print('✅ Firebase Messaging initialized');
   }
 
+  // 🔹 Channel mapping helper
+  (String, String, String) _getChannelDetails(String notificationType) {
+    switch (notificationType) {
+      case 'food':
+        return ('food_channel', 'Food Delivery Notifications',
+            'Notifications for food delivery tasks');
+      case 'checklist':
+        return ('checklist_channel', 'Checklist Notifications',
+            'Notifications for checklist tasks');
+      default:
+        return ('ticket_channel', 'Ticket Notifications',
+            'Notifications for ticket updates and assignments');
+    }
+  }
+
+  // 🔹 Core method: Show notification + full screen
   Future<void> showInAppNotificationWithSound({
     required String title,
     required String body,
@@ -329,219 +260,180 @@ class NotificationServices {
     String? eventUuid,
     String notificationType = 'ticket',
   }) async {
-    var androidNotificationChannel = AndroidNotificationChannel(
-      'in_app_notification_channel',
-      'In-App Notification',
-      description: 'Channel for in-app notification sound and vibration',
-      importance: Importance.max,
-      playSound: true,
-      sound: const RawResourceAndroidNotificationSound('notification_sound'),
-      enableVibration: true,
-      vibrationPattern: Int64List.fromList([0, 1500, 500, 1500, 500, 1500]),
-    );
+    final (channelId, channelName, channelDescription) =
+        _getChannelDetails(notificationType);
 
-    try {
-      await flutterLocalNotificationsPlugin
-          .resolvePlatformSpecificImplementation<
-              AndroidFlutterLocalNotificationsPlugin>()
-          ?.createNotificationChannel(androidNotificationChannel);
-      print('In-app notification channel created successfully');
-    } catch (e) {
-      print('Failed to create in-app notification channel: $e');
-      return;
-    }
-
-    var androidNotificationDetails = AndroidNotificationDetails(
-      'in_app_notification_channel',
-      'In-App Notification',
-      channelDescription: 'Channel for in-app notification sound and vibration',
+    final androidDetails = AndroidNotificationDetails(
+      channelId,
+      channelName,
+      channelDescription: channelDescription,
       importance: Importance.max,
       priority: Priority.high,
       playSound: true,
       sound: const RawResourceAndroidNotificationSound('notification_sound'),
       enableVibration: true,
-      vibrationPattern: Int64List.fromList([0, 1500, 500, 1500, 500, 1500]),
-      showWhen: false,
-      channelShowBadge: false,
-      onlyAlertOnce: true,
+      showWhen: true,
+      channelShowBadge: true,
       visibility: NotificationVisibility.public,
-      fullScreenIntent: true,
+      autoCancel: true,
+      fullScreenIntent: notificationType == 'ticket',
+      icon: '@drawable/ic_notification', // ✅ Use your drawable icon
     );
 
-    const iosNotificationDetails = DarwinNotificationDetails(
+    const iOSDetails = DarwinNotificationDetails(
       sound: 'notification_sound.caf',
-      presentAlert: false,
-      presentBadge: false,
+      presentAlert: true,
+      presentBadge: true,
       presentSound: true,
     );
 
-    var notificationDetails = NotificationDetails(
-      android: androidNotificationDetails,
-      iOS: iosNotificationDetails,
+    final details = NotificationDetails(android: androidDetails, iOS: iOSDetails);
+
+    final payload =
+        'in_app_notification|$notificationType|$title|$body|$location|$task${eventUuid != null ? '|$eventUuid' : ''}';
+
+    final id = _nextNotificationId++;
+
+    // Step 1: Show system tray notification
+    await flutterLocalNotificationsPlugin.show(id, title, body, details,
+        payload: payload);
+    print('🔔 System notification displayed: $title');
+
+    // Step 2: Show full-screen overlay
+    Future.delayed(const Duration(milliseconds: 600), () {
+      if (notificationType == 'ticket') {
+        Get.to(() => FullScreenNotification(
+              title: title,
+              body: body,
+              location: location,
+              task: task,
+              eventUuid: eventUuid,
+            ));
+      } else if (notificationType == 'food') {
+        Get.to(() => QikTasksNotification(
+              title: title,
+              body: body,
+              location: location,
+              task: task,
+              eventUuid: eventUuid,
+            ));
+      } else if (notificationType == 'checklist') {
+        Get.to(() => ChecklistNotification(
+              title: title,
+              body: body,
+              location: location,
+              task: task,
+              eventUuid: eventUuid,
+            ));
+      }
+    });
+
+    // Step 3: Vibrate as fallback
+    if (Platform.isAndroid && await Vibration.hasVibrator() == true) {
+      Vibration.vibrate(pattern: [0, 1500, 500, 1500]);
+    }
+  }
+
+  // 🔹 Play login alert
+  Future<void> playLoginRinger() async {
+    const channelId = 'login_notification_channel';
+
+    final androidDetails = AndroidNotificationDetails(
+      channelId,
+      'Login Notification',
+      channelDescription: 'Sound and vibration for login',
+      importance: Importance.max,
+      priority: Priority.high,
+      playSound: true,
+      sound: const RawResourceAndroidNotificationSound('notification_sound'),
+      enableVibration: true,
+      vibrationPattern: Int64List.fromList([0, 1500, 500, 1500]),
+      visibility: NotificationVisibility.public,
+      icon: '@drawable/ic_notification', // ✅ fix for login sound
     );
 
+    const iOSDetails = DarwinNotificationDetails(
+      sound: 'notification_sound.caf',
+      presentSound: true,
+    );
+
+    final details = NotificationDetails(android: androidDetails, iOS: iOSDetails);
+
+    await flutterLocalNotificationsPlugin.show(
+      9999,
+      'Login Successful',
+      'Welcome back!',
+      details,
+    );
+
+    if (Platform.isAndroid && await Vibration.hasVibrator() == true) {
+      Vibration.vibrate(pattern: [0, 1500, 500, 1500]);
+    }
+  }
+
+  // 🔹 Get device token
+  Future<String> getDeviceToken() async {
     try {
-      // Build payload based on type
-      String payload = 'in_app_notification|$notificationType|$title|$body|$location|$task';
-      if (eventUuid != null) {
-        payload += '|$eventUuid';
-      }
-      print('Showing notification with title: $title, body: $body, type: $notificationType');
+      final token = await messaging.getToken();
+      print('📱 FCM Token: $token');
+      return token ?? '';
+    } catch (e) {
+      print('❌ Failed to get token: $e');
+      return '';
+    }
+  }
+
+  // 🔹 Token refresh listener
+  void isTokenRefresh() {
+    messaging.onTokenRefresh.listen((token) {
+      print('🔁 Token refreshed: $token');
+    });
+  }
+
+  // 🔹 Show simple system tray notification
+  Future<void> showSystemNotification({
+    required String title,
+    required String body,
+    required String payload,
+  }) async {
+    try {
+      const androidDetails = AndroidNotificationDetails(
+        'system_notification_channel',
+        'General Notifications',
+        channelDescription: 'Shows notifications in system tray',
+        importance: Importance.max,
+        priority: Priority.high,
+        playSound: true,
+        enableVibration: true,
+        visibility: NotificationVisibility.public,
+        icon: '@drawable/ic_notification', // ✅ fixed icon here too
+      );
+
+      const iosDetails = DarwinNotificationDetails(
+        presentAlert: true,
+        presentBadge: true,
+        presentSound: true,
+      );
+
+      const notificationDetails =
+          NotificationDetails(android: androidDetails, iOS: iosDetails);
+
+      final uniqueId = DateTime.now().millisecondsSinceEpoch ~/ 1000;
       await flutterLocalNotificationsPlugin.show(
-        1,
+        uniqueId,
         title,
         body,
         notificationDetails,
         payload: payload,
       );
-      print('Notification shown successfully with payload: $payload');
+
+      print('System notification shown with ID: $uniqueId');
     } catch (e) {
-      print('Failed to show notification: $e');
+      print('Error showing system notification: $e');
     }
-
-    // Avoid contextless navigation in background
-    if (Get.context != null) {
-      try {
-        print('Navigating to ${notificationType == 'food' ? 'QikTasksNotification' : notificationType == 'checklist' ? 'ChecklistNotification' : 'FullScreenNotification'} with eventUuid: $eventUuid');
-        if (notificationType == 'food') {
-          Get.to(() => QikTasksNotification(
-                title: title,
-                body: body,
-                location: location,
-                task: task,
-                eventUuid: eventUuid,
-              ));
-        } else if (notificationType == 'checklist') {
-          Get.to(() => ChecklistNotification(
-                title: title,
-                body: body,
-                location: location,
-                task: task,
-                eventUuid: eventUuid,
-              ));
-        } else {
-          Get.to(() => FullScreenNotification(
-                title: title,
-                body: body,
-                location: location,
-                task: task,
-                eventUuid: eventUuid,
-              ));
-        }
-        print('Navigation successful');
-      } catch (e) {
-        print('Failed to navigate: $e');
-      }
-    } else {
-      print('Context not available, skipping navigation');
-    }
-
-    // Fallback vibration for Android
-    if (Platform.isAndroid && await Vibration.hasVibrator() == true) {
-      print('Triggering fallback vibration');
-      try {
-        Vibration.vibrate(pattern: [0, 1500, 500, 1500, 500, 1500], intensities: [0, 255, 0, 255, 0, 255]);
-      } catch (e) {
-        print('Failed to trigger vibration: $e');
-      }
-    }
-  }
-
-  // Play login sound with vibration using notification_sound.mp3
-  Future<void> playLoginRinger() async {
-    var androidNotificationChannel = AndroidNotificationChannel(
-      'login_notification_channel',
-      'Login Notification',
-      description: 'Channel for login notification sound and vibration',
-      importance: Importance.max,
-      playSound: true,
-      sound: RawResourceAndroidNotificationSound('notification_sound'),
-      enableVibration: true,
-      vibrationPattern: Int64List.fromList([0, 1500, 500, 1500, 500, 1500]),
-    );
-
-    try {
-      await flutterLocalNotificationsPlugin
-          .resolvePlatformSpecificImplementation<
-              AndroidFlutterLocalNotificationsPlugin>()
-          ?.createNotificationChannel(androidNotificationChannel);
-      print('Login notification channel created successfully');
-    } catch (e) {
-      print('Failed to create login notification channel: $e');
-    }
-
-    var androidNotificationDetails = AndroidNotificationDetails(
-      'login_notification_channel',
-      'Login Notification',
-      channelDescription: 'Channel for login notification sound and vibration',
-      importance: Importance.max,
-      priority: Priority.high,
-      playSound: true,
-      sound: const RawResourceAndroidNotificationSound('notification_sound'),
-      enableVibration: true,
-      vibrationPattern: Int64List.fromList([0, 1500, 500, 1500, 500, 1500]),
-      showWhen: false,
-      channelShowBadge: false,
-      onlyAlertOnce: true,
-      visibility: NotificationVisibility.secret,
-    );
-
-    const iosNotificationDetails = DarwinNotificationDetails(
-      sound: 'notification_sound.caf',
-      presentAlert: false,
-      presentBadge: false,
-      presentSound: true,
-    );
-
-    var notificationDetails = NotificationDetails(
-      android: androidNotificationDetails,
-      iOS: iosNotificationDetails,
-    );
-
-    try {
-      print('Attempting to play login notification sound with vibration...');
-      await flutterLocalNotificationsPlugin.show(
-        0,
-        null,
-        null,
-        notificationDetails,
-        payload: 'login_notification_sound',
-      );
-      print('Login notification sound and vibration triggered successfully');
-    } catch (e) {
-      print('Failed to play login notification sound or trigger vibration: $e');
-    }
-
-    // Fallback vibration for Android
-    if (Platform.isAndroid && await Vibration.hasVibrator() == true) {
-      print('Triggering fallback vibration for login');
-      try {
-        Vibration.vibrate(pattern: [0, 1500, 500, 1500, 500, 1500], intensities: [0, 255, 0, 255, 0, 255]);
-      } catch (e) {
-        print('Failed to trigger vibration: $e');
-      }
-    }
-  }
-
-  // Get device token
-  Future<String> getDeviceToken() async {
-    try {
-      String? token = await messaging.getToken();
-      print('FCM Token: $token');
-      return token ?? '';
-    } catch (e) {
-      print('Failed to get FCM token: $e');
-      return '';
-    }
-  }
-
-  // Handle token refresh
-  void isTokenRefresh() {
-    messaging.onTokenRefresh.listen((token) {
-      print('Token refreshed: $token');
-    });
   }
 }
+
 
 class FullScreenNotification extends StatelessWidget {
   final String title;
@@ -549,7 +441,6 @@ class FullScreenNotification extends StatelessWidget {
   final String location;
   final String task;
   final String? eventUuid;
-
   const FullScreenNotification({
     Key? key,
     required this.title,
@@ -558,7 +449,6 @@ class FullScreenNotification extends StatelessWidget {
     required this.task,
     this.eventUuid,
   }) : super(key: key);
-
   @override
   Widget build(BuildContext context) {
     print('FullScreenNotification built with eventUuid: $eventUuid');
@@ -569,7 +459,6 @@ class FullScreenNotification extends StatelessWidget {
     final subtitleColor = isDark ? AppColors.darkSubtitleColor : AppColors.subtitleColor;
     final primaryColor = theme.primaryColor;
     final whiteColor = Colors.white;
-
     String blockFloor = 'Unknown';
     String roomBed = 'Unknown';
     if (location.contains('Block') || location.contains('Floor')) {
@@ -586,7 +475,6 @@ class FullScreenNotification extends StatelessWidget {
         orElse: () => '',
       ).trim();
     }
-
     return Scaffold(
       backgroundColor: primaryColor,
       body: SafeArea(
@@ -696,11 +584,16 @@ class FullScreenNotification extends StatelessWidget {
                       );
                       Get.offAllNamed(RoutesName.ticketDashboardView);
                       await ticketController.fetchTickets();
+                    } on FormatException {
+                      print('Assuming success on empty or non-JSON response');
+                      final ticketController = Get.find<TicketController>();
+                      Get.offAllNamed(RoutesName.ticketDashboardView);
+                      await ticketController.fetchTickets();
                     } catch (e) {
                       print('Failed to accept request: $e');
                       Get.snackbar(
                         'Error',
-                        'Failed to accept request: $e',
+                        'Failed to accept request. Please try again.',
                         snackPosition: SnackPosition.BOTTOM,
                         backgroundColor: Colors.red.withOpacity(0.8),
                         colorText: Colors.white,
@@ -743,14 +636,12 @@ class FullScreenNotification extends StatelessWidget {
     );
   }
 }
-
 class QikTasksNotification extends StatelessWidget {
   final String title;
   final String body;
   final String location;
   final String task;
   final String? eventUuid;
-
   const QikTasksNotification({
     Key? key,
     required this.title,
@@ -759,7 +650,6 @@ class QikTasksNotification extends StatelessWidget {
     required this.task,
     this.eventUuid,
   }) : super(key: key);
-
   @override
   Widget build(BuildContext context) {
     print('QikTasksNotification built with eventUuid: $eventUuid');
@@ -771,7 +661,6 @@ class QikTasksNotification extends StatelessWidget {
     final primaryColor = theme.primaryColor;
     final whiteColor = Colors.white;
     final orangeColor = Colors.orange[600]!;
-
     return Scaffold(
       backgroundColor: orangeColor,
       body: SafeArea(
@@ -913,14 +802,12 @@ class QikTasksNotification extends StatelessWidget {
     );
   }
 }
-
 class ChecklistNotification extends StatelessWidget {
   final String title;
   final String body;
   final String location;
   final String task;
   final String? eventUuid;
-
   const ChecklistNotification({
     Key? key,
     required this.title,
@@ -929,7 +816,6 @@ class ChecklistNotification extends StatelessWidget {
     required this.task,
     this.eventUuid,
   }) : super(key: key);
-
   @override
   Widget build(BuildContext context) {
     print('ChecklistNotification built with eventUuid: $eventUuid');
@@ -941,7 +827,6 @@ class ChecklistNotification extends StatelessWidget {
     final primaryColor = theme.primaryColor;
     final whiteColor = Colors.white;
     final greenColor = Colors.green[600]!; // Different color for checklists, e.g., green for completion
-
     String blockFloor = 'Unknown';
     String roomBed = 'Unknown';
     if (location.contains('Block') || location.contains('Floor')) {
@@ -958,7 +843,6 @@ class ChecklistNotification extends StatelessWidget {
         orElse: () => '',
       ).trim();
     }
-
     return Scaffold(
       backgroundColor: greenColor,
       body: SafeArea(

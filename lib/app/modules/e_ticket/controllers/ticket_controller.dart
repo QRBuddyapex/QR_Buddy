@@ -1,4 +1,3 @@
-
 import 'dart:async';
 import 'dart:io';
 
@@ -12,6 +11,7 @@ import 'package:qr_buddy/app/core/services/api_service.dart';
 import 'package:qr_buddy/app/core/theme/app_theme.dart';
 import 'package:qr_buddy/app/data/models/daily_checklist_model.dart';
 import 'package:qr_buddy/app/data/models/e_tickets.dart';
+import 'package:qr_buddy/app/data/models/order_details_model.dart' as orderModel;
 import 'package:qr_buddy/app/data/models/ticket.dart';
 import 'package:qr_buddy/app/data/repo/daily_checklist_repo.dart';
 import 'package:qr_buddy/app/data/repo/e_ticket_repo.dart';
@@ -536,6 +536,28 @@ Future<void> fetchFoodDeliveries() async {
     remarksController.clear();
     holdDateTimeController.clear();
     selectedImage.value = null;
+  }
+
+  Future<orderModel.OrderDetailResponse?> fetchOrderDetail(String orderUuid) async {
+    try {
+      final hcoId = await TokenStorage().getHcoId() ?? '';
+      final userId = await TokenStorage().getUserId() ?? '';
+
+      if (orderUuid.isEmpty) {
+        throw Exception('Order ID (UUID) is missing');
+      }
+
+      final response = await _orderDetailRepository.fetchOrderDetails(
+        hcoId: hcoId,
+        orderId: orderUuid,
+        userId: userId,
+      );
+
+      return response;
+    } catch (e) {
+      Get.snackbar('Error', 'Failed to fetch order details: $e');
+      return null;
+    }
   }
 
   Future<Map<String, dynamic>> updateRequest({

@@ -310,7 +310,7 @@ class NotificationServices {
               eventUuid: eventUuid,
             ));
       } else if (notificationType == 'food') {
-        Get.to(() => QikTasksNotification(
+        Get.to(() => FullScreenNotification(
               title: title,
               body: body,
               location: location,
@@ -406,7 +406,7 @@ class NotificationServices {
         playSound: true,
         enableVibration: true,
         visibility: NotificationVisibility.public,
-        icon: '@drawable/ic_notification', // ✅ fixed icon here too
+        icon: '@drawable/ic_notification', 
       );
 
       const iosDetails = DarwinNotificationDetails(
@@ -578,15 +578,19 @@ class FullScreenNotification extends StatelessWidget {
                         throw Exception('Event UUID is missing from notification');
                       }
                       final ticketController = Get.find<TicketController>();
+                      final orderDetailResponse = await ticketController.fetchOrderDetail(eventUuid!);
+                      if (orderDetailResponse == null) {
+                        throw Exception('Failed to load ticket details');
+                      }
+                      final order = orderDetailResponse.order;
+                      if (order == null) {
+                        throw Exception('Order data not found');
+                      }
+                      final actualOrderId = order.id!;
                       await ticketController.updateRequest(
                         action: 'Accept',
-                        orderId: eventUuid!,
+                        orderId: actualOrderId,
                       );
-                      Get.offAllNamed(RoutesName.ticketDashboardView);
-                      await ticketController.fetchTickets();
-                    } on FormatException {
-                      print('Assuming success on empty or non-JSON response');
-                      final ticketController = Get.find<TicketController>();
                       Get.offAllNamed(RoutesName.ticketDashboardView);
                       await ticketController.fetchTickets();
                     } catch (e) {

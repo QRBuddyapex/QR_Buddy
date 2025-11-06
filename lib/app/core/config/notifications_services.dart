@@ -156,7 +156,7 @@ class NotificationServices {
     print('📩 Notification tapped → $notificationType');
 
     if (notificationType == 'food') {
-      Get.to(() => QikTasksNotification(
+      Get.to(() => FullScreenNotification(
             title: title,
             body: body,
             location: location,

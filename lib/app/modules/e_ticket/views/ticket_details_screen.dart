@@ -30,11 +30,27 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
   bool _showInitialButtons = true;
   final TicketController ticketController = Get.find<TicketController>();
 
+  // Added: User type detection
+  String _userType = '';
+  bool _isAdmin = false;
+
   @override
   void initState() {
     super.initState();
     _repository = OrderDetailRepository(ApiService(), TokenStorage());
+    _loadUserType(); // Load user type
     _fetchOrderDetails();
+  }
+
+  // Added: Load user type from storage
+  Future<void> _loadUserType() async {
+    final userType = await TokenStorage().getUserType() ?? '';
+    if (mounted) {
+      setState(() {
+        _userType = userType;
+        _isAdmin = userType != 'S_TEAM'; // Anyone not S_TEAM is Admin
+      });
+    }
   }
 
   Future<void> _fetchOrderDetails() async {
@@ -168,6 +184,7 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
                               fontWeight: FontWeight.bold,
                               fontSize: textSize,
                             ),
+
                       ),
                     ],
                   ),
@@ -433,10 +450,9 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
                   isDarkMode ? AppColors.darkBorderColor : Colors.grey[300]!,
               highlightColor: isDarkMode
                   ? AppColors.darkCardBackgroundColor
-                  : Colors.grey[100]!,
+                  : Colors.grey[300]!,
               child: SingleChildScrollView(
-                padding:
-                    EdgeInsets.all(hPadding),
+                padding: EdgeInsets.all(hPadding),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -486,15 +502,15 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
           : _orderDetailResponse == null
               ? const Center(child: Text('Failed to load order details'))
               : RefreshIndicator(
-                  onRefresh: _fetchOrderDetails,
+                  onRefresh: () async {
+                    await _loadUserType();
+                    await _fetchOrderDetails();
+                  },
                   color: AppColors.primaryColor,
                   child: SingleChildScrollView(
-                    padding: EdgeInsets.all(
-                        hPadding),
+                    padding: EdgeInsets.all(hPadding),
                     child: ConstrainedBox(
-                      constraints: BoxConstraints(
-                        maxWidth: width,
-                      ),
+                      constraints: BoxConstraints(maxWidth: width),
                       child: _buildOrderDetailContent(context),
                     ),
                   ),
@@ -530,12 +546,6 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
                 ? AppColors.darkCardBackgroundColor
                 : AppColors.cardBackgroundColor,
             borderRadius: BorderRadius.circular(12),
-            // boxShadow: [
-            //   BoxShadow(
-            //     color: isDarkMode ? AppColors.darkShadowColor : AppColors.shadowColor,
-            //     blurRadius: 6,
-            //   ),
-            // ],
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -595,12 +605,6 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
                 ? AppColors.darkCardBackgroundColor
                 : AppColors.cardBackgroundColor,
             borderRadius: BorderRadius.circular(12),
-            // boxShadow: [
-            //   BoxShadow(
-            //     color: isDarkMode ? AppColors.darkShadowColor : AppColors.shadowColor,
-            //     blurRadius: 6,
-            //   ),
-            // ],
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -624,11 +628,12 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
           ),
         ),
         SizedBox(height: vSpacingLarge),
+
+        // ONLY THIS PART IS MODIFIED — LOGIC ADDED HERE
         if (_showInitialButtons) ...[
           if (isAssigned && !isAccepted) ...[
             Padding(
-              padding: EdgeInsets.symmetric(
-                  horizontal: hPadding),
+              padding: EdgeInsets.symmetric(horizontal: hPadding),
               child: _buildMainButton(context, 'Accept', Colors.blue, () {
                 Get.toNamed(RoutesName.acceptTicketScreen,
                     arguments: widget.ticket);
@@ -636,8 +641,7 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
             ),
             SizedBox(height: vSpacingMedium),
             Padding(
-              padding: EdgeInsets.symmetric(
-                  horizontal: hPadding),
+              padding: EdgeInsets.symmetric(horizontal: hPadding),
               child: _buildMainButton(
                   context, 'Complete Task', AppColors.statusButtonColor, () {
                 ticketController.showConfirmationDialog(
@@ -657,8 +661,7 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
             ),
             SizedBox(height: vSpacingMedium),
             Padding(
-              padding: EdgeInsets.symmetric(
-                  horizontal: hPadding),
+              padding: EdgeInsets.symmetric(horizontal: hPadding),
               child: _buildMainButton(
                   context, 'Hold Task', AppColors.holdButtonColor, () {
                 ticketController.showConfirmationDialog(
@@ -678,8 +681,7 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
             ),
             SizedBox(height: vSpacingMedium),
             Padding(
-              padding: EdgeInsets.symmetric(
-                  horizontal: hPadding),
+              padding: EdgeInsets.symmetric(horizontal: hPadding),
               child: _buildMainButton(
                   context, 'Cancel Task', AppColors.dangerButtonColor, () {
                 ticketController.showConfirmationDialog(
@@ -699,8 +701,7 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
             ),
           ] else ...[
             Padding(
-              padding: EdgeInsets.symmetric(
-                  horizontal: hPadding),
+              padding: EdgeInsets.symmetric(horizontal: hPadding),
               child: _buildMainButton(
                   context, 'Complete Task', AppColors.statusButtonColor, () {
                 ticketController.showConfirmationDialog(
@@ -720,8 +721,7 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
             ),
             SizedBox(height: vSpacingMedium),
             Padding(
-              padding: EdgeInsets.symmetric(
-                  horizontal: hPadding),
+              padding: EdgeInsets.symmetric(horizontal: hPadding),
               child: _buildMainButton(
                   context, 'Hold Task', AppColors.holdButtonColor, () {
                 ticketController.showConfirmationDialog(
@@ -741,8 +741,7 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
             ),
             SizedBox(height: vSpacingMedium),
             Padding(
-              padding: EdgeInsets.symmetric(
-                  horizontal: hPadding),
+              padding: EdgeInsets.symmetric(horizontal: hPadding),
               child: _buildMainButton(
                   context, 'Cancel Task', AppColors.dangerButtonColor, () {
                 ticketController.showConfirmationDialog(
@@ -762,48 +761,64 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
             ),
           ],
         ] else ...[
-          Padding(
-            padding: EdgeInsets.symmetric(
-                horizontal: hPadding),
-            child: _buildMainButton(
-                context, 'Reopen', AppColors.statusButtonColor1, () {
-              ticketController.showConfirmationDialog(
-                context,
-                'Reopen',
-                () => ticketController.showActionFormDialog(
+          // MODIFIED: Check user role before showing Reopen/Verify
+          if (_isAdmin) ...[
+            Padding(
+              padding: EdgeInsets.symmetric(horizontal: hPadding),
+              child: _buildMainButton(
+                  context, 'Reopen', AppColors.statusButtonColor1, () {
+                ticketController.showConfirmationDialog(
                   context,
                   'Reopen',
-                  widget.ticket.orderNumber,
-                  widget.ticket.serviceLabel,
-                  orderId,
-                  onSuccess: (response) =>
-                      _updateButtonVisibility('Reopen', response),
-                ),
-              );
-            }),
-          ),
-          SizedBox(height: vSpacingMedium),
-          Padding(
-            padding: EdgeInsets.symmetric(
-                horizontal: hPadding),
-            child: _buildMainButton(
-                context, 'Verify', AppColors.verifyButtonColor, () {
-              ticketController.showConfirmationDialog(
-                context,
-                'Verify',
-                () => ticketController.showActionFormDialog(
+                  () => ticketController.showActionFormDialog(
+                    context,
+                    'Reopen',
+                    widget.ticket.orderNumber,
+                    widget.ticket.serviceLabel,
+                    orderId,
+                    onSuccess: (response) =>
+                        _updateButtonVisibility('Reopen', response),
+                  ),
+                );
+              }),
+            ),
+            SizedBox(height: vSpacingMedium),
+            Padding(
+              padding: EdgeInsets.symmetric(horizontal: hPadding),
+              child: _buildMainButton(
+                  context, 'Verify', AppColors.verifyButtonColor, () {
+                ticketController.showConfirmationDialog(
                   context,
                   'Verify',
-                  widget.ticket.orderNumber,
-                  widget.ticket.serviceLabel,
-                  orderId,
-                  onSuccess: (response) =>
-                      _updateButtonVisibility('Verify', response),
+                  () => ticketController.showActionFormDialog(
+                    context,
+                    'Verify',
+                    widget.ticket.orderNumber,
+                    widget.ticket.serviceLabel,
+                    orderId,
+                    onSuccess: (response) =>
+                        _updateButtonVisibility('Verify', response),
+                  ),
+                );
+              }),
+            ),
+          ] else ...[
+            // Staff sees only "Ticket completed"
+            Padding(
+              padding: EdgeInsets.symmetric(vertical: height * 0.08),
+              child: Center(
+                child: Text(
+                  "Ticket completed",
+                  style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                        color: AppColors.primaryColor,
+                        fontWeight: FontWeight.bold,
+                      ),
                 ),
-              );
-            }),
-          ),
+              ),
+            ),
+          ]
         ],
+
         SizedBox(height: vSpacingLarge),
         Text(
           'Assign Tasks to:',
@@ -840,6 +855,8 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
       ],
     );
   }
+
+
 
   Widget _buildFeedbackSection(BuildContext context) {
     final size = MediaQuery.of(context).size;
